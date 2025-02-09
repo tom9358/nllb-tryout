@@ -15,7 +15,7 @@ def main():
     main_train(corpus_objects)
     
     # # Step 4: Evaluate the model
-    # main_evaluate(corpus_objects, MODEL_SAVE_PATH)
+    main_evaluate(corpus_objects, MODEL_SAVE_PATH)
 
 if __name__ == "__main__":
     main()

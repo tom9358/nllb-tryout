@@ -82,7 +82,7 @@ def swap_synonyms(sentences, synonym_pairs, swap_prob=0.25):
     
     return swapped_sentences
 
-def add_data_variations(xx, yy, source_lang: str, target_lang: str, batch_size):
+def add_data_variations(xx, yy, source_lang: str, target_lang: str, batch_size: int):
     # Randomly swap source and target languages
     if random.getrandbits(1):
         xx, yy, source_lang, target_lang = yy, xx, target_lang, source_lang
@@ -125,7 +125,7 @@ def add_data_variations(xx, yy, source_lang: str, target_lang: str, batch_size):
 
     return xx, yy
 
-def get_batch_pairs(batch_size: int, corpus_objects, dataset="train", max_chars=None, apply_variations=True):
+def get_batch_pairs(batch_size: int, corpus_objects, dataset: str = "train", max_chars=None, apply_variations=True):
     # Calculate weights based on dataset sizes
     weights = []
     for corp in corpus_objects:
