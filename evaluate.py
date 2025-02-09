@@ -1,62 +1,43 @@
 import os
 import pandas as pd
 import matplotlib.pyplot as plt
-from transformers import NllbTokenizer, AutoModelForSeq2SeqLM
 from sacrebleu import corpus_bleu, corpus_chrf
-from tqdm.auto import tqdm
-from config import MODEL_SAVE_PATH, timestamp
+from tokenizer_and_model_setup import setup_model_and_tokenizer, cleanup
+from train import preproc  # Import the preprocessing from train script
+from config import timestamp
 
-# Preprocessing setup
-def get_non_printing_char_replacer(replace_by: str = " "):
-    non_printable_map = {ord(c): replace_by for c in (chr(i) for i in range(sys.maxunicode + 1))
-                         if unicodedata.category(c) in {"C", "Cc", "Cf", "Cs", "Co", "Cn"}
-                        }
-    def replace_non_printing_char(line) -> str:
-        return line.translate(non_printable_map)
-    return replace_non_printing_char
-
-replace_nonprint = get_non_printing_char_replacer(" ")
-
-mpn = MosesPunctNormalizer(lang="en")
-mpn.substitutions = [(re.compile(r), sub) for r, sub in mpn.substitutions]
-
-def preproc(text):
-    clean = mpn.normalize(text)
-    clean = replace_nonprint(clean)
-    clean = unicodedata.normalize("NFKC", clean)
-    return clean
-
-def translate(text, src_lang, tgt_lang, model, tokenizer):
-    preprocessed_text = [preproc(sentence) for sentence in text]
+def translate(text, src_lang: str, tgt_lang: str, model, tokenizer, a=16, b=1.5, max_input_length: int = 200, **kwargs):
+    # Set the source and target languages
     tokenizer.src_lang = src_lang
-    inputs = tokenizer(preprocessed_text, return_tensors="pt", padding=True, truncation=True).to(model.device)
-    outputs = model.generate(**inputs)
-    return [tokenizer.decode(output, skip_special_tokens=True) for output in outputs]
+    tokenizer.tgt_lang = tgt_lang
+    
+    # Prepare inputs
+    inputs = tokenizer(
+        text, 
+        return_tensors='pt', 
+        padding='longest', 
+        truncation=True, 
+        max_length=max_input_length
+    )
+    
+    # Generate translations
+    result = model.generate(
+        **inputs.to(model.device),
+        forced_bos_token_id=tokenizer.convert_tokens_to_ids(tgt_lang),
+        max_new_tokens=int(a + b * inputs.input_ids.shape[1]),
+        **kwargs
+    )
 
-def fix_tokenizer(tokenizer, new_langs):
-    for new_lang in new_langs:
-        old_len = len(tokenizer) - int(new_lang in tokenizer.added_tokens_encoder)
-        tokenizer.lang_code_to_id[new_lang] = old_len - 1
-        tokenizer.id_to_lang_code[old_len - 1] = new_lang
-        tokenizer.fairseq_tokens_to_ids["<mask>"] = len(tokenizer.sp_model) + len(tokenizer.lang_code_to_id) + tokenizer.fairseq_offset
-        tokenizer.fairseq_tokens_to_ids.update(tokenizer.lang_code_to_id)
-        tokenizer.fairseq_ids_to_tokens = {v: k for k, v in tokenizer.fairseq_tokens_to_ids.items()}
-        tokenizer._additional_special_tokens.append(new_lang)
-        tokenizer.added_tokens_encoder = {}
-        tokenizer.added_tokens_decoder = {}
+    # Decode and return the translated text
+    return tokenizer.batch_decode(result, skip_special_tokens=True)
 
-def load_and_evaluate_model(version_path, corpus_objects):
-    model = AutoModelForSeq2SeqLM.from_pretrained(version_path).cuda()
-    tokenizer = NllbTokenizer.from_pretrained(version_path)
-    fix_tokenizer(tokenizer, [corpus.source_lang_long for corpus in corpus_objects])
-    model.resize_token_embeddings(len(tokenizer))
+def evaluate_model(model, tokenizer, corpus_objects):
     results = []
     for corpus in corpus_objects:
         df_validate = corpus.df_validate.sample(n=min(len(corpus.df_validate), 200), random_state=9358)
         src_sentences = df_validate['source_sentence'].tolist()
         tgt_sentences = df_validate['target_sentence'].tolist()
 
-        # Translate with preprocessing
         translations_src_to_tgt = translate(
             text=src_sentences,
             src_lang=corpus.source_lang_long,
@@ -65,14 +46,13 @@ def load_and_evaluate_model(version_path, corpus_objects):
             tokenizer=tokenizer
         )
         translations_tgt_to_src = translate(
-            text=tgt_sentences,
+            text=preproc(tgt_sentences),
             src_lang=corpus.target_lang_long,
             tgt_lang=corpus.source_lang_long,
             model=model,
             tokenizer=tokenizer
         )
 
-        # Calculate BLEU and CHRF metrics
         bleu_src_to_tgt = corpus_bleu(tgt_sentences, [translations_src_to_tgt]).score
         bleu_tgt_to_src = corpus_bleu(src_sentences, [translations_tgt_to_src]).score
         chrf_src_to_tgt = corpus_chrf(tgt_sentences, [translations_src_to_tgt]).score
@@ -87,15 +67,19 @@ def load_and_evaluate_model(version_path, corpus_objects):
 
     return results
 
-def main_evaluate(corpus_objects, model_base_path):
-    MODEL_BASE_PATH = 'models/'
-    model_versions = [folder_name for folder_name in os.listdir(MODEL_BASE_PATH) if model_base_path[len(MODEL_BASE_PATH):] in folder_name]
-
+def main_evaluate(corpus_objects, MODEL_SAVE_PATH, new_lang_nllb):
     all_results = {}
+    model_versions = os.listdir(MODEL_SAVE_PATH)# if model_base_path[len(MODEL_SAVE_PATH):] in folder_name]
+
     for model_name in model_versions:
-        step = model_name[-3:]
+        step = int(model_name)
         print(f"Evaluating model saved at step {step}...")
-        version_results = load_and_evaluate_model(MODEL_BASE_PATH+model_name, corpus_objects)
+        
+        # Setup model and tokenizer
+        model, tokenizer = setup_model_and_tokenizer(MODEL_SAVE_PATH+f"/{model_name}", MODEL_SAVE_PATH, new_lang_long = new_lang_nllb)
+        cleanup()
+
+        version_results = evaluate_model(model, tokenizer, corpus_objects)
         avg_results = pd.DataFrame(version_results).mean().to_dict()
         all_results[step] = avg_results
 

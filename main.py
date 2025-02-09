@@ -1,4 +1,4 @@
-from config import source_langs_tatoeba, source_langs_nllb, MODEL_SAVE_PATH
+from config import source_langs_tatoeba, source_langs_nllb, MODEL_SAVE_PATH, new_lang_nllb
 from downloadtatoeba import main_download
 from corpus import main_corpus
 from train import main_train
@@ -15,7 +15,7 @@ def main():
     main_train(corpus_objects)
     
     # # Step 4: Evaluate the model
-    main_evaluate(corpus_objects, MODEL_SAVE_PATH)
+    main_evaluate(corpus_objects, MODEL_SAVE_PATH, new_lang_nllb)
 
 if __name__ == "__main__":
     main()
