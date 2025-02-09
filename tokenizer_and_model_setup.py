@@ -2,7 +2,7 @@ from transformers import NllbTokenizer, AutoModelForSeq2SeqLM
 from gc import collect
 import torch
 
-def fix_tokenizer(tokenizer, new_lang='gos_Latn'):
+def fix_tokenizer(tokenizer, new_lang: str):
     """
     Add a new language token to the tokenizer vocabulary.
     This should be done each time after its initialization.
@@ -26,7 +26,7 @@ def cleanup():
     collect()
     torch.cuda.empty_cache()
 
-def setup_model_and_tokenizer(modelname, modelpath, new_lang_long='gos_Latn', similar_lang_long='nld_Latn'):
+def setup_model_and_tokenizer(modelname: str, modelpath: str, new_lang_long: str, similar_lang_long: str):
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     
     # Load the tokenizer and fix it

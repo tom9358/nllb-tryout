@@ -82,15 +82,15 @@ def swap_synonyms(sentences, synonym_pairs, swap_prob=0.25):
     
     return swapped_sentences
 
-def add_data_variations(xx, yy, source_lang_long, target_lang_long, batch_size):
+def add_data_variations(xx, yy, source_lang: str, target_lang: str, batch_size):
     # Randomly swap source and target languages
     if random.getrandbits(1):
-        xx, yy, source_lang_long, target_lang_long = yy, xx, target_lang_long, source_lang_long
+        xx, yy, source_lang, target_lang = yy, xx, target_lang, source_lang
 
-    if target_lang_long == 'gos_Latn':
+    if target_lang == 'gos_Latn':
         yy = add_gronings_variations(yy)
         yy = swap_synonyms(yy, synonym_pairs_gos)
-    elif source_lang_long == 'gos_Latn':
+    elif source_lang == 'gos_Latn':
         xx = add_gronings_variations(xx)
         xx = swap_synonyms(xx, synonym_pairs_gos)
 
@@ -125,7 +125,7 @@ def add_data_variations(xx, yy, source_lang_long, target_lang_long, batch_size):
 
     return xx, yy
 
-def get_batch_pairs(batch_size, corpus_objects, dataset="train", max_chars=None, apply_variations=True):
+def get_batch_pairs(batch_size: int, corpus_objects, dataset="train", max_chars=None, apply_variations=True):
     # Calculate weights based on dataset sizes
     weights = []
     for corp in corpus_objects:
@@ -157,12 +157,9 @@ def get_batch_pairs(batch_size, corpus_objects, dataset="train", max_chars=None,
     xx = batch['source_sentence'].tolist()
     yy = batch['target_sentence'].tolist()
 
-    source_lang_long = corpus.source_lang_long
-    target_lang_long = corpus.target_lang_long
-
     # Optional: Apply variations
     if apply_variations:
-        xx, yy = add_data_variations(xx, yy, source_lang_long, target_lang_long, batch_size)
+        xx, yy = add_data_variations(xx, yy, corpus.source_lang, corpus.target_lang, batch_size)
 
     # Trim sentences if max_chars is specified
     if max_chars:
@@ -176,7 +173,7 @@ def get_batch_pairs(batch_size, corpus_objects, dataset="train", max_chars=None,
         xx = [truncate_at_space(x, max_chars) for x in xx]
         yy = [truncate_at_space(y, max_chars) for y in yy]
 
-    return xx, yy, source_lang_long, target_lang_long
+    return xx, yy, corpus.source_lang_nllb, corpus.target_lang_nllb
 
 def train_model(model, tokenizer, corpus_objects):
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
@@ -251,5 +248,5 @@ def train_model(model, tokenizer, corpus_objects):
     plt.close()
 
 def main_train(corpus_objects):
-    model, tokenizer = setup_model_and_tokenizer(config.modelname, config.modelpath)
+    model, tokenizer = setup_model_and_tokenizer(config.modelname, config.modelpath, config.new_lang_nllb, config.similar_lang_nllb)
     train_model(model, tokenizer, corpus_objects)
