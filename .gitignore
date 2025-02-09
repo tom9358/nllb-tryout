@@ -1,8 +1,6 @@
 # custom
 hfacemodels/
-*.bz2
-*.tar
-*.tsv
+tatoeba/
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
