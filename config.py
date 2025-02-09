@@ -17,11 +17,11 @@ timestamp = datetime.now().strftime("%Y%m%d-%H%M%S")
 MODEL_SAVE_PATH = f'models/nllb-{"-".join(source_langs_tatoeba)}-distilled-1.3B-{timestamp}'
 
 # Training parameters
-batch_size = 85
+batch_size = 65
 max_chars = 200
 max_length = 99
 warmup_steps = 100
-training_steps = int(1400 * 8 / batch_size)
+training_steps = int(2000 * 8 / batch_size)
 
 print('Model save path:', MODEL_SAVE_PATH)
 

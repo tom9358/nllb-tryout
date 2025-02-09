@@ -189,6 +189,7 @@ def train_model(model, tokenizer, corpus_objects):
     )
     scheduler = get_constant_schedule_with_warmup(optimizer, num_warmup_steps=config.warmup_steps)
     
+    cleanup()
     losses = []
     model.train()
 
