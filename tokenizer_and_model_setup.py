@@ -4,7 +4,9 @@ import torch
 
 def fix_tokenizer(tokenizer, new_lang='gos_Latn'):
     """
-    Add a new language token to the tokenizer vocabulary
+    Add a new language token to the tokenizer vocabulary.
+    This should be done each time after its initialization.
+    We need transformers<=4.33 for this to work.
     """
     old_len = len(tokenizer) - int(new_lang in tokenizer.added_tokens_encoder)
     tokenizer.lang_code_to_id[new_lang] = old_len - 1
