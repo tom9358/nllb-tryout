@@ -39,8 +39,9 @@ def load_tatoeba(source_lang_tatoeba: str, target_lang_tatoeba: str):
 
 def main_corpus(source_langs_tatoeba, source_langs_nllb):
     corpus_objects = []
-    for i, source_lang_tatoeba, source_lang_nllb in enumerate(zip(source_langs_tatoeba, source_langs_nllb)):
-        for target_lang_tatoeba, target_lang_nllb in zip(source_langs_tatoeba, source_langs_nllb)[i+1:]:
-            print('Setting up parallel corpus for', source_lang_tatoeba, target_lang_tatoeba)
+    zipped_langs = list(zip(source_langs_tatoeba, source_langs_nllb))
+    for i, (source_lang_tatoeba, source_lang_nllb) in enumerate(zipped_langs):
+        for target_lang_tatoeba, target_lang_nllb in zipped_langs[i+1:]:
+            print('Setting up parallel corpus for', source_lang_nllb, target_lang_nllb)
             corpus_objects.append(ParallelCorpus(source_lang_tatoeba, target_lang_tatoeba, source_lang_nllb, target_lang_nllb))
     return corpus_objects
