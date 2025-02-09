@@ -1,7 +1,7 @@
 import torch
 from transformers import Adafactor, get_constant_schedule_with_warmup
 import numpy as np
-from tokenizer_setup import setup_model_and_tokenizer 
+from tokenizer_and_model_setup import setup_model_and_tokenizer 
 import config
 import unicodedata
 
