@@ -8,6 +8,7 @@ source_langs = ["afr", "gos"]
 target_langs = source_langs
 
 # Paths
+TATOEBA_PATH = 'tatoeba'
 modelpath = 'hfacemodels'
 timestamp = datetime.now().strftime("%Y%m%d-%H%M%S")
 MODEL_SAVE_PATH = f'/models/nllb-{"-".join(source_langs)}-distilled-1.3B-{timestamp}'
