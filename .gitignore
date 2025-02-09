@@ -1,3 +1,9 @@
+# custom
+hfacemodels/
+*.bz2
+*.tar
+*.tsv
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
