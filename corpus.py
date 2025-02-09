@@ -8,8 +8,8 @@ class ParallelCorpus:
     def __init__(self, source_lang_tatoeba, target_lang_tatoeba, source_lang_nllb, target_lang_nllb):
         main_download([source_lang_tatoeba, target_lang_tatoeba], redownload=False)
 
-        self.source_lang = source_lang_tatoeba
-        self.target_lang = target_lang_tatoeba
+        self.source_lang_tatoeba = source_lang_tatoeba
+        self.target_lang_tatoeba = target_lang_tatoeba
         self.source_lang_nllb = source_lang_nllb
         self.target_lang_nllb = target_lang_nllb
         self.df = self.load_and_format_parallel_sentences()
