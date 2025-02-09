@@ -1,6 +1,7 @@
 # custom
 hfacemodels/
 tatoeba/
+models/
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
