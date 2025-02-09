@@ -25,13 +25,13 @@ def load_tatoeba(source_lang: str, trt_lang: str, max_pairs: int = None):
     trg_file = os.path.join(TATOEBA_PATH, f'{trt_lang}_sentences.tsv')
     link_file = os.path.join(TATOEBA_PATH, 'links.csv')
 
-    src_sentences = pd.read_csv(src_file, sep="\t", names=["id", "language", source_lang])
-    trg_sentences = pd.read_csv(trg_file, sep="\t", names=["id", "language", trt_lang])
+    src_sentences = pd.read_csv(src_file, sep="\t", names=["id", "language", "source_sentence"])
+    trg_sentences = pd.read_csv(trg_file, sep="\t", names=["id", "language", "target_sentence"])
     link_sentences = pd.read_csv(link_file, sep="\t", names=["origin", "translation"])
 
     df_parallel = (link_sentences
         .merge(trg_sentences, left_on="origin", right_on="id")
-        .merge(src_sentences, left_on="translation", right_on="id")[["origin", "translation", trt_lang, source_lang]]
+        .merge(src_sentences, left_on="translation", right_on="id")[["target_sentence", "source_sentence"]]
     )
 
     if max_pairs and max_pairs <= len(df_parallel):
