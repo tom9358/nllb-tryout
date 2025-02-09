@@ -1,9 +1,13 @@
+import os
 import pandas as pd
 from sklearn.model_selection import train_test_split
-from downloadtatoeba import download_tatoeba  # Ensure the file is downloaded before loading
+from config import TATOEBA_PATH
+from downloadtatoeba import main_download
 
 class ParallelCorpus:
     def __init__(self, source_lang, target_lang):
+        main_download([source_lang, target_lang], redownload=False)
+
         self.source_lang = source_lang
         self.target_lang = target_lang
         self.df = self.load_and_format_parallel_sentences()
@@ -17,18 +21,21 @@ class ParallelCorpus:
         return df_parallel
 
 def load_tatoeba(source_lang: str, trt_lang: str, max_pairs: int = None):
-    src_sentences = pd.read_csv(f'{source_lang}_sentences.tsv', sep="\t", names=["id", "language", source_lang])
-    trg_sentences = pd.read_csv(f'{trt_lang}_sentences.tsv', sep="\t", names=["id", "language", trt_lang])
-    link_sentences = pd.read_csv("links.tar", sep="\t", names=["origin", "translation"])
-    
+    src_file = os.path.join(TATOEBA_PATH, f'{source_lang}_sentences.tsv')
+    trg_file = os.path.join(TATOEBA_PATH, f'{trt_lang}_sentences.tsv')
+    link_file = os.path.join(TATOEBA_PATH, 'links.csv')
+
+    src_sentences = pd.read_csv(src_file, sep="\t", names=["id", "language", source_lang])
+    trg_sentences = pd.read_csv(trg_file, sep="\t", names=["id", "language", trt_lang])
+    link_sentences = pd.read_csv(link_file, sep="\t", names=["origin", "translation"])
+
     df_parallel = (link_sentences
         .merge(trg_sentences, left_on="origin", right_on="id")
         .merge(src_sentences, left_on="translation", right_on="id")[["origin", "translation", trt_lang, source_lang]]
     )
-    
+
     if max_pairs and max_pairs <= len(df_parallel):
         df_parallel = df_parallel.sample(max_pairs)
-    
     return df_parallel[[trt_lang, source_lang]]
 
 def main_corpus(source_langs):

@@ -1,4 +1,4 @@
-from config import source_langs, modelname, modelpath, MODEL_SAVE_PATH
+from config import source_langs, MODEL_SAVE_PATH
 from downloadtatoeba import main_download
 from corpus import main_corpus
 from train import main_train
