@@ -159,7 +159,7 @@ def get_batch_pairs(batch_size: int, corpus_objects, dataset="train", max_chars=
 
     # Optional: Apply variations
     if apply_variations:
-        xx, yy = add_data_variations(xx, yy, corpus.source_lang, corpus.target_lang, batch_size)
+        xx, yy = add_data_variations(xx, yy, corpus.source_lang_nllb, corpus.target_lang_nllb, batch_size)
 
     # Trim sentences if max_chars is specified
     if max_chars:
