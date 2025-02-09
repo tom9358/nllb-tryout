@@ -219,8 +219,8 @@ def train_model(model, tokenizer, corpus_objects):
                 cleanup()
                 print(f"Step {step}, mean loss of last 25 steps: {np.mean(losses[-25:])}")
                 # Save intermediate checkpoints
-                model.save_pretrained(config.MODEL_SAVE_PATH + f"_{step}")
-                tokenizer.save_pretrained(config.MODEL_SAVE_PATH + f"_{step}")
+                model.save_pretrained(config.MODEL_SAVE_PATH + f"/{step}")
+                tokenizer.save_pretrained(config.MODEL_SAVE_PATH + f"/{step}")
 
         except RuntimeError as e:
             optimizer.zero_grad(set_to_none=True)
@@ -229,8 +229,8 @@ def train_model(model, tokenizer, corpus_objects):
             continue
 
     # Final saving
-    model.save_pretrained(config.MODEL_SAVE_PATH + "_final")
-    tokenizer.save_pretrained(config.MODEL_SAVE_PATH + "_final")
+    model.save_pretrained(config.MODEL_SAVE_PATH + f"/{step}")
+    tokenizer.save_pretrained(config.MODEL_SAVE_PATH + f"/{step}")
     
     # Plotting and saving the losses
     plt.figure(figsize=(10, 5))
