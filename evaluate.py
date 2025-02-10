@@ -40,15 +40,15 @@ def evaluate_model(model, tokenizer, corpus_objects):
 
         translations_src_to_tgt = translate(
             text=src_sentences,
-            src_lang=corpus.source_lang_long,
-            tgt_lang=corpus.target_lang_long,
+            src_lang=corpus.source_lang_nllb,
+            tgt_lang=corpus.target_lang_nllb,
             model=model,
             tokenizer=tokenizer
         )
         translations_tgt_to_src = translate(
             text=preproc(tgt_sentences),
-            src_lang=corpus.target_lang_long,
-            tgt_lang=corpus.source_lang_long,
+            src_lang=corpus.target_lang_nllb,
+            tgt_lang=corpus.source_lang_nllb,
             model=model,
             tokenizer=tokenizer
         )
