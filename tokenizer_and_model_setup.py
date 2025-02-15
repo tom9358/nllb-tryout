@@ -26,7 +26,7 @@ def cleanup():
     collect()
     torch.cuda.empty_cache()
 
-def setup_model_and_tokenizer(modelname: str, modelpath: str = None, new_lang_long: str = None, similar_lang_long: str = None):
+def setup_model_and_tokenizer(modelname: str, modelpath: str = None, new_lang: str = None, similar_lang: str = None):
     """
     Set up the model and tokenizer for use. This function handles both loading models from HuggingFace and local models,
     adjusts the tokenizer so a new language is supported and optionally sets embedding weights to those of a similar language.
@@ -34,26 +34,30 @@ def setup_model_and_tokenizer(modelname: str, modelpath: str = None, new_lang_lo
     Args:
     - modelname: The model identifier or path.
     - modelpath: The local directory path for caching/loading models.
-    - new_lang_long: Optional; The new language code to add.
-    - similar_lang_long: Optional; If provided, the similar language's weights initialize the new language.
+    - new_lang: Optional; The new language code to add. (In nllb format, e.g. 'gos_Latn')
+    - similar_lang: Optional; If provided, the similar language's weights initialize the new language. (nllb format)
     """
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-    
-    # Load the tokenizer and always fix it if new language is provided
+
+    # Load the tokenizer
     tokenizer = NllbTokenizer.from_pretrained(modelname, cache_dir=modelpath)
-    if new_lang_long is not None:
-        fix_tokenizer(tokenizer, new_lang=new_lang_long)
-        cleanup()
     
+    # Fix the tokenizer if a new language is provided
+    if new_lang:
+        fix_tokenizer(tokenizer, new_lang)
+        cleanup()
+    else:
+        print('Fyi: No new language added')
+
     # Load the model
     model = AutoModelForSeq2SeqLM.from_pretrained(modelname, cache_dir=modelpath, device_map={"": str(device)})
     
-    # Only adjust model weights if both new_lang_long and similar_lang_long are provided
-    if new_lang_long is not None and similar_lang_long is not None:
-        added_token_id = tokenizer.convert_tokens_to_ids(new_lang_long)
-        similar_lang_id = tokenizer.convert_tokens_to_ids(similar_lang_long)
-
-        # No need to resize if local models don't need weight adjustment
+    # Check for the second situation: adding a new language with optional weights initialization
+    if new_lang and similar_lang:
+        added_token_id = tokenizer.convert_tokens_to_ids(new_lang)
+        similar_lang_id = tokenizer.convert_tokens_to_ids(similar_lang)
+        # Adjust model weights
         model.model.shared.weight.data[added_token_id] = model.model.shared.weight.data[similar_lang_id]
     
+    model.resize_token_embeddings(len(tokenizer)) 
     return model, tokenizer
