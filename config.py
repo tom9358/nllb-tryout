@@ -25,29 +25,33 @@ training_steps = int(2000 * 8 / batch_size)
 
 print('Model save path:', MODEL_SAVE_PATH)
 
+import os
+
 def save_config_to_file(save_path):
     if not os.path.exists(save_path):
         os.makedirs(save_path)
 
+    config_params = [
+        f"Model name: {modelname}",
+        f"Timestamp: {timestamp}",
+        f"TATOEBA_PATH: {TATOEBA_PATH}",
+        f"MODEL_SAVE_PATH: {MODEL_SAVE_PATH}",
+        f"Model path: {modelpath}",
+        f"Source languages (Tatoeba): {source_langs_tatoeba}",
+        f"Source languages (NLLB): {source_langs_nllb}",
+        f"New language (NLLB): {new_lang_nllb}",
+        f"Similar language (NLLB): {similar_lang_nllb}",
+        f"Batch size: {batch_size}",
+        f"Max chars: {max_chars}",
+        f"Max length: {max_length}",
+        f"Warmup steps: {warmup_steps}",
+        f"Training steps: {training_steps}"
+    ]
+
+    config_content = "\n".join(config_params)
+
     config_file_path = os.path.join(save_path, 'config.txt')
     with open(config_file_path, 'w', encoding='utf-8') as f:
-        f.write(
-            f"""
-            Model name: {modelname}
-            Source languages (Tatoeba): {source_langs_tatoeba}
-            Source languages (NLLB): {source_langs_nllb}
-            New language (NLLB): {new_lang_nllb}
-            Similar language (NLLB): {similar_lang_nllb}
-            TATOEBA_PATH: {TATOEBA_PATH}
-            Model path: {modelpath}
-            Timestamp: {timestamp}
-            MODEL_SAVE_PATH: {MODEL_SAVE_PATH}
-            Batch size: {batch_size}
-            Max chars: {max_chars}
-            Max length: {max_length}
-            Warmup steps: {warmup_steps}
-            Training steps: {training_steps}
-            """.strip()
-        )
+        f.write(config_content)
 
 save_config_to_file(MODEL_SAVE_PATH)
