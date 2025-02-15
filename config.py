@@ -4,7 +4,7 @@ import locale
 locale.getpreferredencoding = lambda: "UTF-8"
 
 # Model configuration
-modelname = 'facebook/nllb-200-distilled-1.3B'
+modelname = 'facebook/nllb-200-distilled-600M' #'facebook/nllb-200-distilled-1.3B'
 source_langs_tatoeba = ["nld", "gos"]
 source_langs_nllb = [lang+'_Latn' for lang in source_langs_tatoeba]
 new_lang_nllb = 'gos_Latn'
@@ -14,7 +14,7 @@ similar_lang_nllb = 'nld_Latn'
 TATOEBA_PATH = 'tatoeba'
 modelpath = 'hfacemodels'
 timestamp = datetime.now().strftime("%Y%m%d-%H%M%S")
-MODEL_SAVE_PATH = f'models/{modelname.split('/')[-1]}-{"-".join(source_langs_tatoeba)}-{timestamp}'
+MODEL_SAVE_PATH = f'models/{modelname.split("/")[-1]}-{"-".join(source_langs_tatoeba)}-{timestamp}'
 
 # Training parameters
 batch_size = 60
