@@ -26,7 +26,7 @@ def cleanup():
     collect()
     torch.cuda.empty_cache()
 
-def setup_model_and_tokenizer(modelname: str, modelpath: str, new_lang_long: str = None, similar_lang_long: str = None):
+def setup_model_and_tokenizer(modelname: str, modelpath: str = None, new_lang_long: str = None, similar_lang_long: str = None):
     """
     Set up the model and tokenizer for use. This function handles both loading models from HuggingFace and local models,
     adjusts the tokenizer so a new language is supported and optionally sets embedding weights to those of a similar language.
