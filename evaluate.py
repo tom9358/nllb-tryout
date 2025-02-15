@@ -62,11 +62,17 @@ def evaluate_model(model, tokenizer, corpus_objects):
 
 def main_evaluate(corpus_objects, MODEL_SAVE_PATH, new_lang_nllb):
     all_results = {}
-    model_versions = [d for d in os.listdir(MODEL_SAVE_PATH) if os.path.isdir(os.path.join(MODEL_SAVE_PATH, d))]
-    for model_name in sorted(model_versions):
+    model_versions = [
+        d for d in os.listdir(MODEL_SAVE_PATH)
+        if os.path.isdir(os.path.join(MODEL_SAVE_PATH, d))
+    ]
+    # Sort model_versions numerically
+    model_versions.sort(key=lambda x: int(x))
+    for model_name in model_versions:
         print(f"Evaluating model saved at step {model_name}...")
-        model, tokenizer = setup_model_and_tokenizer(MODEL_SAVE_PATH+f"/{model_name}", new_lang = new_lang_nllb)
         cleanup()
+        model_path = os.path.join(MODEL_SAVE_PATH, model_name)
+        model, tokenizer = setup_model_and_tokenizer(model_path, new_lang=new_lang_nllb)
         version_results = evaluate_model(model, tokenizer, corpus_objects)
         avg_results = pd.DataFrame(version_results).mean().to_dict()
         all_results[model_name] = avg_results
@@ -76,7 +82,7 @@ def main_evaluate(corpus_objects, MODEL_SAVE_PATH, new_lang_nllb):
     df_results.reset_index(inplace=True)
     
     csv_filename = os.path.join(evaldata_folder, f'overfitting_investigation_{timestamp}.csv')
-    df_results.to_csv(csv_filename)
+    df_results.to_csv(csv_filename, index=False)
     
     plot_results(df_results, "bleu_src_to_tgt", "bleu_tgt_to_src", "BLEU Score", timestamp)
     plot_results(df_results, "chrf_src_to_tgt", "chrf_tgt_to_src", "CHRF Score", timestamp)
