@@ -65,7 +65,6 @@ def swap_synonyms(sentences, synonym_pairs, swap_prob=0.25):
             # Check each synonym pair
             for word1, word2 in synonym_pairs:
                 if word == word1 and random.random() < swap_prob:
-                    # print(sent)
                     new_words.append(word2)  # Replace with the second variant
                     replaced = True
                     break
@@ -218,7 +217,6 @@ def train_model(model, tokenizer, corpus_objects):
             if step % 25 == 0 and step > 0:
                 # Ensure memory is managed properly
                 cleanup()
-                print(f"Step {step}, mean loss of last 25 steps: {np.mean(losses[-25:])}")
                 # Save intermediate checkpoints
                 model.save_pretrained(config.MODEL_SAVE_PATH + f"/{step}")
                 tokenizer.save_pretrained(config.MODEL_SAVE_PATH + f"/{step}")
