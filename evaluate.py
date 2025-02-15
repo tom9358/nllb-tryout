@@ -69,19 +69,18 @@ def evaluate_model(model, tokenizer, corpus_objects):
 
 def main_evaluate(corpus_objects, MODEL_SAVE_PATH, new_lang_nllb):
     all_results = {}
-    model_versions = os.listdir(MODEL_SAVE_PATH)# if model_base_path[len(MODEL_SAVE_PATH):] in folder_name]
-
-    for model_name in model_versions:
-        step = int(model_name)
-        print(f"Evaluating model saved at step {step}...")
+    model_versions = [d for d in os.listdir(MODEL_SAVE_PATH) if os.path.isdir(os.path.join(MODEL_SAVE_PATH, d))]
+    
+    for model_name in sorted(model_versions):
+        print(f"Evaluating model saved at step {model_name}...")
         
         # Setup model and tokenizer
-        model, tokenizer = setup_model_and_tokenizer(MODEL_SAVE_PATH+f"/{model_name}", MODEL_SAVE_PATH, new_lang_long = new_lang_nllb)
+        model, tokenizer = setup_model_and_tokenizer(MODEL_SAVE_PATH+f"/{model_name}", new_lang_long = new_lang_nllb)
         cleanup()
 
         version_results = evaluate_model(model, tokenizer, corpus_objects)
         avg_results = pd.DataFrame(version_results).mean().to_dict()
-        all_results[step] = avg_results
+        all_results[model_name] = avg_results
 
     df_results = pd.DataFrame.from_dict(all_results, orient="index")
     df_results.index.name = "Training Steps"
