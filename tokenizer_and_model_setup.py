@@ -37,7 +37,8 @@ def setup_model_and_tokenizer(modelname: str, modelpath: str = None, new_lang: s
     - new_lang: Optional; The new language code to add. (In nllb format, e.g. 'gos_Latn')
     - similar_lang: Optional; If provided, the similar language's weights initialize the new language. (nllb format)
     """
-    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+    print("torch.cuda.is_available():",torch.cuda.is_available())
+    device = torch.device("cuda")# if torch.cuda.is_available() else "cpu")
 
     # Load the tokenizer
     tokenizer = NllbTokenizer.from_pretrained(modelname, cache_dir=modelpath)
@@ -58,6 +59,7 @@ def setup_model_and_tokenizer(modelname: str, modelpath: str = None, new_lang: s
         similar_lang_id = tokenizer.convert_tokens_to_ids(similar_lang)
         # Adjust model weights
         model.model.shared.weight.data[added_token_id] = model.model.shared.weight.data[similar_lang_id]
+        print(f'Initialized weights for {new_lang} equal to those of {similar_lang}')
     
     model.resize_token_embeddings(len(tokenizer)) 
     return model, tokenizer
