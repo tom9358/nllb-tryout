@@ -19,3 +19,5 @@ dependencies:
   - sacrebleu
   - transformers==4.33
   - scikit-learn
+  - sentencepiece
+  - accelerate
