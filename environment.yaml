@@ -1,0 +1,21 @@
+# Environment setup file for Python 3.11 with Conda and pip packages.
+# Run the command below to create the environment:
+# conda env create -f environment.yaml
+
+name: nllbtatoebat
+channels:
+  - pytorch
+  - nvidia
+  - defaults
+dependencies:
+  - python>=3.10,<3.12
+  - pytorch==2.5.1
+  - torchvision==0.20.1 # pytorch.org says to install these too
+  - torchaudio==2.5.1 # but idk if that's really needed
+  - pytorch-cuda=12.1
+  - pandas
+  - tqdm
+  - matplotlib
+  - sacrebleu
+  - transformers==4.33
+  - scikit-learn
