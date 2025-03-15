@@ -4,7 +4,7 @@ import locale
 locale.getpreferredencoding = lambda: "UTF-8"
 
 # Model configuration
-modelname = 'facebook/nllb-200-distilled-600M' #'facebook/nllb-200-distilled-1.3B'
+modelname = 'facebook/nllb-200-distilled-1.3B' #'facebook/nllb-200-distilled-600M'
 source_langs_tatoeba = ["nld", "gos"]
 source_langs_nllb = [lang+'_Latn' for lang in source_langs_tatoeba]
 new_lang_nllb = 'gos_Latn'
@@ -21,7 +21,7 @@ batch_size = 60
 max_chars = 200 # can be set to None
 max_length = 99 # tokens
 warmup_steps = 100
-training_steps = int(2000 * 8 / batch_size)
+training_steps = int(3000 * 8 / batch_size)
 
 print('Model save path:', MODEL_SAVE_PATH)
 
