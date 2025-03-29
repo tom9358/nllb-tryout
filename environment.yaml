@@ -17,7 +17,7 @@ dependencies:
   - tqdm
   - matplotlib
   - sacrebleu
-  - transformers==4.33
+  - transformers==4.33.3
   - scikit-learn
   - sentencepiece
   - accelerate
