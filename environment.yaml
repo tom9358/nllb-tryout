@@ -21,3 +21,5 @@ dependencies:
   - scikit-learn
   - sentencepiece
   - accelerate
+  - requests
+  - sacremoses
