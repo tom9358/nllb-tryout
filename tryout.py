@@ -20,7 +20,7 @@ def translate(text, src_lang: str, tgt_lang: str, model, tokenizer, a=16, b=1.5,
     )
     return tokenizer.batch_decode(result, skip_special_tokens=True)
 
-def main_tryout(model_save_path, new_lang_nllb):
+def main_tryout(model_save_path: str, new_lang_nllb: str, inputlist: list = None):
     # Load the latest model
     model_versions = [
         d for d in os.listdir(model_save_path)
@@ -29,20 +29,28 @@ def main_tryout(model_save_path, new_lang_nllb):
     model_versions.sort(key=lambda x: int(x))
     latest_model = model_versions[-1]
     model_path = os.path.join(model_save_path, latest_model)
-    
     print(f"Loading model from {model_path}...")
     model, tokenizer = setup_model_and_tokenizer(model_path, new_lang=new_lang_nllb)
     print("Model loaded successfully.")
 
     # Set default languages
-    src_lang = 'nld'
-    tgt_lang = 'gos'
+    src_lang = 'nld_Latn'
+    tgt_lang = 'gos_Latn'
+    print("Enter text to translate. Type 'END' to exit or use 'LANG src tgt' to change languages. Format e.g. nld_Latn gos_Latn")
 
-    print("Enter text to translate. Type 'END' to exit or use 'LANG src tgt' to change languages.")
+    input_iterator = iter(inputlist) if inputlist else None
 
     while True:
-        user_input = input(f"Translate ({src_lang} -> {tgt_lang}): ").strip()
-        
+        if input_iterator:
+            try:
+                user_input = next(input_iterator)
+                print(f"Translate ({src_lang} -> {tgt_lang}): {user_input}")
+            except StopIteration:
+                input_iterator = None  # Switch to interactive mode after list is exhausted
+                continue
+        else:
+            user_input = input(f"Translate ({src_lang} -> {tgt_lang}): ")
+
         if user_input == "END":
             print("Exiting translation tool.")
             break
