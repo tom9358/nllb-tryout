@@ -175,8 +175,9 @@ def get_batch_pairs(batch_size: int, corpus_objects, dataset: str = "train", max
     return xx, yy, corpus.source_lang_nllb, corpus.target_lang_nllb
 
 def train_model(model, tokenizer, corpus_objects):
-    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-    model.to(device)
+    # device = torch.device("cuda" if torch.cuda.is_available() else "cpu") #model should already be on the right device
+    # model.to(device)
+    device = next(model.parameters()).device
 
     optimizer = Adafactor(
         [p for p in model.parameters() if p.requires_grad],
