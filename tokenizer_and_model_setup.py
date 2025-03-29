@@ -38,7 +38,7 @@ def setup_model_and_tokenizer(modelname: str, modelpath: str = None, new_lang: s
     - similar_lang: Optional; If provided, the similar language's weights initialize the new language. (nllb format)
     """
     print("torch.cuda.is_available():",torch.cuda.is_available())
-    device = torch.device("cuda")# if torch.cuda.is_available() else "cpu")
+    device = torch.device("cuda:1")# if torch.cuda.is_available() else "cpu")
 
     # Load the tokenizer
     tokenizer = NllbTokenizer.from_pretrained(modelname, cache_dir=modelpath)
