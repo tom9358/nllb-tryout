@@ -1,6 +1,7 @@
 import os
 from tokenizer_and_model_setup import setup_model_and_tokenizer, cleanup
-from config import MODEL_SAVE_PATH, new_lang_nllb
+from config import config
+
 
 def translate(text, src_lang: str, tgt_lang: str, model, tokenizer, a=16, b=1.5, max_input_length: int = 200, **kwargs):
     tokenizer.src_lang = src_lang
@@ -82,4 +83,4 @@ def main_tryout(model_save_path: str, new_lang_nllb: str, inputlist: list = None
     cleanup()
 
 if __name__ == "__main__":
-    main_tryout(MODEL_SAVE_PATH, new_lang_nllb)
+    main_tryout(config["MODEL_SAVE_PATH"], config["new_lang_nllb"])

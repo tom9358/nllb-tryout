@@ -1,7 +1,7 @@
 import os
 import pandas as pd
 from sklearn.model_selection import train_test_split
-from config import TATOEBA_PATH
+from config import config
 from downloadtatoeba import main_download
 
 class ParallelCorpus:
@@ -22,9 +22,9 @@ class ParallelCorpus:
         return df_parallel
 
 def load_tatoeba(source_lang_tatoeba: str, target_lang_tatoeba: str):
-    src_file = os.path.join(TATOEBA_PATH, f'{source_lang_tatoeba}_sentences.tsv')
-    trg_file = os.path.join(TATOEBA_PATH, f'{target_lang_tatoeba}_sentences.tsv')
-    link_file = os.path.join(TATOEBA_PATH, 'links.csv')
+    src_file = os.path.join(config["TATOEBA_PATH"], f'{source_lang_tatoeba}_sentences.tsv')
+    trg_file = os.path.join(config["TATOEBA_PATH"], f'{target_lang_tatoeba}_sentences.tsv')
+    link_file = os.path.join(config["TATOEBA_PATH"], 'links.csv')
 
     src_sentences = pd.read_csv(src_file, sep="\t", header=None, names=["id", "language", "source_sentence"])
     trg_sentences = pd.read_csv(trg_file, sep="\t", header=None, names=["id", "language", "target_sentence"])

@@ -4,7 +4,8 @@ import matplotlib.pyplot as plt
 from sacrebleu import corpus_bleu, corpus_chrf
 from tokenizer_and_model_setup import setup_model_and_tokenizer, cleanup
 from train import preproc  # Import the preprocessing from train script
-from config import timestamp
+from config import config
+timestamp = config["timestamp"]
 
 # Ensure the evaldata folder exists
 evaldata_folder = 'evaldata'

@@ -4,7 +4,7 @@ import torch
 from transformers import Adafactor, get_constant_schedule_with_warmup
 import numpy as np
 from tokenizer_and_model_setup import setup_model_and_tokenizer, cleanup
-import config
+from config import config
 import random
 from sacremoses import MosesPunctNormalizer
 import unicodedata
@@ -81,6 +81,8 @@ def swap_synonyms(sentences, synonym_pairs, swap_prob=0.25):
     
     return swapped_sentences
 
+common_tatoeba_name = ["Tom", "Mary", "Sami", "John", "Maria"]
+
 def add_data_variations(xx, yy, source_lang: str, target_lang: str, batch_size: int):
     # Randomly swap source and target languages
     if random.getrandbits(1):
@@ -95,11 +97,12 @@ def add_data_variations(xx, yy, source_lang: str, target_lang: str, batch_size: 
 
     # Create more name variation (e.g., replacing "Tom")
     for i in range(len(xx)):
-        if "Tom" in xx[i] and "Tom" in yy[i]:
-            namelist = ['Tim', 'Sam', 'Ben', 'Nick', 'Ed', 'Noah', 'Joey', 'Rick', 'Rob', 'Mick', 'Mike', 'Michael', 'Tom', 'Adam', 'Arnold', 'Lucas', 'Robin', 'James', 'Jim']
-            othername = random.choice(namelist)
-            xx[i] = xx[i].replace("Tom", othername)
-            yy[i] = yy[i].replace("Tom", othername)
+        for name in common_tatoeba_name:
+            if name in xx[i] and name in yy[i]:
+                namelist = ['Tom', 'Sam', 'Ben', 'Nick', 'Ed', 'Noah', 'Joey', 'Rick', 'Rob', 'Mick', 'Mike', 'Michael', 'Tim', 'Adam', 'Arnold', 'Lucas', 'Robin', 'James', 'Jim', 'Mary', 'Maria', 'Sami', 'John']
+                othername = random.choice(namelist)
+                xx[i] = xx[i].replace(name, othername)
+                yy[i] = yy[i].replace(name, othername)
 
     # Small chance of uppercase transformation
     if not random.getrandbits(5):
@@ -187,23 +190,23 @@ def train_model(model, tokenizer, corpus_objects):
         clip_threshold=1.0,
         weight_decay=1e-3,
     )
-    scheduler = get_constant_schedule_with_warmup(optimizer, num_warmup_steps=config.warmup_steps)
+    scheduler = get_constant_schedule_with_warmup(optimizer, num_warmup_steps=config["warmup_steps"])
     
     cleanup()
     losses = []
     model.train()
 
     from tqdm.auto import trange
-    tq = trange(config.training_steps, desc="Training Steps")
+    tq = trange(config["training_steps"], desc="Training Steps")
 
     for step in tq:
         try:
-            xx, yy, lang1, lang2 = get_batch_pairs(config.batch_size, corpus_objects, max_chars=config.max_chars)
+            xx, yy, lang1, lang2 = get_batch_pairs(config["batch_size"], corpus_objects, max_chars=config["max_chars"])
             
             tokenizer.src_lang = lang1
-            x = tokenizer(xx, return_tensors='pt', padding='longest', truncation=True, max_length=config.max_length).to(device)
+            x = tokenizer(xx, return_tensors='pt', padding='longest', truncation=True, max_length=config["max_length"]).to(device)
             tokenizer.src_lang = lang2
-            y = tokenizer(yy, return_tensors='pt', padding='longest', truncation=True, max_length=config.max_length).to(device)
+            y = tokenizer(yy, return_tensors='pt', padding='longest', truncation=True, max_length=config["max_length"]).to(device)
             y.input_ids[y.input_ids == tokenizer.pad_token_id] = -100
             
             loss = model(**x, labels=y.input_ids).loss
@@ -219,8 +222,8 @@ def train_model(model, tokenizer, corpus_objects):
                 # Ensure memory is managed properly
                 cleanup()
                 # Save intermediate checkpoints
-                model.save_pretrained(config.MODEL_SAVE_PATH + f"/{step}")
-                tokenizer.save_pretrained(config.MODEL_SAVE_PATH + f"/{step}")
+                # model.save_pretrained(config["MODEL_SAVE_PATH"] + f"/{step}")
+                # tokenizer.save_pretrained(config["MODEL_SAVE_PATH"] + f"/{step}")
 
         except RuntimeError as e:
             optimizer.zero_grad(set_to_none=True)
@@ -229,8 +232,8 @@ def train_model(model, tokenizer, corpus_objects):
             continue
 
     # Final saving
-    model.save_pretrained(config.MODEL_SAVE_PATH + f"/{step}")
-    tokenizer.save_pretrained(config.MODEL_SAVE_PATH + f"/{step}")
+    model.save_pretrained(config["MODEL_SAVE_PATH"] + f"/{step}")
+    tokenizer.save_pretrained(config["MODEL_SAVE_PATH"] + f"/{step}")
     
     # Plotting and saving the losses
     plt.figure(figsize=(10, 5))
@@ -243,10 +246,10 @@ def train_model(model, tokenizer, corpus_objects):
     plt.legend()
     
     # Save the plot as an image
-    loss_plot_path = config.MODEL_SAVE_PATH + "_final_loss_plot.png"
+    loss_plot_path = config["MODEL_SAVE_PATH"] + "_final_loss_plot.png"
     plt.savefig(loss_plot_path)
     plt.close()
 
 def main_train(corpus_objects):
-    model, tokenizer = setup_model_and_tokenizer(config.modelname, config.modelpath, config.new_lang_nllb, config.similar_lang_nllb)
+    model, tokenizer = setup_model_and_tokenizer(config["modelname"], config["modelpath"], config["new_lang_nllb"], config["similar_lang_nllb"])
     train_model(model, tokenizer, corpus_objects)

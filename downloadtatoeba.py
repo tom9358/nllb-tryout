@@ -4,7 +4,8 @@ import shutil
 import bz2
 import tarfile
 from tqdm.auto import tqdm
-from config import TATOEBA_PATH
+from config import config
+
 
 def _ensure_directory(path: str):
     os.makedirs(path, exist_ok=True)
@@ -22,25 +23,25 @@ def download_and_unpack_bz2(link: str, output_file: str):
 
 def download_and_unpack_links_file(redownload: bool = False):
     links_file_url = r'https://downloads.tatoeba.org/exports/links.tar.bz2'
-    tar_file = os.path.join(TATOEBA_PATH, "links.tar")
-    csv_file = os.path.join(TATOEBA_PATH, "links.csv")
+    tar_file = os.path.join(config["TATOEBA_PATH"], "links.tar")
+    csv_file = os.path.join(config["TATOEBA_PATH"], "links.csv")
 
     if redownload or not os.path.exists(csv_file):
-        _ensure_directory(TATOEBA_PATH)
+        _ensure_directory(config["TATOEBA_PATH"])
         download_and_unpack_bz2(links_file_url, tar_file)
 
         with tarfile.open(tar_file, "r") as tar:
-            tar.extractall(TATOEBA_PATH)
-        print(f'Links CSV unpacked to {TATOEBA_PATH}.')
+            tar.extractall(config["TATOEBA_PATH"])
+        print(f'Links CSV unpacked to {config["TATOEBA_PATH"]}.')
     else:
         print(f'Links CSV already exists. Skipping download and unpacking.')
 
 def download_and_unpack_tatoeba(source_lang: str, redownload: bool = False):
     sentence_file_url = rf'https://downloads.tatoeba.org/exports/per_language/{source_lang}/{source_lang}_sentences.tsv.bz2'
-    unpacked_file = os.path.join(TATOEBA_PATH, f"{source_lang}_sentences.tsv")
+    unpacked_file = os.path.join(config["TATOEBA_PATH"], f"{source_lang}_sentences.tsv")
 
     if redownload or not os.path.exists(unpacked_file):
-        _ensure_directory(TATOEBA_PATH)
+        _ensure_directory(config["TATOEBA_PATH"])
         download_and_unpack_bz2(sentence_file_url, unpacked_file)
     else:
         print(f'{unpacked_file} already exists. Skipping download and unpacking.')
