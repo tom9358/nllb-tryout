@@ -5,11 +5,7 @@ from sacrebleu import corpus_bleu, corpus_chrf
 from tokenizer_and_model_setup import setup_model_and_tokenizer, cleanup
 from train import preproc  # Import the preprocessing from train script
 from config import config
-timestamp = config["timestamp"]
 
-# Ensure the evaldata folder exists
-evaldata_folder = 'evaldata'
-os.makedirs(evaldata_folder, exist_ok=True)
 
 def translate(text, src_lang: str, tgt_lang: str, model, tokenizer, a=16, b=1.5, max_input_length: int = 200, **kwargs):
     tokenizer.src_lang = src_lang
@@ -28,6 +24,7 @@ def translate(text, src_lang: str, tgt_lang: str, model, tokenizer, a=16, b=1.5,
         **kwargs
     )
     return tokenizer.batch_decode(result, skip_special_tokens=True)
+
 
 def evaluate_model(model, tokenizer, corpus_objects):
     results = []
@@ -61,7 +58,12 @@ def evaluate_model(model, tokenizer, corpus_objects):
         })
     return results
 
+
 def main_evaluate(corpus_objects, MODEL_SAVE_PATH, new_lang_nllb):
+    timestamp = config["timestamp"]
+    evaldata_folder = 'evaldata'
+    os.makedirs(evaldata_folder, exist_ok=True)
+    
     all_results = {}
     model_versions = [
         d for d in os.listdir(MODEL_SAVE_PATH)
@@ -85,10 +87,11 @@ def main_evaluate(corpus_objects, MODEL_SAVE_PATH, new_lang_nllb):
     csv_filename = os.path.join(evaldata_folder, f'overfitting_investigation_{timestamp}.csv')
     df_results.to_csv(csv_filename, index=False)
     
-    plot_results(df_results, "bleu_src_to_tgt", "bleu_tgt_to_src", "BLEU Score", timestamp)
-    plot_results(df_results, "chrf_src_to_tgt", "chrf_tgt_to_src", "CHRF Score", timestamp)
+    plot_results(df_results, "bleu_src_to_tgt", "bleu_tgt_to_src", "BLEU Score", evaldata_folder, timestamp)
+    plot_results(df_results, "chrf_src_to_tgt", "chrf_tgt_to_src", "CHRF Score", evaldata_folder, timestamp)
 
-def plot_results(df_results, metric1, metric2, title, timestamp):
+
+def plot_results(df_results, metric1, metric2, title, evaldata_folder, timestamp):
     plt.figure(figsize=(12, 6))
     for metric in [metric1, metric2]:
         plt.plot(df_results["Training Steps"], df_results[metric], label=metric)
