@@ -24,7 +24,7 @@ config = {
     'warmup_steps': 100,
     'training_steps': int(3000 * 8 / 30),
 }
-config['MODEL_SAVE_PATH'] = f'models/{config["modelname"].split("/")[-1]}-{"-".join(config["source_langs_tatoeba"])}-{config["timestamp"]}'
+config['MODEL_SAVE_PATH'] = f'checkpoints/{config["modelname"].split("/")[-1]}-{"-".join(config["source_langs_tatoeba"])}-{config["timestamp"]}'
 
 def save_config_to_file(save_path):
     """
