@@ -13,7 +13,8 @@ config = {
     'similar_lang_nllb': 'nld_Latn',
     
     # Paths
-    'TATOEBA_PATH': 'tatoeba',
+    'DATA_ROOT_PATH': 'data', # Root for all data
+    'TATOEBA_PATH': os.path.join('data', 'tatoeba'), # Relative to DATA_ROOT_PATH
     'modelpath': 'hfacemodels',
     'timestamp': datetime.now().strftime("%Y%m%d-%H%M%S"),
     

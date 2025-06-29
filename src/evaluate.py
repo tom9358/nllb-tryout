@@ -61,7 +61,7 @@ def evaluate_model(model, tokenizer, corpus_objects):
 
 def main_evaluate(corpus_objects, MODEL_SAVE_PATH, new_lang_nllb):
     timestamp = config["timestamp"]
-    evaldata_folder = 'evaldata'
+    evaldata_folder = 'eval_results'
     os.makedirs(evaldata_folder, exist_ok=True)
     
     all_results = {}
