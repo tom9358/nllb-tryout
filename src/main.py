@@ -11,13 +11,13 @@ def main():
     main_download(config["source_langs_tatoeba"])
     
     # Step 2: Load and create parallel corpus
-    corpus_objects = main_corpus(config["source_langs_tatoeba"], config["source_langs_nllb"])
+    # corpus_objects = main_corpus(config["source_langs_tatoeba"], config["source_langs_nllb"])
     
     # Step 3: Train the model
-    main_train(corpus_objects)
+    # main_train(corpus_objects)
     
     # Step 3.5: Try out the model! Evaluation by means of vibes
-    main_tryout(config["MODEL_SAVE_PATH"], config["new_lang_nllb"])
+    # main_tryout(config["MODEL_SAVE_PATH"], config["new_lang_nllb"])
     
     # Step 4: Evaluate the model
     # main_evaluate(corpus_objects, config["MODEL_SAVE_PATH"], config["new_lang_nllb"])
