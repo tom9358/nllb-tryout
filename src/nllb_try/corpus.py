@@ -1,8 +1,8 @@
 import os
 import pandas as pd
 from sklearn.model_selection import train_test_split
-from config import config
-from downloadtatoeba import main_download
+from .config import config
+from .downloadtatoeba import main_download
 
 class ParallelCorpus:
     def __init__(self, source_lang_tatoeba, target_lang_tatoeba, source_lang_nllb, target_lang_nllb):

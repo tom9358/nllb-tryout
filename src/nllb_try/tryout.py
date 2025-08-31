@@ -1,6 +1,6 @@
 import os
-from tokenizer_and_model_setup import setup_model_and_tokenizer, cleanup
-from config import config
+from .tokenizer_and_model_setup import setup_model_and_tokenizer, cleanup
+from .config import config
 
 
 def translate(text, src_lang: str, tgt_lang: str, model, tokenizer, a=16, b=1.5, max_input_length: int = 200, **kwargs):

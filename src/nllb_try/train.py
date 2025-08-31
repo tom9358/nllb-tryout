@@ -3,8 +3,8 @@ import typing
 import torch
 from transformers import Adafactor, get_constant_schedule_with_warmup
 import numpy as np
-from tokenizer_and_model_setup import setup_model_and_tokenizer, cleanup
-from config import config
+from .tokenizer_and_model_setup import setup_model_and_tokenizer, cleanup
+from .config import config
 import random
 from sacremoses import MosesPunctNormalizer
 import unicodedata
