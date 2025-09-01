@@ -21,7 +21,13 @@ def translate(text, src_lang: str, tgt_lang: str, model, tokenizer, a=16, b=1.5,
     )
     return tokenizer.batch_decode(result, skip_special_tokens=True)
 
-def main_tryout(model_save_path: str, new_lang_nllb: str, inputlist: list = None):
+def translate_sentences(
+    model_save_path: str,
+    new_lang_nllb: str,
+    sentences_to_translate: list,
+    src_lang: str = 'nld_Latn',
+    tgt_lang: str = 'gos_Latn'
+) -> list:
     # Load the latest model
     model_versions = [
         d for d in os.listdir(model_save_path)
@@ -34,39 +40,15 @@ def main_tryout(model_save_path: str, new_lang_nllb: str, inputlist: list = None
     model, tokenizer = setup_model_and_tokenizer(model_path, new_lang=new_lang_nllb, device=config['device'])
     print("Model loaded successfully.")
 
-    # Set default languages
-    src_lang = 'nld_Latn'
-    tgt_lang = 'gos_Latn'
-    print("Enter text to translate. Type 'END' to exit or use 'LANG src tgt' to change languages. Format e.g. nld_Latn gos_Latn")
+    # List to store translations
+    translations = []
 
-    input_iterator = iter(inputlist) if inputlist else None
-
-    while True:
-        if input_iterator:
-            try:
-                user_input = next(input_iterator)
-                print(f"Translate ({src_lang} -> {tgt_lang}): {user_input}")
-            except StopIteration:
-                input_iterator = None  # Switch to interactive mode after list is exhausted
-                continue
-        else:
-            user_input = input(f"Translate ({src_lang} -> {tgt_lang}): ")
-
-        if user_input == "END":
-            print("Exiting translation tool.")
-            break
-        elif user_input.startswith("LANG"):
-            parts = user_input.split()
-            if len(parts) == 3:
-                _, new_src, new_tgt = parts
-                src_lang = new_src
-                tgt_lang = new_tgt
-                print(f"Language pair updated to: {src_lang} -> {tgt_lang}")
-            else:
-                print("Invalid LANG command. Use 'LANG src tgt'.")
+    print(f"Translating sentences from {src_lang} to {tgt_lang}...")
+    for i, user_input in enumerate(sentences_to_translate):
+        if not user_input.strip():
+            print(f"Skipping empty sentence at index {i}.")
+            translations.append("")
             continue
-        elif user_input == "":
-            continue  # Skip empty input
 
         try:
             translation = translate(
@@ -76,11 +58,15 @@ def main_tryout(model_save_path: str, new_lang_nllb: str, inputlist: list = None
                 model=model,
                 tokenizer=tokenizer
             )[0]
-            print(f"Translation: {translation}")
+            print(f"Original ({src_lang}): {user_input}")
+            print(f"Translation ({tgt_lang}): {translation}\n")
+            translations.append(translation)
         except Exception as e:
-            print(f"Error during translation: {e}")
-
+            print(f"Error during translation for sentence '{user_input}': {e}")
+            translations.append(f"ERROR: {e}")
+            continue
     cleanup()
+    return translations
 
 if __name__ == "__main__":
     main_tryout(config["MODEL_SAVE_PATH"], config["new_lang_nllb"])
