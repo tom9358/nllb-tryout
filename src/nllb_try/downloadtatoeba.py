@@ -4,7 +4,7 @@ import shutil
 import bz2
 import tarfile
 from tqdm.auto import tqdm
-from config import config
+from .config import config
 
 
 def _ensure_directory(path: str):

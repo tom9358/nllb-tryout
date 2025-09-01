@@ -13,7 +13,8 @@ config = {
     'similar_lang_nllb': 'nld_Latn',
     
     # Paths
-    'TATOEBA_PATH': 'tatoeba',
+    'DATA_ROOT_PATH': 'data', # Root for all data
+    'TATOEBA_PATH': os.path.join('data', 'tatoeba'), # Relative to DATA_ROOT_PATH
     'modelpath': 'hfacemodels',
     'timestamp': datetime.now().strftime("%Y%m%d-%H%M%S"),
     
@@ -23,6 +24,7 @@ config = {
     'max_length': 95,       # tokens
     'warmup_steps': 100,
     'training_steps': int(3000 * 8 / 30),
+    'device': 'cuda',
 }
 config['MODEL_SAVE_PATH'] = f'checkpoints/{config["modelname"].split("/")[-1]}-{"-".join(config["source_langs_tatoeba"])}-{config["timestamp"]}'
 

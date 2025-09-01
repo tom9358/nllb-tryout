@@ -1,9 +1,9 @@
-from config import config
-from downloadtatoeba import main_download
-from corpus import main_corpus
-from train import main_train
-from evaluate import main_evaluate
-from tryout import main_tryout
+from .config import config
+from .downloadtatoeba import main_download
+from .corpus import main_corpus
+from .train import main_train
+from .evaluate import main_evaluate
+from .tryout import main_tryout
 
 
 def main():
@@ -19,8 +19,8 @@ def main():
     # Step 3.5: Try out the model! Evaluation by means of vibes
     main_tryout(config["MODEL_SAVE_PATH"], config["new_lang_nllb"])
     
-    # Step 4: Evaluate the model
-    # main_evaluate(corpus_objects, config["MODEL_SAVE_PATH"], config["new_lang_nllb"])
+    # Step 4: Evaluate the model properly
+    main_evaluate(corpus_objects, config["MODEL_SAVE_PATH"], config["new_lang_nllb"])
 
 if __name__ == "__main__":
     main()

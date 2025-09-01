@@ -3,8 +3,8 @@ import typing
 import torch
 from transformers import Adafactor, get_constant_schedule_with_warmup
 import numpy as np
-from tokenizer_and_model_setup import setup_model_and_tokenizer, cleanup
-from config import config
+from .tokenizer_and_model_setup import setup_model_and_tokenizer, cleanup
+from .config import config
 import random
 from sacremoses import MosesPunctNormalizer
 import unicodedata
@@ -251,5 +251,5 @@ def train_model(model, tokenizer, corpus_objects):
     plt.close()
 
 def main_train(corpus_objects):
-    model, tokenizer = setup_model_and_tokenizer(config["modelname"], config["modelpath"], config["new_lang_nllb"], config["similar_lang_nllb"])
+    model, tokenizer = setup_model_and_tokenizer(config["modelname"], config["modelpath"], config["new_lang_nllb"], config["similar_lang_nllb"], device=config['device'])
     train_model(model, tokenizer, corpus_objects)

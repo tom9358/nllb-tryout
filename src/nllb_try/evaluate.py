@@ -2,9 +2,9 @@ import os
 import pandas as pd
 import matplotlib.pyplot as plt
 from sacrebleu import corpus_bleu, corpus_chrf
-from tokenizer_and_model_setup import setup_model_and_tokenizer, cleanup
-from train import preproc  # Import the preprocessing from train script
-from config import config
+from .tokenizer_and_model_setup import setup_model_and_tokenizer, cleanup
+from .train import preproc  # Import the preprocessing from train script
+from .config import config
 
 
 def translate(text, src_lang: str, tgt_lang: str, model, tokenizer, a=16, b=1.5, max_input_length: int = 200, **kwargs):
@@ -61,7 +61,7 @@ def evaluate_model(model, tokenizer, corpus_objects):
 
 def main_evaluate(corpus_objects, MODEL_SAVE_PATH, new_lang_nllb):
     timestamp = config["timestamp"]
-    evaldata_folder = 'evaldata'
+    evaldata_folder = 'output/evaluate'
     os.makedirs(evaldata_folder, exist_ok=True)
     
     all_results = {}
@@ -75,7 +75,7 @@ def main_evaluate(corpus_objects, MODEL_SAVE_PATH, new_lang_nllb):
         print(f"Evaluating model saved at step {model_name}...")
         cleanup()
         model_path = os.path.join(MODEL_SAVE_PATH, model_name)
-        model, tokenizer = setup_model_and_tokenizer(model_path, new_lang=new_lang_nllb)
+        model, tokenizer = setup_model_and_tokenizer(model_path, new_lang=new_lang_nllb, device=config['device'])
         version_results = evaluate_model(model, tokenizer, corpus_objects)
         avg_results = pd.DataFrame(version_results).mean().to_dict()
         all_results[model_name] = avg_results
