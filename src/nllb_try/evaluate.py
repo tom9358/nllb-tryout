@@ -75,7 +75,7 @@ def main_evaluate(corpus_objects, MODEL_SAVE_PATH, new_lang_nllb):
         print(f"Evaluating model saved at step {model_name}...")
         cleanup()
         model_path = os.path.join(MODEL_SAVE_PATH, model_name)
-        model, tokenizer = setup_model_and_tokenizer(model_path, new_lang=new_lang_nllb)
+        model, tokenizer = setup_model_and_tokenizer(model_path, new_lang=new_lang_nllb, device=config['device'])
         version_results = evaluate_model(model, tokenizer, corpus_objects)
         avg_results = pd.DataFrame(version_results).mean().to_dict()
         all_results[model_name] = avg_results

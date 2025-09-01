@@ -1,6 +1,7 @@
 from transformers import NllbTokenizer, AutoModelForSeq2SeqLM
 from gc import collect
 import torch
+from .config import config
 
 def fix_tokenizer(tokenizer, new_lang: str):
     """
@@ -26,7 +27,7 @@ def cleanup():
     collect()
     torch.cuda.empty_cache()
 
-def setup_model_and_tokenizer(modelname: str, modelpath: str = None, new_lang: str = None, similar_lang: str = None):
+def setup_model_and_tokenizer(modelname: str, modelpath: str = None, new_lang: str = None, similar_lang: str = None, device: str = config['device']):
     """
     Set up the model and tokenizer for use. This function handles both loading models from HuggingFace and local models,
     adjusts the tokenizer so a new language is supported and optionally sets embedding weights to those of a similar language.
@@ -37,8 +38,7 @@ def setup_model_and_tokenizer(modelname: str, modelpath: str = None, new_lang: s
     - new_lang: Optional; The new language code to add. (In nllb format, e.g. 'gos_Latn')
     - similar_lang: Optional; If provided, the similar language's weights initialize the new language. (nllb format)
     """
-    print("torch.cuda.is_available():",torch.cuda.is_available())
-    device = torch.device("cuda:1")# if torch.cuda.is_available() else "cpu")
+    device = torch.device(device)# if torch.cuda.is_available() else "cpu")
 
     # Load the tokenizer
     tokenizer = NllbTokenizer.from_pretrained(modelname, cache_dir=modelpath)

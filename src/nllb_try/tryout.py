@@ -31,7 +31,7 @@ def main_tryout(model_save_path: str, new_lang_nllb: str, inputlist: list = None
     latest_model = model_versions[-1]
     model_path = os.path.join(model_save_path, latest_model)
     print(f"Loading model from {model_path}...")
-    model, tokenizer = setup_model_and_tokenizer(model_path, new_lang=new_lang_nllb)
+    model, tokenizer = setup_model_and_tokenizer(model_path, new_lang=new_lang_nllb, device=config['device'])
     print("Model loaded successfully.")
 
     # Set default languages

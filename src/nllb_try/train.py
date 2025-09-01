@@ -251,5 +251,5 @@ def train_model(model, tokenizer, corpus_objects):
     plt.close()
 
 def main_train(corpus_objects):
-    model, tokenizer = setup_model_and_tokenizer(config["modelname"], config["modelpath"], config["new_lang_nllb"], config["similar_lang_nllb"])
+    model, tokenizer = setup_model_and_tokenizer(config["modelname"], config["modelpath"], config["new_lang_nllb"], config["similar_lang_nllb"], device=config['device'])
     train_model(model, tokenizer, corpus_objects)
