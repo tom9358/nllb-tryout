@@ -32,7 +32,8 @@ def setup_model_and_tokenizer(modelname: str, modelpath: str = None, new_lang: s
 
     # Load the model
     model = AutoModelForSeq2SeqLM.from_pretrained(modelname, cache_dir=modelpath, device_map={"": str(device)})
-    
+    model.resize_token_embeddings(len(tokenizer)) 
+
     # Check for the second situation: adding a new language with optional weights initialization
     if new_lang and similar_lang:
         added_token_id = tokenizer.convert_tokens_to_ids(new_lang)
@@ -40,6 +41,5 @@ def setup_model_and_tokenizer(modelname: str, modelpath: str = None, new_lang: s
         # Adjust model weights
         model.model.shared.weight.data[added_token_id] = model.model.shared.weight.data[similar_lang_id]
         print(f'Initialized weights for {new_lang} equal to those of {similar_lang}')
-    
-    model.resize_token_embeddings(len(tokenizer)) 
+
     return model, tokenizer
