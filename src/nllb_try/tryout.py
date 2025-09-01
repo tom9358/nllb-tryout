@@ -21,7 +21,7 @@ def translate(text, src_lang: str, tgt_lang: str, model, tokenizer, a=16, b=1.5,
     )
     return tokenizer.batch_decode(result, skip_special_tokens=True)
 
-def translate_sentences(
+def main_tryout(
     model_save_path: str,
     new_lang_nllb: str,
     sentences_to_translate: list,
