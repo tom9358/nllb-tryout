@@ -197,7 +197,7 @@ def train_model(model, tokenizer, corpus_objects):
     model.train()
 
     from tqdm.auto import trange
-    tq = trange(config["training_steps"], desc="Training Steps")
+    tq = trange(1, config["training_steps"]+1, desc="Training Steps")
 
     for step in tq:
         try:
@@ -218,12 +218,12 @@ def train_model(model, tokenizer, corpus_objects):
             losses.append(loss.item())
             tq.set_postfix({'loss': np.mean(losses[-25:])})
 
-            if step % 25 == 0 and step > 0:
+            if step % 200 == 0 and step > 0:
                 # Ensure memory is managed properly
                 cleanup()
                 # Save intermediate checkpoints
-                # model.save_pretrained(config["MODEL_SAVE_PATH"] + f"/{step}")
-                # tokenizer.save_pretrained(config["MODEL_SAVE_PATH"] + f"/{step}")
+                model.save_pretrained(config["MODEL_SAVE_PATH"] + f"/{step}")
+                tokenizer.save_pretrained(config["MODEL_SAVE_PATH"] + f"/{step}")
 
         except RuntimeError as e:
             optimizer.zero_grad(set_to_none=True)

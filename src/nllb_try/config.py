@@ -19,11 +19,11 @@ config = {
     'timestamp': datetime.now().strftime("%Y%m%d-%H%M%S"),
     
     # Training parameters
-    'batch_size': 32,
+    'batch_size': 30,
     'max_chars': 200,       # Can be set to None
     'max_length': 100,       # tokens
     'warmup_steps': 100,
-    'training_steps': int(2000 * 8 / 30),
+    'training_steps': 1000,
     'device': 'cuda',
 }
 config['MODEL_SAVE_PATH'] = f'checkpoints/{config["modelname"].split("/")[-1]}-{"-".join(config["source_langs_tatoeba"])}-{config["timestamp"]}'
