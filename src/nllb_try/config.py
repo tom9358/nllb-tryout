@@ -19,7 +19,7 @@ config = {
     'timestamp': datetime.now().strftime("%Y%m%d-%H%M%S"),
     
     # Training parameters
-    'batch_size': 34,
+    'batch_size': 30,
     'max_chars': 200,       # Can be set to None
     'max_length': 100,       # tokens
     'warmup_steps': 100,
