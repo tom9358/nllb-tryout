@@ -135,10 +135,8 @@ def get_batch_pairs(batch_size: int, corpus_objects, dataset: str = "train", max
             weights.append(len(corp.df_train))
         elif dataset == "validate":
             weights.append(len(corp.df_validate))
-        elif dataset == "test":
-            weights.append(len(corp.df_test))
         else:
-            raise ValueError(f"Invalid dataset specified: {dataset}. Choose from 'train', 'validate', or 'test'.")
+            raise ValueError(f"Invalid dataset specified: {dataset}. Choose from 'train' or 'validate'.")
     
     # Normalize weights for sampling
     weights = [w / sum(weights) for w in weights]
@@ -149,8 +147,6 @@ def get_batch_pairs(batch_size: int, corpus_objects, dataset: str = "train", max
         batch = corpus.df_train.sample(n=batch_size)
     elif dataset == "validate":
         batch = corpus.df_validate.sample(n=batch_size)
-    elif dataset == "test":
-        batch = corpus.df_test.sample(n=batch_size)
 
     # Preprocess sentences
     batch['source_sentence'] = batch['source_sentence'].apply(preproc)

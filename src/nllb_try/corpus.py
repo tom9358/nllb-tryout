@@ -13,9 +13,7 @@ class ParallelCorpus:
         self.source_lang_nllb = source_lang_nllb
         self.target_lang_nllb = target_lang_nllb
         self.df = self.load_and_format_parallel_sentences()
-        self.df_train, self.df_temp = train_test_split(self.df, test_size=0.02, random_state=9358)
-        self.df_validate, self.df_test = train_test_split(self.df_temp, test_size=0.5, random_state=9358)
-        del self.df_temp
+        self.df_train, self.df_validate = train_test_split(self.df, test_size=0.02, random_state=9358)
 
     def load_and_format_parallel_sentences(self):
         df_parallel = load_tatoeba(self.source_lang_tatoeba, self.target_lang_tatoeba)
