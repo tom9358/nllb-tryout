@@ -73,10 +73,10 @@ def _calculate_metrics_for_split(df_split: pd.DataFrame, src_lang_nllb: str, tgt
     chrf_tgt_to_src = corpus_chrf(src_sentences, [translations_tgt_to_src]).score
 
     return {
-        f"bleu_{src_lang_nllb}_to_{tgt_lang_nllb}": bleu_src_to_tgt,
-        f"bleu_{tgt_lang_nllb}_to_{src_lang_nllb}": bleu_tgt_to_src,
-        f"chrf_{src_lang_nllb}_to_{tgt_lang_nllb}": chrf_src_to_tgt,
-        f"chrf_{tgt_lang_nllb}_to_{src_lang_nllb}": chrf_tgt_to_src,
+        f"bleu_{src_lang_nllb}_to_{tgt_lang_nllb}_src_to_tgt": bleu_src_to_tgt,
+        f"bleu_{tgt_lang_nllb}_to_{src_lang_nllb}_tgt_to_src": bleu_tgt_to_src,
+        f"chrf_{src_lang_nllb}_to_{tgt_lang_nllb}_src_to_tgt": chrf_src_to_tgt,
+        f"chrf_{tgt_lang_nllb}_to_{src_lang_nllb}_tgt_to_src": chrf_tgt_to_src,
     }
 
 # Main evaluation function calls the helper for each split
