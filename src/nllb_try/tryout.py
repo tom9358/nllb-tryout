@@ -1,9 +1,12 @@
 import os
 from .tokenizer_and_model_setup import setup_model_and_tokenizer, cleanup
 from .config import config
+from .train import preproc
 
 
-def translate(text, src_lang: str, tgt_lang: str, model, tokenizer, a=16, b=1.5, max_input_length: int = 200, **kwargs):
+def translate(text, src_lang: str, tgt_lang: str, model, tokenizer, a=16, b=1.5, max_input_length: int = 200, normalize_text: bool = False, **kwargs):
+    if normalize_text:
+        text = preproc(text)
     tokenizer.src_lang = src_lang
     tokenizer.tgt_lang = tgt_lang
     inputs = tokenizer(

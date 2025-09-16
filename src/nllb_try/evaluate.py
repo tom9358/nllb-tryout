@@ -10,11 +10,12 @@ import pandas as pd
 import matplotlib.pyplot as plt
 from sacrebleu import corpus_bleu, corpus_chrf
 from .tokenizer_and_model_setup import setup_model_and_tokenizer, cleanup
-from .train import preproc  # Import the preprocessing from train script
+from .train import preproc
 from .config import config
 
-
-def translate(text, src_lang: str, tgt_lang: str, model, tokenizer, a=16, b=1.5, max_input_length: int = 200, **kwargs):
+def translate(text, src_lang: str, tgt_lang: str, model, tokenizer, a=16, b=1.5, max_input_length: int = 200, normalize_text: bool = False, **kwargs):
+    if normalize_text:
+        text = preproc(text)
     tokenizer.src_lang = src_lang
     tokenizer.tgt_lang = tgt_lang
     inputs = tokenizer(
@@ -33,7 +34,6 @@ def translate(text, src_lang: str, tgt_lang: str, model, tokenizer, a=16, b=1.5,
     return tokenizer.batch_decode(result, skip_special_tokens=True)
 
 
-# Calculate metrics for a single DataFrame split
 # Calculate metrics for a single DataFrame split
 def _calculate_metrics_for_split(df_split: pd.DataFrame, src_lang_nllb: str, tgt_lang_nllb: str, model, tokenizer, sample_size: int = 200):
     if df_split.empty:
@@ -63,7 +63,7 @@ def _calculate_metrics_for_split(df_split: pd.DataFrame, src_lang_nllb: str, tgt
 
     # Translate Target to Source
     translations_tgt_to_src = translate(
-        text=preproc(tgt_sentences),
+        text=tgt_sentences,
         src_lang=tgt_lang_nllb,
         tgt_lang=src_lang_nllb,
         model=model,
