@@ -6,7 +6,7 @@ locale.getpreferredencoding = lambda: "UTF-8"
 # Default Configuration
 config = {
     # Model configuration
-    'modelname': 'facebook/nllb-200-distilled-1.3B',  # or e.g. 'facebook/nllb-200-distilled-600M'
+    'modelname': 'facebook/nllb-200-distilled-600M', #'facebook/nllb-200-distilled-1.3B'
     'source_langs_tatoeba': ["nld", "gos"],
     'source_langs_nllb': ["nld_Latn", "gos_Latn"],
     'new_lang_nllb': 'gos_Latn',
