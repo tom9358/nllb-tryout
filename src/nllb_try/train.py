@@ -211,7 +211,7 @@ def train_model(model, tokenizer, corpus_objects):
             losses.append(loss.item())
             tq.set_postfix({'loss': np.mean(losses[-25:])})
 
-            if step % 50 == 0 and step > 500:
+            if step % 50 == 0 and step > 300:
                 cleanup()
                 # Save some intermediate checkpoints
                 model.save_pretrained(config["MODEL_SAVE_PATH"] + f"/{step}")
