@@ -34,6 +34,31 @@ def translate(text, src_lang: str, tgt_lang: str, model, tokenizer, a=16, b=1.5,
     return tokenizer.batch_decode(result, skip_special_tokens=True)
 
 
+def _evaluate(
+    source_texts: list,
+    references: list,
+    src_lang: str,
+    tgt_lang: str,
+    model,
+    tokenizer
+):
+    """
+    Translates source_texts from src_lang to tgt_lang and calculates BLEU and
+    CHRF scores against target_references.
+    """
+    translations = translate(
+        text=source_texts,
+        src_lang=src_lang,
+        tgt_lang=tgt_lang,
+        model=model,
+        tokenizer=tokenizer
+    )
+    bleu_score = corpus_bleu(references, [translations]).score
+    chrf_score = corpus_chrf(references, [translations]).score
+    if bleu_score[-1]<0.01: # DEBUG
+        print(references[0:3], '\n', translations[0:3])
+    return bleu_score, chrf_score
+
 # Calculate metrics for a single DataFrame split
 def _calculate_metrics_for_split(df_split: pd.DataFrame, src_lang_nllb: str, tgt_lang_nllb: str, model, tokenizer, sample_size: int = 200):
     if df_split.empty:
@@ -50,27 +75,25 @@ def _calculate_metrics_for_split(df_split: pd.DataFrame, src_lang_nllb: str, tgt
     src_sentences = df_sampled['source_sentence'].tolist()
     tgt_sentences = df_sampled['target_sentence'].tolist()
 
-    # Translate Source to Target
-    translations_src_to_tgt = translate(
-        text=src_sentences,
+    # Evaluate Source to Target direction
+    bleu_src_to_tgt, chrf_src_to_tgt = _evaluate(
+        source_texts=src_sentences,
+        references=tgt_sentences,
         src_lang=src_lang_nllb,
         tgt_lang=tgt_lang_nllb,
         model=model,
         tokenizer=tokenizer
     )
-    bleu_src_to_tgt = corpus_bleu(tgt_sentences, [translations_src_to_tgt]).score
-    chrf_src_to_tgt = corpus_chrf(tgt_sentences, [translations_src_to_tgt]).score
 
-    # Translate Target to Source
-    translations_tgt_to_src = translate(
-        text=tgt_sentences,
+    # Evaluate Target to Source direction
+    bleu_tgt_to_src, chrf_tgt_to_src = _evaluate(
+        source_texts=tgt_sentences,
+        references=src_sentences,
         src_lang=tgt_lang_nllb,
         tgt_lang=src_lang_nllb,
         model=model,
         tokenizer=tokenizer
     )
-    bleu_tgt_to_src = corpus_bleu(src_sentences, [translations_tgt_to_src]).score
-    chrf_tgt_to_src = corpus_chrf(src_sentences, [translations_tgt_to_src]).score
 
     return {
         f"bleu_{src_lang_nllb}_to_{tgt_lang_nllb}_src_to_tgt": bleu_src_to_tgt,
