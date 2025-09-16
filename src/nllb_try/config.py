@@ -23,7 +23,7 @@ config = {
     'max_chars': 200,       # Can be set to None
     'max_length': 100,       # tokens
     'warmup_steps': 100,
-    'training_steps': 1000,
+    'training_steps': 800,
     'device': 'cuda',
 }
 config['MODEL_SAVE_PATH'] = f'checkpoints/{config["modelname"].split("/")[-1]}-{"-".join(config["source_langs_tatoeba"])}-{config["timestamp"]}'

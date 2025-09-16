@@ -211,10 +211,9 @@ def train_model(model, tokenizer, corpus_objects):
             losses.append(loss.item())
             tq.set_postfix({'loss': np.mean(losses[-25:])})
 
-            if step % 200 == 0 and step > 0:
-                # Ensure memory is managed properly
+            if step % 50 == 0 and step > 500:
                 cleanup()
-                # Save intermediate checkpoints
+                # Save some intermediate checkpoints
                 model.save_pretrained(config["MODEL_SAVE_PATH"] + f"/{step}")
                 tokenizer.save_pretrained(config["MODEL_SAVE_PATH"] + f"/{step}")
 
