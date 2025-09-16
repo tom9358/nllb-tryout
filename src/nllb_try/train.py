@@ -12,10 +12,6 @@ import sys
 import pandas as pd
 import matplotlib.pyplot as plt
 
-# Initialize MosesPunctNormalizer
-mpn = MosesPunctNormalizer(lang="en")
-mpn.substitutions = [(re.compile(r), sub) for r, sub in mpn.substitutions]
-
 def get_non_printing_char_replacer(replace_by: str = " ") -> typing.Callable[[str], str]:
     non_printable_map = {
         ord(c): replace_by
@@ -28,11 +24,12 @@ def get_non_printing_char_replacer(replace_by: str = " ") -> typing.Callable[[st
     
     return replace_non_printing_char
 
-replace_nonprint = get_non_printing_char_replacer(" ")
-
-def preproc(text, mpn=mpn, replace_nonprint=replace_nonprint):
+def preproc(text: str):
+    """Normalizes text a bit."""
+    mpn = MosesPunctNormalizer(lang="en")
+    mpn.substitutions = [(re.compile(r), sub) for r, sub in mpn.substitutions]
     clean = mpn.normalize(text)
-    clean = replace_nonprint(clean)
+    clean = get_non_printing_char_replacer(" ")(clean)
     clean = unicodedata.normalize("NFKC", clean)
     return clean
 
