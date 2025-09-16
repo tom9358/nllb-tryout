@@ -64,10 +64,10 @@ def _calculate_metrics_for_split(df_split: pd.DataFrame, src_lang_nllb: str, tgt
     if df_split.empty:
         print(f"Warning: The provided DataFrame split for {src_lang_nllb}->{tgt_lang_nllb} is empty. Skipping evaluation for this split. Values set to 0.0.")
         return {
-            f"bleu_{src_lang_nllb}_to_{tgt_lang_nllb}": 0.0,
-            f"bleu_{tgt_lang_nllb}_to_{src_lang_nllb}": 0.0,
-            f"chrf_{src_lang_nllb}_to_{tgt_lang_nllb}": 0.0,
-            f"chrf_{tgt_lang_nllb}_to_{src_lang_nllb}": 0.0,
+            f"bleu_{src_lang_nllb}_to_{tgt_lang_nllb}_src_to_tgt": -1.0,
+            f"bleu_{tgt_lang_nllb}_to_{src_lang_nllb}_tgt_to_src": -1.0,
+            f"chrf_{src_lang_nllb}_to_{tgt_lang_nllb}_src_to_tgt": -1.0,
+            f"chrf_{tgt_lang_nllb}_to_{src_lang_nllb}_tgt_to_src": -1.0,
         }
 
     # Sample data for evaluation (with a sample_size limit for efficiency)
@@ -167,16 +167,16 @@ def main_evaluate(corpus_objects, MODEL_SAVE_PATH, new_lang_nllb):
         # Plotting for BLEU Source -> Target
         plot_results(
             df_results,
-            f"train_bleu_{src}_to_{tgt}",
-            f"validate_bleu_{src}_to_{tgt}",
+            f"train_bleu_{src}_to_{tgt}_src_to_tgt",
+            f"validate_bleu_{src}_to_{tgt}_src_to_tgt",
             f"BLEU Score ({src} \u2192 {tgt})",
             evaldata_folder, timestamp
         )
         # Plotting for BLEU Target -> Source
         plot_results(
             df_results,
-            f"train_bleu_{tgt}_to_{src}",
-            f"validate_bleu_{tgt}_to_{src}",
+            f"train_bleu_{tgt}_to_{src}_tgt_to_src",
+            f"validate_bleu_{tgt}_to_{src}_tgt_to_src",
             f"BLEU Score ({tgt} \u2192 {src})",
             evaldata_folder, timestamp
         )
@@ -184,16 +184,16 @@ def main_evaluate(corpus_objects, MODEL_SAVE_PATH, new_lang_nllb):
         # Plotting for CHRF Source -> Target
         plot_results(
             df_results,
-            f"train_chrf_{src}_to_{tgt}",
-            f"validate_chrf_{src}_to_{tgt}",
+            f"train_chrf_{src}_to_{tgt}_src_to_tgt",
+            f"validate_chrf_{src}_to_{tgt}_src_to_tgt",
             f"CHRF Score ({src} \u2192 {tgt})",
             evaldata_folder, timestamp
         )
         # Plotting for CHRF Target -> Source
         plot_results(
             df_results,
-            f"train_chrf_{tgt}_to_{src}",
-            f"validate_chrf_{tgt}_to_{src}",
+            f"train_chrf_{tgt}_to_{src}_tgt_to_src",
+            f"validate_chrf_{tgt}_to_{src}_tgt_to_src",
             f"CHRF Score ({tgt} \u2192 {src})",
             evaldata_folder, timestamp
         )
