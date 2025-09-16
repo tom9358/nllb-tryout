@@ -128,8 +128,7 @@ def evaluate_model(model, tokenizer, corpus_objects):
     return all_corpus_results
 
 
-def main_evaluate(corpus_objects, MODEL_SAVE_PATH, new_lang_nllb):
-    timestamp = config["timestamp"]
+def main_evaluate(corpus_objects, MODEL_SAVE_PATH: str, new_lang_nllb: str, timestamp: str, device: str = config['device']):
     evaldata_folder = 'output/evaluate'
     os.makedirs(evaldata_folder, exist_ok=True)
     
@@ -143,7 +142,7 @@ def main_evaluate(corpus_objects, MODEL_SAVE_PATH, new_lang_nllb):
         print(f"Evaluating model saved at step {model_name}...")
         cleanup()
         model_path = os.path.join(MODEL_SAVE_PATH, model_name)
-        model, tokenizer = setup_model_and_tokenizer(model_path, new_lang=new_lang_nllb, device=config['device'])
+        model, tokenizer = setup_model_and_tokenizer(model_path, new_lang=new_lang_nllb, device=device)
         
         version_results = evaluate_model(model, tokenizer, corpus_objects)
         
