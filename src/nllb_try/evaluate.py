@@ -55,7 +55,7 @@ def _evaluate(
     )
     bleu_score = corpus_bleu(references, [translations]).score
     chrf_score = corpus_chrf(references, [translations]).score
-    if bleu_score[-1]<0.01: # DEBUG
+    if bleu_score<0.01: # DEBUG
         print(references[0:3], '\n', translations[0:3])
     return bleu_score, chrf_score
 
