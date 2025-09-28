@@ -28,7 +28,7 @@ class GroningsZinnenGenerator:
 
         # Vervoegingskolommen (alles behalve index, vertaling en transitief)
         self.conjugation_columns = [col for col in self.df.columns 
-                                   if col not in ['Vertaling', 'Transitief', 'Index']]
+                                   if col not in ['Vertaling', 'Transitief']]
 
         # Onderwerpen per persoon/getal
         self.subjects = {
