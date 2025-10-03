@@ -1,5 +1,4 @@
-# TO DO: it looks like editing the subject (1) does not work properly.
-
+# TO DO: try out more to see if it really works as intended
 
 
 #!/usr/bin/env python3
