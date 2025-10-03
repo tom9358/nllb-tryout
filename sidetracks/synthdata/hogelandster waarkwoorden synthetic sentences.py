@@ -1,4 +1,5 @@
 # TO DO: try out more to see if it really works as intended
+# the parentheses stuff seems not in the right places e.g.💡 Suggestie: dij|snieden (snidt ⊲ sniedt)|hom|in hoes.
 
 
 #!/usr/bin/env python3
