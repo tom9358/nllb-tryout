@@ -1,6 +1,6 @@
 [project]
 name = "nllb_try"
-version = "0.2.0"
+version = "0.3.0"
 description = "NLLB Gronings Tatoeba Translation Machine"
 requires-python = ">=3.10,<3.12"
 dependencies = [
@@ -14,6 +14,8 @@ dependencies = [
     "accelerate",
     "requests",
     "sacremoses",
+    "torch==2.8.0+cu126",
+    "torchvision==0.23.0+cu126"
 ]
 
 [build-system]
