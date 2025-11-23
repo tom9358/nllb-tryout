@@ -6,7 +6,9 @@ I'm working on this in my free time so the project does not always have steady p
 
 A first version of the translation model is now on huggingface! https://huggingface.co/Tom9358/nllb-tatoeba-gos-nld-v1
 
-Here is a google colab notebook where the model can be used: https://colab.research.google.com/drive/1b5dn3VT4fvOBKly1CIx4Qwo59GDM1H-M
+Here is a Huggingface space where the model can be used: https://huggingface.co/spaces/Tom9358/gos_gronings_translate
+
+(Here is also an equivalent google colab: https://colab.research.google.com/drive/1b5dn3VT4fvOBKly1CIx4Qwo59GDM1H-M)
 
 ## Training
 
