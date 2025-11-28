@@ -12,26 +12,18 @@ import sys
 import pandas as pd
 import matplotlib.pyplot as plt
 
-def get_non_printing_char_replacer(replace_by: str = " ") -> typing.Callable[[str], str]:
-    non_printable_map = {
-        ord(c): replace_by
-        for c in (chr(i) for i in range(sys.maxunicode + 1))
-        if unicodedata.category(c) in {"C", "Cc", "Cf", "Cs", "Co", "Cn"}
-    }
-    
-    def replace_non_printing_char(line) -> str:
-        return line.translate(non_printable_map)
-    
-    return replace_non_printing_char
 
-def preproc(text: str):
-    """Normalizes text a bit."""
-    mpn = MosesPunctNormalizer(lang="en")
-    mpn.substitutions = [(re.compile(r), sub) for r, sub in mpn.substitutions]
-    clean = mpn.normalize(text)
-    clean = get_non_printing_char_replacer(" ")(clean)
-    clean = unicodedata.normalize("NFKC", clean)
-    return clean
+mpn = MosesPunctNormalizer(lang="en")
+mpn.substitutions = [(re.compile(p), r) for p, r in mpn.substitutions]
+
+non_printable_map = {
+    ord(c): " "
+    for c in (chr(i) for i in range(sys.maxunicode + 1))
+    if unicodedata.category(c)[0] == "C"
+}
+
+def preproc(text: str) -> str:
+    return unicodedata.normalize("NFKC", mpn.normalize(text).translate(non_printable_map))
 
 # List of synonym pairs
 synonym_pairs_gos = [
