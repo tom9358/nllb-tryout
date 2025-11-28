@@ -3,3 +3,4 @@ hfacemodels/
 models/
 
 __pycache__/
+.env
