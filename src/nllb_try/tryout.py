@@ -34,9 +34,9 @@ def main_tryout(
     # Load the latest model
     model_versions = [
         d for d in os.listdir(model_save_path)
-        if os.path.isdir(os.path.join(model_save_path, d))
+        if os.path.isdir(os.path.join(model_save_path, d)) and d.startswith("epoch")
     ]
-    model_versions.sort(key=lambda x: int(x))
+    model_versions.sort(key=lambda x: int(x.replace("epoch", "")))
     latest_model = model_versions[-1]
     model_path = os.path.join(model_save_path, latest_model)
     print(f"Loading model from {model_path}...")
