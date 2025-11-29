@@ -41,7 +41,7 @@ def add_gronings_variations(sentences: list[str]) -> list[str]:
     s.loc[mask] = s.loc[mask].str.replace('ì','i').str.replace('è','e').str.replace('ò','o').str.replace('ó','o')
     return s.tolist()
 
-def swap_synonyms(sentences, synonym_pairs: list[tuple[str,str]], swap_prob: float = 0.25):
+def swap_synonyms(sentences: list[str], synonym_pairs: list[tuple[str,str]], swap_prob: float = 0.25) -> list[str]:
     swapped_sentences = []
 
     for sent in sentences:
