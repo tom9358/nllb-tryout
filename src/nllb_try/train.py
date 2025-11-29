@@ -6,6 +6,7 @@ from .tokenizer_and_model_setup import setup_model_and_tokenizer, cleanup
 from .config import config
 from tqdm.auto import trange
 from sacremoses import MosesPunctNormalizer
+import random
 import unicodedata
 import sys
 import pandas as pd
@@ -41,34 +42,29 @@ def add_gronings_variations(sentences: list[str]) -> list[str]:
     s.loc[mask] = s.loc[mask].str.replace('ì','i').str.replace('è','e').str.replace('ò','o').str.replace('ó','o')
     return s.tolist()
 
-def swap_synonyms(sentences: list[str], synonym_pairs: list[tuple[str,str]], swap_prob: float = 0.25) -> list[str]:
-    swapped_sentences = []
+def swap_synonyms(
+    sentences: list[str],
+    synonym_pairs: list[tuple[str, str]],
+    swap_prob_exponent: int = 2
+) -> list[str]:
+    lookup: dict[str, str] = {}
 
-    for sent in sentences:
-        words = sent.split()
-        new_words = []
+    for a, b in synonym_pairs:
+        lookup[a] = b
+        lookup[b] = a
 
-        for word in words:
-            replaced = False
+    pats = '|'.join(map(re.escape, lookup.keys()))
+    pattern = re.compile(rf'\b({pats})\b')
 
-            # Check each synonym pair
-            for word1, word2 in synonym_pairs:
-                if word == word1 and np.random.rand() < swap_prob: #random.random() might be faster. or random.getrandbits(2) perhaps.
-                    new_words.append(word2)
-                    replaced = True
-                    break
-                elif word == word2 and np.random.rand() < swap_prob:
-                    new_words.append(word1)
-                    replaced = True
-                    break
+    def replacer(match):
+        word = match.group(0)
+        if not random.getrandbits(swap_prob_exponent):
+            return lookup[word]
+        return word
 
-            if not replaced:
-                new_words.append(word)  # Keep the original word if not replaced
-
-        # Reconstruct the sentence
-        swapped_sentences.append(' '.join(new_words))
-
-    return swapped_sentences
+    s = pd.Series(sentences)
+    swapped = s.str.replace(pattern, replacer, regex=True)
+    return swapped.tolist()
 
 common_tatoeba_name = ["Tom", "Mary", "Sami", "John", "Maria"]
 namelist = ['Tom','Sam','Ben','Nick','Ed','Noah','Joey','Rick','Rob','Mick','Mike','Michael','Tim','Adam','Arnold','Lucas','Robin','James','Jim','Mary','Maria','Sami','John','Linda']
