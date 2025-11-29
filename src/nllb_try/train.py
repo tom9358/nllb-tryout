@@ -34,14 +34,14 @@ synonym_pairs_gos = [
     ('mirreg', 'middag'), ('vast', 'vaast'), ('nacht', 'naacht'), ('kiender', 'kinder'), ('bruukte', 'broekte'), ('deus','deuze'), ('gelok', 'geluk')
 ]
 
-def add_gronings_variations(sentences):
+def add_gronings_variations(sentences: list[str]) -> list[str]:
     # Gronings-specific removal of more or less optional diacritics
     s = pd.Series(sentences)
     mask = np.random.rand(len(s)) < 0.25
     s.loc[mask] = s.loc[mask].str.replace('ì','i').str.replace('è','e').str.replace('ò','o').str.replace('ó','o')
     return s.tolist()
 
-def swap_synonyms(sentences, synonym_pairs, swap_prob=0.25):
+def swap_synonyms(sentences, synonym_pairs: list[tuple[str,str]], swap_prob: float = 0.25):
     swapped_sentences = []
 
     for sent in sentences:
@@ -121,32 +121,42 @@ def apply_variations(xx, yy):
                 arr[i] = arr[i][:-1]
     return xx, yy
 
-def tokenize_mixed_langs(tokenizer, texts, langs, max_length, device):
+def tokenize_mixed_langs(
+    tokenizer, texts: list[str], langs: list[str], max_length: int, device
+) -> tuple[torch.Tensor, torch.Tensor]:
     # Returns (input_ids, attention_mask) stacked tensors (len(texts), max_length)
     # Tokenizes a list of sentences and corresponding languages efficiently, handling mixed language batches by grouping sentences by language for faster batched tokenization.
     # Required for multilingual datasets when tokenizer must know the language per sentence (which NLLB does), allowing bulk tokenization while respecting per-sentence language settings.
-    idxs_by_lang = {}
+    idxs_by_lang: dict[str, list[int]] = {}
     for i, lang in enumerate(langs):
         idxs_by_lang.setdefault(lang, []).append(i)
-    input_ids = [None]*len(texts)
-    attention_mask = [None]*len(texts)
+    input_ids_dict: dict[int, torch.Tensor] = {}
+    attention_mask_dict: dict[int, torch.Tensor] = {}
     for lang, idxs in idxs_by_lang.items():
         batch_texts = [texts[i] for i in idxs]
         tokenizer.src_lang = lang
-        feats = tokenizer(batch_texts, return_tensors='pt', truncation=True, padding='max_length', max_length=max_length)
+        feats = tokenizer(
+            batch_texts,
+            return_tensors='pt',
+            truncation=True,
+            padding='max_length',
+            max_length=max_length
+        )
         for j, i_global in enumerate(idxs):
-            input_ids[i_global] = feats['input_ids'][j]
-            attention_mask[i_global] = feats['attention_mask'][j]
-    input_ids = torch.stack(input_ids).to(device)
-    attention_mask = torch.stack(attention_mask).to(device)
-    return input_ids, attention_mask
+            input_ids_dict[i_global] = feats['input_ids'][j]
+            attention_mask_dict[i_global] = feats['attention_mask'][j]
+    input_ids: list[torch.Tensor] = [input_ids_dict[i] for i in range(len(texts))]
+    attention_mask: list[torch.Tensor] = [attention_mask_dict[i] for i in range(len(texts))]
+    input_ids_tensor = torch.stack(input_ids).to(device)
+    attention_mask_tensor = torch.stack(attention_mask).to(device)
+    return input_ids_tensor, attention_mask_tensor
 
-def train_model(model, tokenizer, corpus_objects):
-    batch_size = config["batch_size"]
-    max_length = config["max_length"]
-    num_epochs = config["num_epochs"]
-    warmup_steps = config["warmup_steps"]
-    model_save_path = config["MODEL_SAVE_PATH"]
+def train_model(model, tokenizer, corpus_objects: list) -> None:
+    batch_size: int = config["batch_size"]
+    max_length: int  = config["max_length"]
+    num_epochs: int = config["num_epochs"]
+    warmup_steps: int = config["warmup_steps"]
+    model_save_path: str = config["MODEL_SAVE_PATH"]
 
     device = next(model.parameters()).device
 
@@ -277,15 +287,21 @@ def train_model(model, tokenizer, corpus_objects):
     plt.legend()
 
     # Save the plot as an image
-    plt.savefig(config["MODEL_SAVE_PATH"] + "_final_loss_plot.png")
+    plt.savefig(model_save_path + "_final_loss_plot.png")
     plt.close()
 
-def main_train(corpus_objects):
+def main_train(corpus_objects: list):
+    modelname: str = config["modelname"]
+    modelpath: str = config["modelpath"]
+    new_lang_nllb: str = config["new_lang_nllb"]
+    similar_lang_nllb: str = config["similar_lang_nllb"]
+    device: str = config["device"]
+
     model, tokenizer = setup_model_and_tokenizer(
-        config["modelname"],
-        config["modelpath"],
-        config["new_lang_nllb"],
-        config["similar_lang_nllb"],
-        device=config['device']
+        modelname,
+        modelpath,
+        new_lang_nllb,
+        similar_lang_nllb,
+        device=device
     )
     train_model(model, tokenizer, corpus_objects)
