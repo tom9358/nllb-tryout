@@ -103,7 +103,7 @@ def _calculate_metrics_for_split(df_split: pd.DataFrame, src_lang_nllb: str, tgt
     }
 
 # Main evaluation function calls the helper for each split
-def evaluate_model(model, tokenizer, corpus_objects):
+def evaluate_model(model, tokenizer, corpus_objects, sample_size: int = 200):
     all_corpus_results = []
     for corpus in corpus_objects:
         corpus_results = {}
@@ -112,14 +112,14 @@ def evaluate_model(model, tokenizer, corpus_objects):
 
         # Evaluate on Training Set
         train_metrics = _calculate_metrics_for_split(
-            corpus.df_train, corpus.source_lang_nllb, corpus.target_lang_nllb, model, tokenizer
+            corpus.df_train, corpus.source_lang_nllb, corpus.target_lang_nllb, model, tokenizer, sample_size = sample_size
         )
         for k, v in train_metrics.items():
             corpus_results[f"train_{k}"] = v
 
         # Evaluate on Validation Set
         validate_metrics = _calculate_metrics_for_split(
-            corpus.df_validate, corpus.source_lang_nllb, corpus.target_lang_nllb, model, tokenizer
+            corpus.df_validate, corpus.source_lang_nllb, corpus.target_lang_nllb, model, tokenizer, sample_size = sample_size
         )
         for k, v in validate_metrics.items():
             corpus_results[f"validate_{k}"] = v
@@ -135,9 +135,9 @@ def main_evaluate(corpus_objects, MODEL_SAVE_PATH: str, new_lang_nllb: str, time
     all_results = {}
     model_versions = [
         d for d in os.listdir(MODEL_SAVE_PATH)
-        if os.path.isdir(os.path.join(MODEL_SAVE_PATH, d))
+        if os.path.isdir(os.path.join(MODEL_SAVE_PATH, d)) and d.startswith("epoch")
     ]
-    model_versions.sort(key=lambda x: int(x))
+    model_versions.sort(key=lambda x: int(x.replace("epoch", "")))
     for model_name in model_versions:
         print(f"Evaluating model saved at step {model_name}...")
         cleanup()

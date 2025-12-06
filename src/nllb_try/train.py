@@ -1,37 +1,29 @@
 import re
-import typing
 import torch
 from transformers import Adafactor, get_constant_schedule_with_warmup
 import numpy as np
 from .tokenizer_and_model_setup import setup_model_and_tokenizer, cleanup
 from .config import config
-import random
+from tqdm.auto import trange
 from sacremoses import MosesPunctNormalizer
+import random
 import unicodedata
 import sys
 import pandas as pd
 import matplotlib.pyplot as plt
 
-def get_non_printing_char_replacer(replace_by: str = " ") -> typing.Callable[[str], str]:
-    non_printable_map = {
-        ord(c): replace_by
-        for c in (chr(i) for i in range(sys.maxunicode + 1))
-        if unicodedata.category(c) in {"C", "Cc", "Cf", "Cs", "Co", "Cn"}
-    }
-    
-    def replace_non_printing_char(line) -> str:
-        return line.translate(non_printable_map)
-    
-    return replace_non_printing_char
 
-def preproc(text: str):
-    """Normalizes text a bit."""
-    mpn = MosesPunctNormalizer(lang="en")
-    mpn.substitutions = [(re.compile(r), sub) for r, sub in mpn.substitutions]
-    clean = mpn.normalize(text)
-    clean = get_non_printing_char_replacer(" ")(clean)
-    clean = unicodedata.normalize("NFKC", clean)
-    return clean
+mpn = MosesPunctNormalizer(lang="en")
+mpn.substitutions = [(re.compile(p), r) for p, r in mpn.substitutions]
+
+non_printable_map = {
+    ord(c): " "
+    for c in (chr(i) for i in range(sys.maxunicode + 1))
+    if unicodedata.category(c)[0] == "C"
+}
+
+def preproc(text: str) -> str:
+    return unicodedata.normalize("NFKC", mpn.normalize(text).translate(non_printable_map))
 
 # List of synonym pairs
 synonym_pairs_gos = [
@@ -43,136 +35,125 @@ synonym_pairs_gos = [
     ('mirreg', 'middag'), ('vast', 'vaast'), ('nacht', 'naacht'), ('kiender', 'kinder'), ('bruukte', 'broekte'), ('deus','deuze'), ('gelok', 'geluk')
 ]
 
-def add_gronings_variations(sentences):
+def add_gronings_variations(sentences: list[str]) -> list[str]:
     # Gronings-specific removal of more or less optional diacritics
-    if not random.getrandbits(2):
-        sentences = [s.replace('ì', 'i').replace('è', 'e').replace('ò', 'o').replace('ó', 'o') for s in sentences]
-    return sentences
+    s = pd.Series(sentences)
+    mask = np.random.rand(len(s)) < 0.25
+    s.loc[mask] = s.loc[mask].str.replace('ì','i').str.replace('è','e').str.replace('ò','o').str.replace('ó','o')
+    return s.tolist()
 
-def swap_synonyms(sentences, synonym_pairs, swap_prob=0.25):
-    swapped_sentences = []
+def swap_synonyms(
+    sentences: list[str],
+    synonym_pairs: list[tuple[str, str]],
+    swap_prob_exponent: int = 2
+) -> list[str]:
+    lookup: dict[str, str] = {}
 
-    for sent in sentences:
-        words = sent.split()  # Split sentence into words
-        new_words = []
-        
-        for word in words:
-            replaced = False
-            
-            # Check each synonym pair
-            for word1, word2 in synonym_pairs:
-                if word == word1 and random.random() < swap_prob:
-                    new_words.append(word2)  # Replace with the second variant
-                    replaced = True
-                    break
-                elif word == word2 and random.random() < swap_prob:
-                    new_words.append(word1)  # Replace with the first variant
-                    replaced = True
-                    break
-            
-            if not replaced:
-                new_words.append(word)  # Keep the original word if not replaced
-        
-        # Reconstruct the sentence
-        swapped_sentences.append(' '.join(new_words))
-    
-    return swapped_sentences
+    for a, b in synonym_pairs:
+        lookup[a] = b
+        lookup[b] = a
+
+    pats = '|'.join(map(re.escape, lookup.keys()))
+    pattern = re.compile(rf'\b({pats})\b')
+
+    def replacer(match):
+        word = match.group(0)
+        if not random.getrandbits(swap_prob_exponent):
+            return lookup[word]
+        return word
+
+    s = pd.Series(sentences)
+    swapped = s.str.replace(pattern, replacer, regex=True)
+    return swapped.tolist()
 
 common_tatoeba_name = ["Tom", "Mary", "Sami", "John", "Maria"]
+namelist = ['Tom','Sam','Ben','Nick','Ed','Noah','Joey','Rick','Rob','Mick','Mike','Michael','Tim','Adam','Arnold','Lucas','Robin','James','Jim','Mary','Maria','Sami','John','Linda']
+pattern_names = r'\b(' + '|'.join(map(re.escape, common_tatoeba_name)) + r')\b'
 
-def add_data_variations(xx, yy, source_lang: str, target_lang: str, batch_size: int):
-    # Randomly swap source and target languages
-    if random.getrandbits(1):
-        xx, yy, source_lang, target_lang = yy, xx, target_lang, source_lang
-
-    if target_lang == 'gos_Latn':
-        yy = add_gronings_variations(yy)
-        yy = swap_synonyms(yy, synonym_pairs_gos)
-    elif source_lang == 'gos_Latn':
-        xx = add_gronings_variations(xx)
-        xx = swap_synonyms(xx, synonym_pairs_gos)
-
+def apply_name_variation(xx, yy):
     # Create more name variation (e.g., replacing "Tom")
-    for i in range(len(xx)):
-        for name in common_tatoeba_name:
-            if name in xx[i] and name in yy[i]:
-                namelist = ['Tom', 'Sam', 'Ben', 'Nick', 'Ed', 'Noah', 'Joey', 'Rick', 'Rob', 'Mick', 'Mike', 'Michael', 'Tim', 'Adam', 'Arnold', 'Lucas', 'Robin', 'James', 'Jim', 'Mary', 'Maria', 'Sami', 'John']
-                othername = random.choice(namelist)
-                xx[i] = xx[i].replace(name, othername)
-                yy[i] = yy[i].replace(name, othername)
-
-    # Small chance of uppercase transformation
-    if not random.getrandbits(5):
-        xx = [x.upper() for x in xx]
-        yy = [y.upper() for y in yy]
-
-    # chance of no capitalization at sentence start
-    elif not random.getrandbits(3):
-        xx = [x[:1].lower() + x[1:] for x in xx]
-        yy = [y[:1].lower() + y[1:] for y in yy]
-
-    # Small chance of random emoji at the end
-    if not random.getrandbits(3):
-        emojis = random.choices(["😊", "😂", "😍", "👍", "🔥", "🎉", "🌟", "😎", "🥳", '❤️', '💀', '😭', '🫶', '🤣', '😘', '🥺', '🤔', '🙏'], k=batch_size)
-        xx = [xx[i] + emojis[i] for i in range(batch_size)]
-        yy = [yy[i] + emojis[i] for i in range(batch_size)]
-
-    # Small chance of sentence-final character deletion
-    elif not random.getrandbits(3):
-        xx = [x[:-1] if len(x) > 1 else x for x in xx]
-        yy = [y[:-1] if len(y) > 1 else y for y in yy]
-
+    xx = pd.Series(xx)
+    yy = pd.Series(yy)
+    mask = xx.str.contains(pattern_names) & yy.str.contains(pattern_names) & ((xx.str.extract(pattern_names, expand=False) == yy.str.extract(pattern_names, expand=False)))
+    idxs = np.where(mask)[0]
+    if len(idxs) > 0:
+        rand_names = np.random.choice(namelist, size=len(idxs))
+        for i, new_name in zip(idxs, rand_names):
+            xx.iloc[i] = re.sub(pattern_names, new_name, xx.iloc[i])
+            yy.iloc[i] = re.sub(pattern_names, new_name, yy.iloc[i])
     return xx, yy
 
-def get_batch_pairs(batch_size: int, corpus_objects, dataset: str = "train", max_chars=None, apply_variations=True):
-    # Calculate weights based on dataset sizes
-    weights = []
-    for corp in corpus_objects:
-        if dataset == "train":
-            weights.append(len(corp.df_train))
-        elif dataset == "validate":
-            weights.append(len(corp.df_validate))
-        else:
-            raise ValueError(f"Invalid dataset specified: {dataset}. Choose from 'train' or 'validate'.")
-    
-    # Normalize weights for sampling
-    weights = [w / sum(weights) for w in weights]
-    corpus = np.random.choice(corpus_objects, p=weights, replace=False)
+def apply_variations(xx, yy):
+    N = len(xx)
+    idxs = np.random.permutation(N)
+    n_upper = int(N / 32)
+    n_nocap = int(N / 8)
+    n_emoji = int(N / 8)
+    n_delete = int(N / 8)
 
-    # Sample the batch
-    if dataset == "train":
-        batch = corpus.df_train.sample(n=batch_size)
-    elif dataset == "validate":
-        batch = corpus.df_validate.sample(n=batch_size)
+    # Uppercase transformation
+    for arr in [xx, yy]:
+        arr.iloc[idxs[:n_upper]] = arr.iloc[idxs[:n_upper]].str.upper()
 
-    # Preprocess sentences
-    batch['source_sentence'] = batch['source_sentence'].apply(preproc)
-    batch['target_sentence'] = batch['target_sentence'].apply(preproc)
+    # No capitalization at sentence start
+    sel = idxs[n_upper:n_upper + n_nocap]
 
-    xx = batch['source_sentence'].tolist()
-    yy = batch['target_sentence'].tolist()
+    xx.iloc[sel] = xx.iloc[sel].apply(lambda s: s[0].lower() + s[1:] if s else s)
+    yy.iloc[sel] = yy.iloc[sel].apply(lambda s: s[0].lower() + s[1:] if s else s)
 
-    # Optional: Apply variations
-    if apply_variations:
-        xx, yy = add_data_variations(xx, yy, corpus.source_lang_nllb, corpus.target_lang_nllb, batch_size)
+    # Random emoji at the end
+    emoji_idxs = idxs[n_upper + n_nocap: n_upper + n_nocap + n_emoji]
+    emojis = np.random.choice(
+        ["😊", "😂", "😍", "👍", "🔥", "🎉", "🌟", "😎", "🥳", '❤️', '💀', '😭', '🫶', '🤣', '😘', '🥺', '🤔', '🙏'],
+        size=n_emoji)
+    for k, i in enumerate(emoji_idxs):
+        xx[i] += emojis[k]
+        yy[i] += emojis[k]
 
-    # Trim sentences if max_chars is specified
-    if max_chars:
-        def truncate_at_space(sent, max_len):
-            if len(sent) <= max_len:
-                return sent
-            # Find the last space before max_len
-            truncate = sent[:max_len]
-            return truncate[:truncate.rfind(" ")]
+    # Sentence-final character deletion
+    for arr in [xx, yy]:
+        for i in idxs[n_upper + n_nocap + n_emoji : n_upper + n_nocap + n_emoji + n_delete]:
+            if len(arr[i]) > 1:
+                arr[i] = arr[i][:-1]
+    return xx, yy
 
-        xx = [truncate_at_space(x, max_chars) for x in xx]
-        yy = [truncate_at_space(y, max_chars) for y in yy]
+def tokenize_mixed_langs(
+    tokenizer, texts: list[str], langs: list[str], max_length: int, device
+) -> tuple[torch.Tensor, torch.Tensor]:
+    # Returns (input_ids, attention_mask) stacked tensors (len(texts), max_length)
+    # Tokenizes a list of sentences and corresponding languages efficiently, handling mixed language batches by grouping sentences by language for faster batched tokenization.
+    # Required for multilingual datasets when tokenizer must know the language per sentence (which NLLB does), allowing bulk tokenization while respecting per-sentence language settings.
+    idxs_by_lang: dict[str, list[int]] = {}
+    for i, lang in enumerate(langs):
+        idxs_by_lang.setdefault(lang, []).append(i)
+    input_ids_dict: dict[int, torch.Tensor] = {}
+    attention_mask_dict: dict[int, torch.Tensor] = {}
+    for lang, idxs in idxs_by_lang.items():
+        batch_texts = [texts[i] for i in idxs]
+        tokenizer.src_lang = lang
+        feats = tokenizer(
+            batch_texts,
+            return_tensors='pt',
+            truncation=True,
+            padding='max_length',
+            max_length=max_length
+        )
+        for j, i_global in enumerate(idxs):
+            input_ids_dict[i_global] = feats['input_ids'][j]
+            attention_mask_dict[i_global] = feats['attention_mask'][j]
+    input_ids: list[torch.Tensor] = [input_ids_dict[i] for i in range(len(texts))]
+    attention_mask: list[torch.Tensor] = [attention_mask_dict[i] for i in range(len(texts))]
+    input_ids_tensor = torch.stack(input_ids).to(device)
+    attention_mask_tensor = torch.stack(attention_mask).to(device)
+    return input_ids_tensor, attention_mask_tensor
 
-    return xx, yy, corpus.source_lang_nllb, corpus.target_lang_nllb
+def train_model(model, tokenizer, corpus_objects: list) -> None:
+    batch_size: int = config["batch_size"]
+    max_length: int  = config["max_length"]
+    num_epochs: int = config["num_epochs"]
+    warmup_steps: int = config["warmup_steps"]
+    model_save_path: str = config["MODEL_SAVE_PATH"]
 
-def train_model(model, tokenizer, corpus_objects):
-    # device = torch.device("cuda" if torch.cuda.is_available() else "cpu") #model should already be on the right device
-    # model.to(device)
     device = next(model.parameters()).device
 
     optimizer = Adafactor(
@@ -183,50 +164,114 @@ def train_model(model, tokenizer, corpus_objects):
         clip_threshold=1.0,
         weight_decay=1e-3,
     )
-    scheduler = get_constant_schedule_with_warmup(optimizer, num_warmup_steps=config["warmup_steps"])
-    
+    scheduler = get_constant_schedule_with_warmup(optimizer, num_warmup_steps=warmup_steps)
+
     cleanup()
     losses = []
-    model.train()
+    total_steps = 0
+    # Combine
+    dfs = []
+    src_langs_all, tgt_langs_all = [], []
+    for i, corpus in enumerate(corpus_objects):
+        df = corpus.df_train.copy()
+        df['corpus_idx'] = i
+        dfs.append(df)
+        src_langs_all.extend([corpus.source_lang_nllb] * len(df))
+        tgt_langs_all.extend([corpus.target_lang_nllb] * len(df))
+    df_all = pd.concat(dfs).reset_index(drop=True)
+    N = len(df_all)
 
-    from tqdm.auto import trange
-    tq = trange(1, config["training_steps"]+1, desc="Training Steps")
+    # Preprocess alles in één keer
+    orig_xx = df_all['source_sentence'].apply(preproc)
+    orig_yy = df_all['target_sentence'].apply(preproc)
+    srcs = np.array(src_langs_all, dtype=object)
+    tgts = np.array(tgt_langs_all, dtype=object)
 
-    for step in tq:
-        try:
-            xx, yy, lang1, lang2 = get_batch_pairs(config["batch_size"], corpus_objects, max_chars=config["max_chars"])
-            
-            tokenizer.src_lang = lang1
-            x = tokenizer(xx, return_tensors='pt', padding='longest', truncation=True, max_length=config["max_length"]).to(device)
-            tokenizer.src_lang = lang2
-            y = tokenizer(yy, return_tensors='pt', padding='longest', truncation=True, max_length=config["max_length"]).to(device)
-            y.input_ids[y.input_ids == tokenizer.pad_token_id] = -100
-            
-            loss = model(**x, labels=y.input_ids).loss
+    for epoch in range(num_epochs):
+        xx = orig_xx.copy()
+        yy = orig_yy.copy()
+
+        # Always add more name variety
+        xx, yy = apply_name_variation(xx, yy)
+
+        # Some additional data variation
+        xx, yy = apply_variations(xx, yy)
+
+        # Gronings-specific augmentation
+        if np.any(tgts == 'gos_Latn'): # we should know where the gronings sentences are. TODO
+            idxs = np.where(tgts == 'gos_Latn')[0]
+            yy_idxs = list(yy[i] for i in idxs)
+            yy_vals = add_gronings_variations(yy_idxs)
+            yy_syns = swap_synonyms(yy_vals, synonym_pairs_gos)
+            for k, i in enumerate(idxs):
+                yy[i] = yy_syns[k]
+        if np.any(srcs == 'gos_Latn'):
+            idxs = np.where(srcs == 'gos_Latn')[0]
+            xx_idxs = list(xx[i] for i in idxs)
+            xx_vals = add_gronings_variations(xx_idxs)
+            xx_syns = swap_synonyms(xx_vals, synonym_pairs_gos)
+            for k, i in enumerate(idxs):
+                xx[i] = xx_syns[k]
+
+        # Randomly swap source and target languages
+        swap_idxs = np.random.permutation(N)
+        half = N // 2
+
+        swap_mask = np.zeros(N, dtype=bool)
+        swap_mask[:half] = True
+        np.random.shuffle(swap_mask)
+
+        xx_swapped = np.where(swap_mask, yy[swap_idxs], xx[swap_idxs])
+        yy_swapped = np.where(swap_mask, xx[swap_idxs], yy[swap_idxs])
+        src_swapped = np.where(swap_mask, tgts[swap_idxs], srcs[swap_idxs])
+        tgt_swapped = np.where(swap_mask, srcs[swap_idxs], tgts[swap_idxs])
+
+        # Shuffle
+        final_idxs = np.random.permutation(N)
+        df_all_aug = pd.DataFrame({
+            "source_sentence": xx_swapped[final_idxs],
+            "target_sentence": yy_swapped[final_idxs],
+            "src_lang": src_swapped[final_idxs],
+            "tgt_lang": tgt_swapped[final_idxs],
+        })
+        df_epoch = df_all_aug.sample(frac=1).reset_index(drop=True)
+        # Bulk pre-tokenize all epoch data
+        xx_texts = df_epoch['source_sentence'].tolist()
+        yy_texts = df_epoch['target_sentence'].tolist()
+        src_langs_epoch = df_epoch['src_lang'].tolist()
+        tgt_langs_epoch = df_epoch['tgt_lang'].tolist()
+
+        xx_input_ids, xx_attention = tokenize_mixed_langs(tokenizer, xx_texts, src_langs_epoch, max_length, device)
+        yy_input_ids, yy_attention = tokenize_mixed_langs(tokenizer, yy_texts, tgt_langs_epoch, max_length, device)
+        yy_input_ids[yy_input_ids == tokenizer.pad_token_id] = -100  # Masked loss targets
+
+        n_samples_total = len(df_epoch)
+        n_batches = int(np.ceil(n_samples_total / batch_size))
+        tq = trange(n_batches, desc=f"Epoch {epoch+1}/{num_epochs}")
+        for step in tq:
+            batch_start = step * batch_size
+            batch_end = min((step+1)*batch_size, n_samples_total)
+            # Just select slices! FAST!
+            x = {
+                "input_ids": xx_input_ids[batch_start:batch_end],
+                "attention_mask": xx_attention[batch_start:batch_end]
+            }
+            y_input_ids_batch = yy_input_ids[batch_start:batch_end]
+            loss = model(**x, labels=y_input_ids_batch).loss
             loss.backward()
             optimizer.step()
             optimizer.zero_grad(set_to_none=True)
             scheduler.step()
-
             losses.append(loss.item())
             tq.set_postfix({'loss': np.mean(losses[-25:])})
+            total_steps += 1
 
-            if step % 50 == 0 and step > 300:
-                cleanup()
-                # Save some intermediate checkpoints
-                model.save_pretrained(config["MODEL_SAVE_PATH"] + f"/{step}")
-                tokenizer.save_pretrained(config["MODEL_SAVE_PATH"] + f"/{step}")
+        print(f"Saving after epoch {epoch+1}")
+        # Save checkpoints
+        model.save_pretrained(model_save_path + f"/epoch{epoch+1}")
+        tokenizer.save_pretrained(model_save_path + f"/epoch{epoch+1}")
+        cleanup()
 
-        except RuntimeError as e:
-            optimizer.zero_grad(set_to_none=True)
-            cleanup()
-            print('Error:', e)
-            continue
-
-    # Final saving
-    model.save_pretrained(config["MODEL_SAVE_PATH"] + f"/{step}")
-    tokenizer.save_pretrained(config["MODEL_SAVE_PATH"] + f"/{step}")
-    
     # Plotting and saving the losses
     plt.figure(figsize=(10, 5))
     pd.Series(losses).plot(label='Mean Loss')
@@ -236,12 +281,23 @@ def train_model(model, tokenizer, corpus_objects):
     plt.ylabel('Loss')
     plt.title('Training Loss Over Time')
     plt.legend()
-    
+
     # Save the plot as an image
-    loss_plot_path = config["MODEL_SAVE_PATH"] + "_final_loss_plot.png"
-    plt.savefig(loss_plot_path)
+    plt.savefig(model_save_path + "_final_loss_plot.png")
     plt.close()
 
-def main_train(corpus_objects):
-    model, tokenizer = setup_model_and_tokenizer(config["modelname"], config["modelpath"], config["new_lang_nllb"], config["similar_lang_nllb"], device=config['device'])
+def main_train(corpus_objects: list):
+    modelname: str = config["modelname"]
+    modelpath: str = config["modelpath"]
+    new_lang_nllb: str = config["new_lang_nllb"]
+    similar_lang_nllb: str = config["similar_lang_nllb"]
+    device: str = config["device"]
+
+    model, tokenizer = setup_model_and_tokenizer(
+        modelname,
+        modelpath,
+        new_lang_nllb,
+        similar_lang_nllb,
+        device=device
+    )
     train_model(model, tokenizer, corpus_objects)

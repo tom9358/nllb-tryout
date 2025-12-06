@@ -19,16 +19,16 @@ config = {
     'timestamp': datetime.now().strftime("%Y%m%d-%H%M%S"),
     
     # Training parameters
-    'batch_size': 30,
+    'batch_size': 45,
     'max_chars': 200,       # Can be set to None
-    'max_length': 100,       # tokens
+    'max_length': 22,       # tokens
     'warmup_steps': 100,
-    'training_steps': 800,
+    'num_epochs': 10,
     'device': 'cuda',
 }
 config['MODEL_SAVE_PATH'] = f'checkpoints/{config["modelname"].split("/")[-1]}-{"-".join(config["source_langs_tatoeba"])}-{config["timestamp"]}'
 
-def save_config_to_file(save_path):
+def save_config_to_file(save_path: str):
     """
     Save the current configuration to a config.txt file.
     
@@ -52,7 +52,7 @@ def save_config_to_file(save_path):
         f"Max chars: {config['max_chars']}",
         f"Max length: {config['max_length']}",
         f"Warmup steps: {config['warmup_steps']}",
-        f"Training steps: {config['training_steps']}"
+        f"Number of epochs: {config['num_epochs']}"
     ]
 
     config_content = "\n".join(config_params)
