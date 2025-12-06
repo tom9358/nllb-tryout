@@ -83,39 +83,50 @@ def apply_name_variation(xx, yy):
             yy.iloc[i] = re.sub(pattern_names, new_name, yy.iloc[i])
     return xx, yy
 
-def apply_variations(xx, yy):
+def apply_variations(xx: pd.Series, yy: pd.Series) -> tuple[pd.Series, pd.Series]:
     N = len(xx)
     idxs = np.random.permutation(N)
-    n_upper = int(N / 32)
-    n_nocap = int(N / 8)
-    n_emoji = int(N / 8)
-    n_delete = int(N / 8)
+    n_upper = N // 32
+    n_nocap = N // 8
+    n_emoji = N // 8
+    n_delete = N // 8
+
+    # Convert to NumPy object arrays for faster string ops
+    xx_vals = xx.to_numpy(dtype=object)
+    yy_vals = yy.to_numpy(dtype=object)
 
     # Uppercase transformation
-    for arr in [xx, yy]:
-        arr.iloc[idxs[:n_upper]] = arr.iloc[idxs[:n_upper]].str.upper()
+    upper_idxs = idxs[:n_upper]
+    xx_vals[upper_idxs] = [s.upper() if isinstance(s, str) else s for s in xx_vals[upper_idxs]]
+    yy_vals[upper_idxs] = [s.upper() if isinstance(s, str) else s for s in yy_vals[upper_idxs]]
 
     # No capitalization at sentence start
     sel = idxs[n_upper:n_upper + n_nocap]
 
-    xx.iloc[sel] = xx.iloc[sel].apply(lambda s: s[0].lower() + s[1:] if s else s)
-    yy.iloc[sel] = yy.iloc[sel].apply(lambda s: s[0].lower() + s[1:] if s else s)
+    xx_vals[sel] = [s[0].lower() + s[1:] if isinstance(s, str) and s else s
+                           for s in xx_vals[sel]]
+    yy_vals[sel] = [s[0].lower() + s[1:] if isinstance(s, str) and s else s
+                           for s in yy_vals[sel]]
 
     # Random emoji at the end
     emoji_idxs = idxs[n_upper + n_nocap: n_upper + n_nocap + n_emoji]
     emojis = np.random.choice(
         ["😊", "😂", "😍", "👍", "🔥", "🎉", "🌟", "😎", "🥳", '❤️', '💀', '😭', '🫶', '🤣', '😘', '🥺', '🤔', '🙏'],
         size=n_emoji)
-    for k, i in enumerate(emoji_idxs):
-        xx[i] += emojis[k]
-        yy[i] += emojis[k]
+    xx_vals[emoji_idxs] = [s + emojis[k] if isinstance(s, str) else s
+                           for k, s in enumerate(xx_vals[emoji_idxs])]
+    yy_vals[emoji_idxs] = [s + emojis[k] if isinstance(s, str) else s
+                           for k, s in enumerate(yy_vals[emoji_idxs])]
 
     # Sentence-final character deletion
-    for arr in [xx, yy]:
-        for i in idxs[n_upper + n_nocap + n_emoji : n_upper + n_nocap + n_emoji + n_delete]:
-            if len(arr[i]) > 1:
-                arr[i] = arr[i][:-1]
-    return xx, yy
+    delete_idxs = idxs[n_upper + n_nocap + n_emoji : n_upper + n_nocap + n_emoji + n_delete]
+    xx_vals[delete_idxs] = [s[:-1] if isinstance(s, str) and len(s) > 1 else s
+                            for s in xx_vals[delete_idxs]]
+    yy_vals[delete_idxs] = [s[:-1] if isinstance(s, str) and len(s) > 1 else s
+                            for s in yy_vals[delete_idxs]]
+
+    # Convert back to pd.Series (preserve original index)
+    return pd.Series(xx_vals, index=xx.index), pd.Series(yy_vals, index=yy.index)
 
 def tokenize_mixed_langs(
     tokenizer, texts: list[str], langs: list[str], max_length: int, device
