@@ -70,6 +70,8 @@ common_tatoeba_name = ["Tom", "Mary", "Sami", "John", "Maria"]
 namelist = ['Tom','Sam','Ben','Nick','Ed','Noah','Joey','Rick','Rob','Mick','Mike','Michael','Tim','Adam','Arnold','Lucas','Robin','James','Jim','Mary','Maria','Sami','John','Linda']
 pattern_names = r'\b(' + '|'.join(map(re.escape, common_tatoeba_name)) + r')\b'
 
+emoji_choices = np.array(["😊", "😂", "😍", "👍", "🔥", "🎉", "🌟", "😎", "🥳", '❤️', '💀', '😭', '🫶', '🤣', '😘', '🥺', '🤔', '🙏'], dtype=object)
+
 def apply_name_variation(xx, yy):
     # Create more name variation (e.g., replacing "Tom")
     xx = pd.Series(xx)
@@ -111,7 +113,7 @@ def apply_variations(xx: pd.Series, yy: pd.Series) -> tuple[pd.Series, pd.Series
     # Random emoji at the end
     emoji_idxs = idxs[n_upper + n_nocap: n_upper + n_nocap + n_emoji]
     emojis = np.random.choice(
-        ["😊", "😂", "😍", "👍", "🔥", "🎉", "🌟", "😎", "🥳", '❤️', '💀', '😭', '🫶', '🤣', '😘', '🥺', '🤔', '🙏'],
+        emoji_choices,
         size=n_emoji)
     xx_vals[emoji_idxs] = [s + emojis[k] if isinstance(s, str) else s
                            for k, s in enumerate(xx_vals[emoji_idxs])]
