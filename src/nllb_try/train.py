@@ -67,7 +67,7 @@ def swap_synonyms(
     return swapped.tolist()
 
 common_tatoeba_name = ["Tom", "Mary", "Sami", "John", "Maria"]
-namelist = ['Tom','Sam','Ben','Nick','Ed','Noah','Joey','Rick','Rob','Mick','Mike','Michael','Tim','Adam','Arnold','Lucas','Robin','James','Jim','Mary','Maria','Sami','John','Linda']
+namelist = np.array(['Tom','Sam','Ben','Nick','Ed','Noah','Joey','Rick','Rob','Mick','Mike','Michael','Tim','Adam','Arnold','Lucas','Robin','James','Jim','Mary','Maria','Sami','John','Linda'], dtype=object)
 pattern_names = r'\b(' + '|'.join(map(re.escape, common_tatoeba_name)) + r')\b'
 pattern_names_re = re.compile(pattern_names)
 
@@ -85,7 +85,7 @@ def apply_variations(xx: pd.Series, yy: pd.Series) -> tuple[pd.Series, pd.Series
         matches_x = [m.group(0) for m in pattern_names_re.finditer(s_x)]
         matches_y = [m.group(0) for m in pattern_names_re.finditer(s_y)]
         if matches_x and matches_x == matches_y:
-            rand_names = np.random.choice(namelist_np, size=len(matches_x))
+            rand_names = np.random.choice(namelist, size=len(matches_x))
             def replace_seq(original, rand_names_seq):
                 out = []
                 last_idx = 0
@@ -260,7 +260,7 @@ def train_model(model, tokenizer, corpus_objects: list) -> None:
         for step in tq:
             batch_start = step * batch_size
             batch_end = min((step+1)*batch_size, n_samples_total)
-            # Just select slices! FAST!
+
             x = {
                 "input_ids": xx_input_ids[batch_start:batch_end],
                 "attention_mask": xx_attention[batch_start:batch_end]
