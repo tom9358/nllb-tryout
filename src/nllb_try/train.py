@@ -69,66 +69,65 @@ def swap_synonyms(
 common_tatoeba_name = ["Tom", "Mary", "Sami", "John", "Maria"]
 namelist = ['Tom','Sam','Ben','Nick','Ed','Noah','Joey','Rick','Rob','Mick','Mike','Michael','Tim','Adam','Arnold','Lucas','Robin','James','Jim','Mary','Maria','Sami','John','Linda']
 pattern_names = r'\b(' + '|'.join(map(re.escape, common_tatoeba_name)) + r')\b'
+pattern_names_re = re.compile(pattern_names)
 
 emoji_choices = np.array(["😊", "😂", "😍", "👍", "🔥", "🎉", "🌟", "😎", "🥳", '❤️', '💀', '😭', '🫶', '🤣', '😘', '🥺', '🤔', '🙏'], dtype=object)
 
-def apply_name_variation(xx, yy):
-    # Create more name variation (e.g., replacing "Tom")
-    xx = pd.Series(xx)
-    yy = pd.Series(yy)
-    mask = xx.str.contains(pattern_names) & yy.str.contains(pattern_names) & ((xx.str.extract(pattern_names, expand=False) == yy.str.extract(pattern_names, expand=False)))
-    idxs = np.where(mask)[0]
-    if len(idxs) > 0:
-        rand_names = np.random.choice(namelist, size=len(idxs))
-        for i, new_name in zip(idxs, rand_names):
-            xx.iloc[i] = re.sub(pattern_names, new_name, xx.iloc[i])
-            yy.iloc[i] = re.sub(pattern_names, new_name, yy.iloc[i])
-    return xx, yy
-
 def apply_variations(xx: pd.Series, yy: pd.Series) -> tuple[pd.Series, pd.Series]:
     N = len(xx)
+    xx_vals = xx.to_numpy(dtype=object)
+    yy_vals = yy.to_numpy(dtype=object)
+
+    # Multiple-name safe replacement
+    for i in range(N):
+        s_x = xx_vals[i]
+        s_y = yy_vals[i]
+        matches_x = [m.group(0) for m in pattern_names_re.finditer(s_x)]
+        matches_y = [m.group(0) for m in pattern_names_re.finditer(s_y)]
+        if matches_x and matches_x == matches_y:
+            rand_names = np.random.choice(namelist_np, size=len(matches_x))
+            def replace_seq(original, rand_names_seq):
+                out = []
+                last_idx = 0
+                for m, newname in zip(pattern_names_re.finditer(original), rand_names_seq):
+                    out.append(original[last_idx:m.start()])
+                    out.append(newname)
+                    last_idx = m.end()
+                out.append(original[last_idx:])
+                return "".join(out)
+            xx_vals[i] = replace_seq(s_x, rand_names)
+            yy_vals[i] = replace_seq(s_y, rand_names)
+
+    # General variations
     idxs = np.random.permutation(N)
     n_upper = N // 32
     n_nocap = N // 8
     n_emoji = N // 8
     n_delete = N // 8
 
-    # Convert to NumPy object arrays for faster string ops
-    xx_vals = xx.to_numpy(dtype=object)
-    yy_vals = yy.to_numpy(dtype=object)
-
     # Uppercase transformation
     upper_idxs = idxs[:n_upper]
-    xx_vals[upper_idxs] = [s.upper() if isinstance(s, str) else s for s in xx_vals[upper_idxs]]
-    yy_vals[upper_idxs] = [s.upper() if isinstance(s, str) else s for s in yy_vals[upper_idxs]]
+    xx_vals[upper_idxs] = [s.upper() for s in xx_vals[upper_idxs]]
+    yy_vals[upper_idxs] = [s.upper() for s in yy_vals[upper_idxs]]
 
     # No capitalization at sentence start
     sel = idxs[n_upper:n_upper + n_nocap]
-
-    xx_vals[sel] = [s[0].lower() + s[1:] if isinstance(s, str) and s else s
-                           for s in xx_vals[sel]]
-    yy_vals[sel] = [s[0].lower() + s[1:] if isinstance(s, str) and s else s
-                           for s in yy_vals[sel]]
+    xx_vals[sel] = [s[0].lower() + s[1:] for s in xx_vals[sel]]
+    yy_vals[sel] = [s[0].lower() + s[1:] for s in yy_vals[sel]]
 
     # Random emoji at the end
     emoji_idxs = idxs[n_upper + n_nocap: n_upper + n_nocap + n_emoji]
-    emojis = np.random.choice(
-        emoji_choices,
-        size=n_emoji)
-    xx_vals[emoji_idxs] = [s + emojis[k] if isinstance(s, str) else s
-                           for k, s in enumerate(xx_vals[emoji_idxs])]
-    yy_vals[emoji_idxs] = [s + emojis[k] if isinstance(s, str) else s
-                           for k, s in enumerate(yy_vals[emoji_idxs])]
+    emojis = np.random.choice(emoji_choices, size=n_emoji)
+    xx_vals[emoji_idxs] = [s + emojis[k] for k, s in enumerate(xx_vals[emoji_idxs])]
+    yy_vals[emoji_idxs] = [s + emojis[k] for k, s in enumerate(yy_vals[emoji_idxs])]
 
     # Sentence-final character deletion
     delete_idxs = idxs[n_upper + n_nocap + n_emoji : n_upper + n_nocap + n_emoji + n_delete]
-    xx_vals[delete_idxs] = [s[:-1] if isinstance(s, str) and len(s) > 1 else s
-                            for s in xx_vals[delete_idxs]]
-    yy_vals[delete_idxs] = [s[:-1] if isinstance(s, str) and len(s) > 1 else s
-                            for s in yy_vals[delete_idxs]]
+    xx_vals[delete_idxs] = [s[:-1] if len(s) > 1 else s for s in xx_vals[delete_idxs]]
+    yy_vals[delete_idxs] = [s[:-1] if len(s) > 1 else s for s in yy_vals[delete_idxs]]
 
-    # Convert back to pd.Series (preserve original index)
     return pd.Series(xx_vals, index=xx.index), pd.Series(yy_vals, index=yy.index)
+
 
 def tokenize_mixed_langs(
     tokenizer, texts: list[str], langs: list[str], max_length: int, device
@@ -203,9 +202,6 @@ def train_model(model, tokenizer, corpus_objects: list) -> None:
     for epoch in range(num_epochs):
         xx = orig_xx.copy()
         yy = orig_yy.copy()
-
-        # Always add more name variety
-        xx, yy = apply_name_variation(xx, yy)
 
         # Some additional data variation
         xx, yy = apply_variations(xx, yy)
