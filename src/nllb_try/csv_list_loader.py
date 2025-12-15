@@ -6,9 +6,7 @@ def _clean_df(df: pd.DataFrame, nl_col: str, var_col: str) -> pd.DataFrame:
     df = df[df[nl_col].str.strip().str.len() > 2]
     df = df[df[var_col].str.strip().str.len() > 1]
     df = df[[nl_col, var_col]].copy()
-    df = df.rename(columns={nl_col: "nld_Latn", var_col: "gos_Latn"})
-    df["src_lang"] = "nld_Latn"
-    df["tgt_lang"] = "gos_Latn"
+    df = df.rename(columns={nl_col: "source_sentence", var_col: "target_sentence"})
     return df
 
 def load_parallel_table(path: str, sep: str = ";") -> pd.DataFrame:
