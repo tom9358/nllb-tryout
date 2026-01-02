@@ -107,9 +107,9 @@ def evaluate_model(model, tokenizer, corpus_objects, sample_size: int = 200):
     all_corpus_results = []
     for i, corpus in enumerate(corpus_objects):
         corpus_results = {}
-        corpus_id = getattr(corpus, "name", f"corpus{i}")
+        corpus_id = f"corpus{i}"
         
-        print(f"  Evaluating {corpus.source_lang_nllb}-{corpus.target_lang_nllb} pair...")
+        print(f"  Evaluating {corpus.source_lang_nllb}-{corpus.target_lang_nllb} pair ({corpus_id})...")
 
         # Evaluate on Training Set
         train_metrics = _calculate_metrics_for_split(
