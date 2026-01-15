@@ -21,8 +21,8 @@ config = {
     # Training parameters
     'batch_size': 45,
     'max_chars': 200,       # Can be set to None
-    'max_length': 22,       # tokens
-    'warmup_steps': 100,
+    'max_length': 30,       # tokens
+    'warmup_steps': 110,
     'num_epochs': 12,
     'device': 'cuda',
 }

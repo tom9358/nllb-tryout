@@ -159,23 +159,24 @@ def main_evaluate(corpus_objects, MODEL_SAVE_PATH: str, new_lang_nllb: str, time
     csv_filename = os.path.join(evaldata_folder, f'evaluation_results_{timestamp}.csv')
     df_results.to_csv(csv_filename, index=False)
     
-    for corpus in corpus_objects:
+    for i, corpus in enumerate(corpus_objects):
         src = corpus.source_lang_nllb
         tgt = corpus.target_lang_nllb
+        corpus_id = f"corpus{i}"
 
         # Plotting for BLEU Source -> Target
         plot_results(
             df_results,
-            f"train_bleu_{src}_to_{tgt}_src_to_tgt",
-            f"validate_bleu_{src}_to_{tgt}_src_to_tgt",
+            f"{corpus_id}_train_bleu_{src}_to_{tgt}_src_to_tgt",
+            f"{corpus_id}_validate_bleu_{src}_to_{tgt}_src_to_tgt",
             f"BLEU Score ({src} \u2192 {tgt})",
             evaldata_folder, timestamp
         )
         # Plotting for BLEU Target -> Source
         plot_results(
             df_results,
-            f"train_bleu_{tgt}_to_{src}_tgt_to_src",
-            f"validate_bleu_{tgt}_to_{src}_tgt_to_src",
+            f"{corpus_id}_train_bleu_{tgt}_to_{src}_tgt_to_src",
+            f"{corpus_id}_validate_bleu_{tgt}_to_{src}_tgt_to_src",
             f"BLEU Score ({tgt} \u2192 {src})",
             evaldata_folder, timestamp
         )
@@ -183,16 +184,16 @@ def main_evaluate(corpus_objects, MODEL_SAVE_PATH: str, new_lang_nllb: str, time
         # Plotting for CHRF Source -> Target
         plot_results(
             df_results,
-            f"train_chrf_{src}_to_{tgt}_src_to_tgt",
-            f"validate_chrf_{src}_to_{tgt}_src_to_tgt",
+            f"{corpus_id}_train_chrf_{src}_to_{tgt}_src_to_tgt",
+            f"{corpus_id}_validate_chrf_{src}_to_{tgt}_src_to_tgt",
             f"CHRF Score ({src} \u2192 {tgt})",
             evaldata_folder, timestamp
         )
         # Plotting for CHRF Target -> Source
         plot_results(
             df_results,
-            f"train_chrf_{tgt}_to_{src}_tgt_to_src",
-            f"validate_chrf_{tgt}_to_{src}_tgt_to_src",
+            f"{corpus_id}_train_chrf_{tgt}_to_{src}_tgt_to_src",
+            f"{corpus_id}_validate_chrf_{tgt}_to_{src}_tgt_to_src",
             f"CHRF Score ({tgt} \u2192 {src})",
             evaldata_folder, timestamp
         )
