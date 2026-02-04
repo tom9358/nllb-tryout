@@ -28,10 +28,10 @@ def preproc(text: str) -> str:
 synonym_pairs_gos = [
     ('huus', 'hoes'), ('huzen', 'hoezen'), ('huuske', 'hoeske'), ('groag', 'geern'), ('raais', 'raaize'), ('kees', 'keze'), ('week', 'weke'), ('mìns', 'mens'), ('mìnsk', 'mens'),
     ('mìnsen', 'mensen'), ('mìnsken', 'mìnsen'), ('uut', 'oet'), ('in', 'ien'), ('wer', 'wuir'), ('gebruuk', 'gebroek'), ('zuch', 'zok'), ('bruukst', 'broekst'), ('wind', 'wiend'),
-    ('pampier', 'pepier'), ('vanuut', 'vanoet'), ('wazzen', 'waren'), ('mekoar', 'nkander'), ('bruken', 'broeken'), ('zuch', 'zuk'), ('vis', 'visk'), ('olle', 'olde'),
+    ('pampier', 'pepier'), ('vanuut', 'vanoet'), ('wazzen', 'waren'), ('mekoar', 'nkander'), ('bruken', 'broeken'), ('zuch', 'zuk'), ('vis', 'visk'), ('ìnde', 'ende'), ('ìnd', 'end'),
     ('zuk', 'zok'), ('wotter', 'woater'), ('kraant', 'kraande'), ('haar', 'har'), ('bruuk', 'broek'), ('school', 'schoule'), ('schoul', 'schoule'), ('iezer', 'iesder'),
     ('ais', 'ains'), ('hebben', 'hemmen'), ('zotterdag', 'zoaterdag'), ('bruukt', 'broekt'), ('bruukten', 'broekten'), ('iezern', 'iesdern'), ('kind', 'kiend'), ('altied', 'aaltied'),
-    ('mirreg', 'middag'), ('vast', 'vaast'), ('nacht', 'naacht'), ('kiender', 'kinder'), ('bruukte', 'broekte'), ('deus','deuze'), ('gelok', 'geluk'), ('gang', 'gaang')
+    ('mirreg', 'middag'), ('vast', 'vaast'), ('nacht', 'naacht'), ('kiender', 'kinder'), ('bruukte', 'broekte'), ('deus','deuze'), ('gelok', 'geluk'), ('gang', 'gaang'), ('olle', 'olde')
 ]
 
 def add_gronings_variations(sentences: list[str]) -> list[str]:
@@ -65,12 +65,12 @@ def swap_synonyms(
     swapped = s.str.replace(pattern, replacer, regex=True)
     return swapped.tolist()
 
-common_tatoeba_name = ["Tom", "Mary", "Sami", "John", "Maria"]
+common_tatoeba_name = ["Tom", "Mary", "Sami", "John", "Maria", "Mary"]
 namelist = np.array(['Tom','Sam','Ben','Nick','Ed','Noah','Joey','Rick','Rob','Mick','Mike','Michael','Tim','Adam','Arnold','Lucas','Robin','James','Jim','Mary','Maria','Sami','John','Linda'], dtype=object)
 pattern_names = r'\b(' + '|'.join(map(re.escape, common_tatoeba_name)) + r')\b'
 pattern_names_re = re.compile(pattern_names)
 
-emoji_choices = np.array(["😊", "😂", "😍", "👍", "🔥", "🎉", "🌟", "😎", "🥳", '❤️', '💀', '😭', '🫶', '🤣', '😘', '🥺', '🤔', '🙏'], dtype=object)
+emoji_choices = np.array(["😊", "😂", "😍", "👍", "🔥", "🎉", "🌟", "😎", "🥳", '❤️', '💀', '😭', '🫶', '🤣', '😘', '🥺', '🤔', '🙏', '🎄'], dtype=object)
 
 def apply_variations(xx: pd.Series, yy: pd.Series) -> tuple[pd.Series, pd.Series]:
     N = len(xx)
