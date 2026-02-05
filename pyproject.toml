@@ -1,9 +1,11 @@
 [project]
 name = "nllb_try"
-version = "0.3.0"
+version = "0.3.1"
 description = "NLLB Gronings Tatoeba Translation Machine"
-requires-python = ">=3.10,<3.12"
+requires-python = ">=3.10,<3.14"
 dependencies = [
+    "torch",
+    "torchvision",
     "transformers",
     "pandas",
     "tqdm",
@@ -13,9 +15,7 @@ dependencies = [
     "sentencepiece",
     "accelerate",
     "requests",
-    "sacremoses",
-    "torch==2.8.0+cu126",
-    "torchvision==0.23.0+cu126"
+    "sacremoses"
 ]
 
 [build-system]
@@ -24,3 +24,12 @@ build-backend = "setuptools.build_meta"
 
 [tool.setuptools.packages.find]
 where = ["src"]
+
+[[tool.uv.index]]
+name = "pytorch-cu126"
+url = "https://download.pytorch.org/whl/cu126"
+explicit = true
+
+[tool.uv.sources]
+torch = { index = "pytorch-cu126" }
+torchvision = { index = "pytorch-cu126" }
