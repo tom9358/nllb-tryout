@@ -266,9 +266,7 @@ def train_model(model, tokenizer, corpus_objects: list) -> None:
             }
             y_input_ids_batch = yy_input_ids[batch_start:batch_end]
             loss = model(**x, labels=y_input_ids_batch).loss
-            # debug
-            if epoch == 0 and step == 0:
-                print("loss dtype:", loss.dtype)
+
             loss.backward()
             optimizer.step()
             optimizer.zero_grad(set_to_none=True)

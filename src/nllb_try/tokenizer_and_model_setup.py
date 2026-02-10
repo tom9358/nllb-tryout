@@ -45,18 +45,6 @@ def setup_model_and_tokenizer(
     model.resize_token_embeddings(len(tokenizer))
     model.tie_weights()
 
-    # Debug
-    shared_ptr = model.model.shared.weight.data_ptr()
-    enc_ptr = model.model.encoder.embed_tokens.weight.data_ptr()
-    dec_ptr = model.model.decoder.embed_tokens.weight.data_ptr()
-    lm_ptr = model.lm_head.weight.data_ptr()
-
-    print(f"Tied shared↔encoder: {shared_ptr == enc_ptr} (shared={shared_ptr}, enc={enc_ptr})")
-    print(f"Tied shared↔decoder: {shared_ptr == dec_ptr} (shared={shared_ptr}, dec={dec_ptr})")
-    print(f"Tied shared↔lm_head: {shared_ptr == lm_ptr} (shared={shared_ptr}, lm={lm_ptr})")
-    print("param dtype:", next(model.parameters()).dtype)
-    print("param device:", next(model.parameters()).device)
-
     # Check for the second situation: adding a new language with optional weights initialization
     if new_lang and similar_lang:
         added_token_id = tokenizer.convert_tokens_to_ids(new_lang)
