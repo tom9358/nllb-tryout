@@ -41,7 +41,7 @@ def setup_model_and_tokenizer(
         modelname,
         cache_dir=modelpath,
         device_map={"": str(torch_device)},
-        torch_dtype=torch.bfloat16) # should halve memory usage on supported hardware
+        dtype=torch.bfloat16) # should halve memory usage on supported hardware
     model.resize_token_embeddings(len(tokenizer))
     model.tie_weights()
 
