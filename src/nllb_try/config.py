@@ -27,11 +27,11 @@ class RunConfig:
     run_id: str = datetime.now().strftime("%Y%m%d-%H%M%S")
 
     # Training parameters
-    batch_size: int = 45
+    batch_size: int = 25
     max_chars: int | None = 200
-    max_length: int = 50 # Tokens
+    max_length: int = 42 # Tokens
     warmup_steps: int = 110
-    num_epochs: int = 15
+    num_epochs: int = 12
     device: str = "cuda"
 
     @property
