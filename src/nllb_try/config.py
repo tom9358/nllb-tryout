@@ -1,67 +1,56 @@
-import os
-from datetime import datetime
+from __future__ import annotations
+
 import locale
+from dataclasses import asdict, dataclass
+from datetime import datetime
+from pathlib import Path
+from typing import Any
+
 locale.getpreferredencoding = lambda: "UTF-8"
 
-# Default Configuration
-config = {
+
+@dataclass(frozen=True, slots=True)
+class RunConfig:
     # Model configuration
-    'modelname': 'facebook/nllb-200-distilled-600M', #'facebook/nllb-200-distilled-1.3B'
-    'source_langs_tatoeba': ["nld", "gos"],
-    'source_langs_nllb': ["nld_Latn", "gos_Latn"],
-    'new_lang_nllb': 'gos_Latn',
-    'similar_lang_nllb': 'nld_Latn',
-    
+    modelname: str = "facebook/nllb-200-distilled-600M" #'facebook/nllb-200-distilled-1.3B'
+    source_langs_tatoeba: tuple[str, ...] = ("nld", "gos")
+    source_langs_nllb: tuple[str, ...] = ("nld_Latn", "gos_Latn")
+    new_lang_nllb: str = "gos_Latn"
+    similar_lang_nllb: str = "nld_Latn"
+
     # Paths
-    'DATA_ROOT_PATH': 'data', # Root for all data
-    'TATOEBA_PATH': os.path.join('data', 'tatoeba'), # Relative to DATA_ROOT_PATH
-    'modelpath': 'hfacemodels',
-    'timestamp': datetime.now().strftime("%Y%m%d-%H%M%S"),
-    
+    data_root_path: str = "data" # Root for all data
+    tatoeba_path: str = str(Path("data") / "tatoeba")
+    model_cache_path: str = "hfacemodels"
+
+    # Run identity
+    run_id: str = datetime.now().strftime("%Y%m%d-%H%M%S")
+
     # Training parameters
-    'batch_size': 45,
-    'max_chars': 200,       # Can be set to None
-    'max_length': 50,       # tokens
-    'warmup_steps': 110,
-    'num_epochs': 15,
-    'device': 'cuda',
-}
-config['MODEL_SAVE_PATH'] = f'checkpoints/{config["modelname"].split("/")[-1]}-{"-".join(config["source_langs_tatoeba"])}-{config["timestamp"]}'
+    batch_size: int = 45
+    max_chars: int | None = 200
+    max_length: int = 50 # Tokens
+    warmup_steps: int = 110
+    num_epochs: int = 15
+    device: str = "cuda"
 
-def save_config_to_file(save_path: str):
+    @property
+    def run_dir(self) -> str:
+        model_short = self.modelname.split("/")[-1]
+        langs = "-".join(self.source_langs_tatoeba)
+        return str(Path("checkpoints") / f"{model_short}-{langs}-{self.run_id}")
+
+    def to_dict(self) -> dict[str, Any]:
+        d = asdict(self)
+        # Add derived fields for convenience when persisted
+        d["run_dir"] = self.run_dir
+        return d
+
+
+def get_default_config() -> RunConfig:
+    """Factory for the default run configuration.
+
+    No filesystem I/O is performed here.
     """
-    Save the current configuration to a config.txt file.
-    
-    Args:
-        save_path (str): The directory where the config file will be saved.
-    """
-    if not os.path.exists(save_path):
-        os.makedirs(save_path)
+    return RunConfig()
 
-    config_params = [
-        f"Model name: {config['modelname']}",
-        f"Timestamp: {config['timestamp']}",
-        f"TATOEBA_PATH: {config['TATOEBA_PATH']}",
-        f"MODEL_SAVE_PATH: {config['MODEL_SAVE_PATH']}",
-        f"Model path: {config['modelpath']}",
-        f"Source languages (Tatoeba): {config['source_langs_tatoeba']}",
-        f"Source languages (NLLB): {config['source_langs_nllb']}",
-        f"New language (NLLB): {config['new_lang_nllb']}",
-        f"Similar language (NLLB): {config['similar_lang_nllb']}",
-        f"Batch size: {config['batch_size']}",
-        f"Max chars: {config['max_chars']}",
-        f"Max length: {config['max_length']}",
-        f"Warmup steps: {config['warmup_steps']}",
-        f"Number of epochs: {config['num_epochs']}"
-    ]
-
-    config_content = "\n".join(config_params)
-
-    config_file_path = os.path.join(save_path, 'config.txt')
-    with open(config_file_path, 'w', encoding='utf-8') as f:
-        f.write(config_content)
-
-    print('Configuration saved to:', config_file_path)
-    print('Model save path:', config['MODEL_SAVE_PATH'])
-
-save_config_to_file(config['MODEL_SAVE_PATH'])

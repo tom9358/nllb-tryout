@@ -1,6 +1,6 @@
 import os
 from .tokenizer_and_model_setup import setup_model_and_tokenizer, cleanup
-from .config import config
+from .config import get_default_config
 from .train import preproc
 
 
@@ -40,7 +40,8 @@ def main_tryout(
     latest_model = model_versions[-1]
     model_path = os.path.join(model_save_path, latest_model)
     print(f"Loading model from {model_path}...")
-    model, tokenizer = setup_model_and_tokenizer(model_path, new_lang=new_lang_nllb, device=config['device'])
+    cfg = get_default_config()
+    model, tokenizer = setup_model_and_tokenizer(model_path, new_lang=new_lang_nllb, device=cfg.device)
     print("Model loaded successfully.")
 
     # List to store translations
@@ -72,4 +73,17 @@ def main_tryout(
     return translations
 
 if __name__ == "__main__":
-    main_tryout(config["MODEL_SAVE_PATH"], config["new_lang_nllb"])
+    cfg = get_default_config()
+    print(
+        "tryout.py is a library module. Use main_tryout(...) from a notebook/script.\n\n"
+        "Expected model_save_path: '<run_dir>/checkpoints' (directory containing epochN folders).\n"
+        "Example:\n"
+        "  from nllb_try.config import get_default_config\n"
+        "  from nllb_try.tryout import main_tryout\n"
+        "  cfg = get_default_config()\n"
+        "  translations = main_tryout(\n"
+        "      model_save_path=f'{cfg.run_dir}/checkpoints',\n"
+        "      new_lang_nllb=cfg.new_lang_nllb,\n"
+        "      sentences_to_translate=['Ik hou van kaas.'],\n"
+        "  )\n"
+    )

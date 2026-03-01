@@ -6,12 +6,16 @@ monitor model improvement and potential overfitting.
 """
 
 import os
+from datetime import datetime
+from pathlib import Path
+
 import pandas as pd
 import matplotlib.pyplot as plt
 from sacrebleu import corpus_bleu, corpus_chrf
+
+from .artifacts import write_json
 from .tokenizer_and_model_setup import setup_model_and_tokenizer, cleanup
 from .train import preproc
-from .config import config
 
 def translate(text, src_lang: str, tgt_lang: str, model, tokenizer, a=16, b=1.5, max_input_length: int = 200, normalize_text: bool = False, **kwargs):
     if normalize_text:
@@ -128,24 +132,43 @@ def evaluate_model(model, tokenizer, corpus_objects, sample_size: int = 200):
     return all_corpus_results
 
 
-def main_evaluate(corpus_objects, MODEL_SAVE_PATH: str, new_lang_nllb: str, timestamp: str, device: str = config['device']):
-    evaldata_folder = 'output/evaluate'
-    os.makedirs(evaldata_folder, exist_ok=True)
-    
-    all_results = {}
+def main_evaluate(
+    corpus_objects,
+    run_dir: str,
+    new_lang_nllb: str,
+    eval_id: str | None = None,
+    device: str = "cuda",
+    sample_size: int = 200,
+):
+    """Evaluate all epoch checkpoints found in a training run directory.
+
+    Writes evaluation outputs under:
+      <run_dir>/eval/<eval_id>/
+
+    No training metadata is modified.
+    """
+
+    eval_id = eval_id or datetime.now().strftime("%Y%m%d-%H%M%S")
+    run_path = Path(run_dir)
+    checkpoints_dir = run_path / "checkpoints"
+    eval_dir = run_path / "eval" / eval_id
+    eval_dir.mkdir(parents=True, exist_ok=True)
+
+    all_results: dict[str, dict] = {}
+
     model_versions = [
-        d for d in os.listdir(MODEL_SAVE_PATH)
-        if os.path.isdir(os.path.join(MODEL_SAVE_PATH, d)) and d.startswith("epoch")
+        d.name for d in checkpoints_dir.iterdir()
+        if d.is_dir() and d.name.startswith("epoch")
     ]
     model_versions.sort(key=lambda x: int(x.replace("epoch", "")))
     for model_name in model_versions:
         print(f"Evaluating model saved at step {model_name}...")
         cleanup()
-        model_path = os.path.join(MODEL_SAVE_PATH, model_name)
+        model_path = str(checkpoints_dir / model_name)
         model, tokenizer = setup_model_and_tokenizer(model_path, new_lang=new_lang_nllb, device=device)
         
-        version_results = evaluate_model(model, tokenizer, corpus_objects)
-        
+        version_results = evaluate_model(model, tokenizer, corpus_objects, sample_size=sample_size)
+
         combined_version_results = {}
         for res_dict in version_results:
             combined_version_results.update(res_dict)
@@ -156,9 +179,21 @@ def main_evaluate(corpus_objects, MODEL_SAVE_PATH: str, new_lang_nllb: str, time
     df_results.index.name = "Training Steps"
     df_results.reset_index(inplace=True)
     
-    csv_filename = os.path.join(evaldata_folder, f'evaluation_results_{timestamp}.csv')
-    df_results.to_csv(csv_filename, index=False)
-    
+    write_json(
+        eval_dir / "eval_config.json",
+        {
+            "run_dir": str(run_path.resolve()),
+            "eval_id": eval_id,
+            "device": device,
+            "sample_size": sample_size,
+            "new_lang_nllb": new_lang_nllb,
+            "epochs_evaluated": model_versions,
+            "created_at": datetime.now().isoformat(timespec="seconds"),
+        },
+    )
+
+    df_results.to_csv(eval_dir / "metrics.csv", index=False)
+
     for i, corpus in enumerate(corpus_objects):
         src = corpus.source_lang_nllb
         tgt = corpus.target_lang_nllb
@@ -170,7 +205,8 @@ def main_evaluate(corpus_objects, MODEL_SAVE_PATH: str, new_lang_nllb: str, time
             f"{corpus_id}_train_bleu_{src}_to_{tgt}_src_to_tgt",
             f"{corpus_id}_validate_bleu_{src}_to_{tgt}_src_to_tgt",
             f"BLEU Score ({src} \u2192 {tgt})",
-            evaldata_folder, timestamp
+            str(eval_dir),
+            eval_id,
         )
         # Plotting for BLEU Target -> Source
         plot_results(
@@ -178,7 +214,8 @@ def main_evaluate(corpus_objects, MODEL_SAVE_PATH: str, new_lang_nllb: str, time
             f"{corpus_id}_train_bleu_{tgt}_to_{src}_tgt_to_src",
             f"{corpus_id}_validate_bleu_{tgt}_to_{src}_tgt_to_src",
             f"BLEU Score ({tgt} \u2192 {src})",
-            evaldata_folder, timestamp
+            str(eval_dir),
+            eval_id,
         )
 
         # Plotting for CHRF Source -> Target
@@ -187,7 +224,8 @@ def main_evaluate(corpus_objects, MODEL_SAVE_PATH: str, new_lang_nllb: str, time
             f"{corpus_id}_train_chrf_{src}_to_{tgt}_src_to_tgt",
             f"{corpus_id}_validate_chrf_{src}_to_{tgt}_src_to_tgt",
             f"CHRF Score ({src} \u2192 {tgt})",
-            evaldata_folder, timestamp
+            str(eval_dir),
+            eval_id,
         )
         # Plotting for CHRF Target -> Source
         plot_results(
@@ -195,7 +233,8 @@ def main_evaluate(corpus_objects, MODEL_SAVE_PATH: str, new_lang_nllb: str, time
             f"{corpus_id}_train_chrf_{tgt}_to_{src}_tgt_to_src",
             f"{corpus_id}_validate_chrf_{tgt}_to_{src}_tgt_to_src",
             f"CHRF Score ({tgt} \u2192 {src})",
-            evaldata_folder, timestamp
+            str(eval_dir),
+            eval_id,
         )
 
 

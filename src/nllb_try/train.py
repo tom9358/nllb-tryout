@@ -3,7 +3,13 @@ import torch
 from transformers import Adafactor, get_constant_schedule_with_warmup
 import numpy as np
 from .tokenizer_and_model_setup import setup_model_and_tokenizer, cleanup
-from .config import config
+from .config import RunConfig, get_default_config
+from .artifacts import (
+    format_run_config_txt,
+    init_run_dir,
+    write_json,
+    write_loss_csv,
+)
 from tqdm.auto import trange
 from sacremoses import MosesPunctNormalizer
 import random
@@ -158,12 +164,15 @@ def tokenize_mixed_langs(
     attention_mask_tensor = torch.stack(attention_mask).to(device)
     return input_ids_tensor, attention_mask_tensor
 
-def train_model(model, tokenizer, corpus_objects: list) -> None:
-    batch_size: int = config["batch_size"]
-    max_length: int  = config["max_length"]
-    num_epochs: int = config["num_epochs"]
-    warmup_steps: int = config["warmup_steps"]
-    model_save_path: str = config["MODEL_SAVE_PATH"]
+def train_model(model, tokenizer, corpus_objects: list, cfg: RunConfig) -> None:
+    batch_size: int = cfg.batch_size
+    max_length: int = cfg.max_length
+    num_epochs: int = cfg.num_epochs
+    warmup_steps: int = cfg.warmup_steps
+
+    paths = init_run_dir(cfg.run_dir)
+    checkpoints_dir = paths["checkpoints_dir"]
+    train_dir = paths["train_dir"]
 
     device = next(model.parameters()).device
 
@@ -178,7 +187,8 @@ def train_model(model, tokenizer, corpus_objects: list) -> None:
     scheduler = get_constant_schedule_with_warmup(optimizer, num_warmup_steps=warmup_steps)
 
     cleanup()
-    losses = []
+    losses: list[float] = []
+    loss_rows: list[dict[str, object]] = []
     total_steps = 0
     # Combine
     dfs = []
@@ -271,14 +281,17 @@ def train_model(model, tokenizer, corpus_objects: list) -> None:
             optimizer.step()
             optimizer.zero_grad(set_to_none=True)
             scheduler.step()
-            losses.append(loss.item())
+            loss_value = float(loss.item())
+            losses.append(loss_value)
+            loss_rows.append({"step": total_steps, "epoch": epoch + 1, "loss": loss_value})
             tq.set_postfix({'loss': np.mean(losses[-25:])})
             total_steps += 1
 
         print(f"Saving after epoch {epoch+1}")
         # Save checkpoints
-        model.save_pretrained(model_save_path + f"/epoch{epoch+1}")
-        tokenizer.save_pretrained(model_save_path + f"/epoch{epoch+1}")
+        epoch_dir = checkpoints_dir / f"epoch{epoch+1}"
+        model.save_pretrained(str(epoch_dir))
+        tokenizer.save_pretrained(str(epoch_dir))
         cleanup()
 
     # Plotting and saving the losses
@@ -291,22 +304,27 @@ def train_model(model, tokenizer, corpus_objects: list) -> None:
     plt.title('Training Loss Over Time')
     plt.legend()
 
+    # Save and plot loss history
+    write_loss_csv(train_dir / "loss.csv", loss_rows)
+
     # Save the plot as an image
-    plt.savefig(model_save_path + "_final_loss_plot.png")
+    plt.savefig(str(train_dir / "loss.png"))
     plt.close()
 
-def main_train(corpus_objects: list):
-    modelname: str = config["modelname"]
-    modelpath: str = config["modelpath"]
-    new_lang_nllb: str = config["new_lang_nllb"]
-    similar_lang_nllb: str = config["similar_lang_nllb"]
-    device: str = config["device"]
+def main_train(corpus_objects: list, cfg: RunConfig | None = None):
+    cfg = cfg or get_default_config()
+
+    # Initialize run directory and persist run metadata once
+    paths = init_run_dir(cfg.run_dir)
+    run_config_dict = cfg.to_dict()
+    write_json(paths["run_dir"] / "run_config.json", run_config_dict)
+    (paths["run_dir"] / "run_config.txt").write_text(format_run_config_txt(run_config_dict), encoding="utf-8")
 
     model, tokenizer = setup_model_and_tokenizer(
-        modelname,
-        modelpath,
-        new_lang_nllb,
-        similar_lang_nllb,
-        device=device
+        cfg.modelname,
+        cfg.model_cache_path,
+        cfg.new_lang_nllb,
+        cfg.similar_lang_nllb,
+        device=cfg.device,
     )
-    train_model(model, tokenizer, corpus_objects)
+    train_model(model, tokenizer, corpus_objects, cfg)

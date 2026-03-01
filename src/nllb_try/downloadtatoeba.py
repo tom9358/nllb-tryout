@@ -4,7 +4,6 @@ import shutil
 import bz2
 import tarfile
 from tqdm.auto import tqdm
-from .config import config
 
 
 def _ensure_directory(path: str):
@@ -21,33 +20,33 @@ def download_and_unpack_bz2(link: str, output_file: str):
         shutil.copyfileobj(file_in, uncompressed_out)
     print(f'Unpacked to {output_file}.')
 
-def download_and_unpack_links_file(redownload: bool = False):
+def download_and_unpack_links_file(tatoeba_path: str, redownload: bool = False):
     links_file_url = r'https://downloads.tatoeba.org/exports/links.tar.bz2'
-    tar_file = os.path.join(config["TATOEBA_PATH"], "links.tar")
-    csv_file = os.path.join(config["TATOEBA_PATH"], "links.csv")
+    tar_file = os.path.join(tatoeba_path, "links.tar")
+    csv_file = os.path.join(tatoeba_path, "links.csv")
 
     if redownload or not os.path.exists(csv_file):
-        _ensure_directory(config["TATOEBA_PATH"])
+        _ensure_directory(tatoeba_path)
         download_and_unpack_bz2(links_file_url, tar_file)
 
         with tarfile.open(tar_file, "r") as tar:
-            tar.extractall(config["TATOEBA_PATH"])
-        print(f'Links CSV unpacked to {config["TATOEBA_PATH"]}.')
+            tar.extractall(tatoeba_path)
+        print(f'Links CSV unpacked to {tatoeba_path}.')
     else:
-        print(f'Links CSV already exists. Skipping download and unpacking.')
+        print('Links CSV already exists. Skipping download and unpacking.')
 
-def download_and_unpack_tatoeba(source_lang: str, redownload: bool = False):
+def download_and_unpack_tatoeba(tatoeba_path: str, source_lang: str, redownload: bool = False):
     sentence_file_url = rf'https://downloads.tatoeba.org/exports/per_language/{source_lang}/{source_lang}_sentences.tsv.bz2'
-    unpacked_file = os.path.join(config["TATOEBA_PATH"], f"{source_lang}_sentences.tsv")
+    unpacked_file = os.path.join(tatoeba_path, f"{source_lang}_sentences.tsv")
 
     if redownload or not os.path.exists(unpacked_file):
-        _ensure_directory(config["TATOEBA_PATH"])
+        _ensure_directory(tatoeba_path)
         download_and_unpack_bz2(sentence_file_url, unpacked_file)
     else:
         print(f'{unpacked_file} already exists. Skipping download and unpacking.')
 
-def main_download(source_langs, redownload=False):
+def main_download(source_langs, redownload: bool = False, tatoeba_path: str = "data/tatoeba"):
     print('Downloading necessary Tatoeba files...')
-    download_and_unpack_links_file(redownload)
+    download_and_unpack_links_file(tatoeba_path=tatoeba_path, redownload=redownload)
     for src_lang in tqdm(source_langs):
-        download_and_unpack_tatoeba(src_lang, redownload)
+        download_and_unpack_tatoeba(tatoeba_path=tatoeba_path, source_lang=src_lang, redownload=redownload)

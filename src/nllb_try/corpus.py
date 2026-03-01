@@ -2,7 +2,7 @@ import os
 import pandas as pd
 from sklearn.model_selection import train_test_split
 
-from .config import config
+from .config import RunConfig, get_default_config
 from .downloadtatoeba import main_download
 from .csv_list_loader import load_parallel_table, find_variety_files
 
@@ -26,16 +26,17 @@ class BaseParallelCorpus:
 class TatoebaCorpus(BaseParallelCorpus):
     """Parallel corpus created from Tatoeba. (typically iso-639-3 format, e.g. gos)"""
 
-    def __init__(self, sl_tat, tl_tat, sl_nllb, tl_nllb):
+    def __init__(self, sl_tat, tl_tat, sl_nllb, tl_nllb, cfg: RunConfig):
         self.sl_tat = sl_tat
         self.tl_tat = tl_tat
+        self.cfg = cfg
 
-        main_download([sl_tat, tl_tat], redownload=False)
+        main_download([sl_tat, tl_tat], redownload=False, tatoeba_path=cfg.tatoeba_path)
 
         super().__init__(sl_nllb, tl_nllb)
 
     def load(self):
-        return load_tatoeba(self.sl_tat, self.tl_tat)
+        return load_tatoeba(self.sl_tat, self.tl_tat, cfg=self.cfg)
 
 class VarietyCorpus(BaseParallelCorpus):
     """One CSV/TSV file = one corpus object. Currently Assumes DUTCH as one of the two languages!"""
@@ -48,10 +49,10 @@ class VarietyCorpus(BaseParallelCorpus):
     def load(self):
         return load_parallel_table(self.path, sep=self.sep)
 
-def load_tatoeba(src: str, trg: str) -> pd.DataFrame:
-    src_file = os.path.join(config["TATOEBA_PATH"], f"{src}_sentences.tsv")
-    trg_file = os.path.join(config["TATOEBA_PATH"], f"{trg}_sentences.tsv")
-    link_file = os.path.join(config["TATOEBA_PATH"], "links.csv")
+def load_tatoeba(src: str, trg: str, cfg: RunConfig) -> pd.DataFrame:
+    src_file = os.path.join(cfg.tatoeba_path, f"{src}_sentences.tsv")
+    trg_file = os.path.join(cfg.tatoeba_path, f"{trg}_sentences.tsv")
+    link_file = os.path.join(cfg.tatoeba_path, "links.csv")
 
     src_df = pd.read_csv(src_file, sep="\t", header=None, names=["id", "lang", "source_sentence"])
     trg_df = pd.read_csv(trg_file, sep="\t", header=None, names=["id", "lang", "target_sentence"])
@@ -70,7 +71,8 @@ def main_corpus(
     source_langs_nllb,
     variety_dir=None,
     recursive: bool=True,
-    sep: str=";"
+    sep: str=";",
+    cfg: RunConfig | None = None,
 ):
     """
     Builds:
@@ -80,6 +82,8 @@ def main_corpus(
 
     corpora = []
 
+    cfg = cfg or get_default_config()
+
     # Tatoeba corpora
     zipped = list(zip(source_langs_tatoeba, source_langs_nllb))
 
@@ -87,7 +91,7 @@ def main_corpus(
         for tl_tat, tl_nllb in zipped[i + 1:]:
             print(f"Setting up Tatoeba corpus for {sl_nllb} - {tl_nllb}")
             corpora.append(
-                TatoebaCorpus(sl_tat, tl_tat, sl_nllb, tl_nllb)
+                TatoebaCorpus(sl_tat, tl_tat, sl_nllb, tl_nllb, cfg=cfg)
             )
 
     # Variety corpora

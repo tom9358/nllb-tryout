@@ -1,7 +1,6 @@
 from transformers import NllbTokenizer, AutoModelForSeq2SeqLM
 from gc import collect
 import torch
-from .config import config
 
 def cleanup():
     """Try to free some memory."""
@@ -13,7 +12,7 @@ def setup_model_and_tokenizer(
     modelpath: str | None = None,
     new_lang: str | None = None,
     similar_lang: str | None = None,
-    device: str = config["device"],
+    device: str = "cuda",
 ):
     """
     Set up the model and tokenizer for use. This function handles both loading models from HuggingFace and local models,
