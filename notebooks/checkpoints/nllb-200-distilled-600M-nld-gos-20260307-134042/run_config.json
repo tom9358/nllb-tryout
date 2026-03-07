@@ -1,0 +1,24 @@
+{
+  "batch_size": 25,
+  "data_root_path": "data",
+  "device": "cuda",
+  "max_chars": 200,
+  "max_length": 37,
+  "model_cache_path": "hfacemodels",
+  "modelname": "facebook/nllb-200-distilled-600M",
+  "new_lang_nllb": "gos_Latn",
+  "num_epochs": 12,
+  "run_dir": "checkpoints\\nllb-200-distilled-600M-nld-gos-20260307-134042",
+  "run_id": "20260307-134042",
+  "similar_lang_nllb": "nld_Latn",
+  "source_langs_nllb": [
+    "nld_Latn",
+    "gos_Latn"
+  ],
+  "source_langs_tatoeba": [
+    "nld",
+    "gos"
+  ],
+  "tatoeba_path": "data\\tatoeba",
+  "warmup_steps": 110
+}

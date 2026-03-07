@@ -1,0 +1,22 @@
+# Ignore everything under notebooks/checkpoints by default
+*
+
+# Keep this .gitignore so it gets committed
+!.gitignore
+
+# Allow directories themselves so we can selectively unignore contents
+!*/
+
+# Ignore all "checkpoints" directories (where model weights are)
+checkpoints/
+**/checkpoints/
+
+# Keep all evaluation outputs under any eval/ dir
+!**/eval/**
+
+# Keep run configuration files inside each run directory
+!**/run_config.json
+!**/run_config.txt
+
+# Keep the final loss plot images at the top level
+!*_final_loss_plot.png

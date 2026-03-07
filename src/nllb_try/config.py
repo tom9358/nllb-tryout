@@ -29,7 +29,7 @@ class RunConfig:
     # Training parameters
     batch_size: int = 25
     max_chars: int | None = 200
-    max_length: int = 42 # Tokens
+    max_length: int = 37 # Tokens
     warmup_steps: int = 110
     num_epochs: int = 12
     device: str = "cuda"
