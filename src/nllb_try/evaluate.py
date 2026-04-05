@@ -14,6 +14,8 @@ import matplotlib.pyplot as plt
 from sacrebleu import corpus_bleu, corpus_chrf
 
 from .artifacts import write_json
+from .config import get_default_config
+from .seed import set_seed
 from .tokenizer_and_model_setup import setup_model_and_tokenizer, cleanup
 from .train import preproc
 
@@ -64,7 +66,7 @@ def _evaluate(
     return bleu_score, chrf_score
 
 # Calculate metrics for a single DataFrame split
-def _calculate_metrics_for_split(df_split: pd.DataFrame, src_lang_nllb: str, tgt_lang_nllb: str, model, tokenizer, sample_size: int = 200):
+def _calculate_metrics_for_split(df_split: pd.DataFrame, src_lang_nllb: str, tgt_lang_nllb: str, model, tokenizer, sample_size: int | None = None):
     if df_split.empty:
         print(f"Warning: The provided DataFrame split for {src_lang_nllb}->{tgt_lang_nllb} is empty. Skipping evaluation for this split. Values set to 0.0.")
         return {
@@ -74,8 +76,12 @@ def _calculate_metrics_for_split(df_split: pd.DataFrame, src_lang_nllb: str, tgt
             f"chrf_{tgt_lang_nllb}_to_{src_lang_nllb}_tgt_to_src": -1.0,
         }
 
-    # Sample data for evaluation (with a sample_size limit for efficiency)
-    df_sampled = df_split.sample(n=min(len(df_split), sample_size), random_state=9358)
+    # By default, evaluate on the full split.
+    if sample_size is None:
+        df_sampled = df_split
+    else:
+        df_sampled = df_split.sample(n=min(len(df_split), sample_size), random_state=9358)
+
     src_sentences = df_sampled['source_sentence'].tolist()
     tgt_sentences = df_sampled['target_sentence'].tolist()
 
@@ -107,7 +113,7 @@ def _calculate_metrics_for_split(df_split: pd.DataFrame, src_lang_nllb: str, tgt
     }
 
 # Main evaluation function calls the helper for each split
-def evaluate_model(model, tokenizer, corpus_objects, sample_size: int = 200):
+def evaluate_model(model, tokenizer, corpus_objects, sample_size: int | None = None):
     all_corpus_results = []
     for i, corpus in enumerate(corpus_objects):
         corpus_results = {}
@@ -138,8 +144,11 @@ def main_evaluate(
     new_lang_nllb: str,
     eval_id: str | None = None,
     device: str = "cuda",
-    sample_size: int = 200,
+    sample_size: int | None = None,
+    seed: int | None = None,
 ):
+    if seed is None:
+        seed = get_default_config().seed
     """Evaluate all epoch checkpoints found in a training run directory.
 
     Writes evaluation outputs under:
@@ -148,6 +157,7 @@ def main_evaluate(
     No training metadata is modified.
     """
 
+    set_seed(seed)
     eval_id = eval_id or datetime.now().strftime("%Y%m%d-%H%M%S")
     run_path = Path(run_dir)
     checkpoints_dir = run_path / "checkpoints"
@@ -186,6 +196,7 @@ def main_evaluate(
             "eval_id": eval_id,
             "device": device,
             "sample_size": sample_size,
+            "seed": seed,
             "new_lang_nllb": new_lang_nllb,
             "epochs_evaluated": model_versions,
             "created_at": datetime.now().isoformat(timespec="seconds"),

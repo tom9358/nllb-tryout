@@ -11,6 +11,9 @@ locale.getpreferredencoding = lambda: "UTF-8"
 
 @dataclass(frozen=True, slots=True)
 class RunConfig:
+    # Reproducibility
+    seed: int = 9358
+
     # Model configuration
     modelname: str = "facebook/nllb-200-distilled-600M" #'facebook/nllb-200-distilled-1.3B'
     source_langs_tatoeba: tuple[str, ...] = ("nld", "gos")

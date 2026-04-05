@@ -4,6 +4,7 @@ from transformers import Adafactor, get_constant_schedule_with_warmup
 import numpy as np
 from .tokenizer_and_model_setup import setup_model_and_tokenizer, cleanup
 from .config import RunConfig, get_default_config
+from .seed import set_seed
 from .artifacts import (
     format_run_config_txt,
     init_run_dir,
@@ -313,6 +314,7 @@ def train_model(model, tokenizer, corpus_objects: list, cfg: RunConfig) -> None:
 
 def main_train(corpus_objects: list, cfg: RunConfig | None = None):
     cfg = cfg or get_default_config()
+    set_seed(cfg.seed)
 
     # Initialize run directory and persist run metadata once
     paths = init_run_dir(cfg.run_dir)
