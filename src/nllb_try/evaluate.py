@@ -218,6 +218,7 @@ def main_evaluate(
             f"BLEU Score ({src} \u2192 {tgt})",
             str(eval_dir),
             eval_id,
+            corpus_id,
         )
         # Plotting for BLEU Target -> Source
         plot_results(
@@ -227,6 +228,7 @@ def main_evaluate(
             f"BLEU Score ({tgt} \u2192 {src})",
             str(eval_dir),
             eval_id,
+            corpus_id,
         )
 
         # Plotting for CHRF Source -> Target
@@ -237,6 +239,7 @@ def main_evaluate(
             f"CHRF Score ({src} \u2192 {tgt})",
             str(eval_dir),
             eval_id,
+            corpus_id,
         )
         # Plotting for CHRF Target -> Source
         plot_results(
@@ -246,10 +249,11 @@ def main_evaluate(
             f"CHRF Score ({tgt} \u2192 {src})",
             str(eval_dir),
             eval_id,
+            corpus_id,
         )
 
 
-def plot_results(df_results, metric_train, metric_validate, title, evaldata_folder, timestamp):
+def plot_results(df_results, metric_train, metric_validate, title, evaldata_folder, timestamp, corpus_id=""):
     plt.figure(figsize=(12, 6))
     
     if metric_train in df_results.columns:
@@ -264,6 +268,7 @@ def plot_results(df_results, metric_train, metric_validate, title, evaldata_fold
     plt.grid(True)
     plt.tight_layout()
     safe_title = title.replace(' ', '_').replace('(', '').replace(')', '').replace('\u2192', 'to').replace('-', '_')
-    plot_filename = os.path.join(evaldata_folder, f"{safe_title.lower()}_plot_{timestamp}.png")
+    prefix = f"{corpus_id}_" if corpus_id else ""
+    plot_filename = os.path.join(evaldata_folder, f"{prefix}{safe_title.lower()}_plot_{timestamp}.png")
     plt.savefig(plot_filename)
     plt.close()
