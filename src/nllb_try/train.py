@@ -146,6 +146,61 @@ def apply_variations(xx: pd.Series, yy: pd.Series) -> tuple[pd.Series, pd.Series
     return pd.Series(xx_vals, index=xx.index), pd.Series(yy_vals, index=yy.index)
 
 
+def get_balanced_df(
+    corpus_objects: list,
+    temperature: float = 5.0,
+    target_total_samples: int | None = None,
+    verbose: bool = False,
+) -> tuple[pd.DataFrame, np.ndarray, np.ndarray]:
+    """Sample from each corpus using temperature-based balancing.
+
+    With *T=1* you get proportional sampling (status quo).
+    With *T → ∞* every corpus contributes equally.
+    *T=5* is a standard middle-ground for multilingual MT (NLLB / M2M-100).
+
+    Returns (df, src_langs, tgt_langs) where *df* has columns
+    ``source_sentence``, ``target_sentence``, and ``corpus_idx``.
+    """
+    counts = np.array([len(c.df_train) for c in corpus_objects], dtype=float)
+    probs = counts ** (1.0 / temperature)
+    probs /= probs.sum()
+
+    if verbose:
+        print(f"Balanced sampling with temperature={temperature}")
+
+    if target_total_samples is None:
+        target_total_samples = int(counts.sum())
+
+    dfs: list[pd.DataFrame] = []
+    src_langs_all: list[str] = []
+    tgt_langs_all: list[str] = []
+
+    for i, corpus in enumerate(corpus_objects):
+        n_samples = int(probs[i] * target_total_samples)
+        n_samples = max(n_samples, 1)  # always at least one sample
+
+        replace = n_samples > len(corpus.df_train)
+        sampled = corpus.df_train.sample(n=n_samples, replace=replace)
+        sampled = sampled.copy()
+        sampled["corpus_idx"] = i
+        dfs.append(sampled)
+        src_langs_all.extend([corpus.source_lang_nllb] * n_samples)
+        tgt_langs_all.extend([corpus.target_lang_nllb] * n_samples)
+
+        if verbose:
+            pct = probs[i] * 100
+            ratio = n_samples / len(corpus.df_train)
+            direction = "oversampled" if ratio > 1 else "undersampled" if ratio < 1 else "exact"
+            print(
+                f"  Corpus {i} ({corpus.source_lang_nllb}→{corpus.target_lang_nllb}): "
+                f"{len(corpus.df_train):,} original → {n_samples:,} sampled "
+                f"({pct:.1f}%, {ratio:.2f}x, {direction})"
+            )
+
+    df = pd.concat(dfs).reset_index(drop=True)
+    return df, np.array(src_langs_all, dtype=object), np.array(tgt_langs_all, dtype=object)
+
+
 def tokenize_mixed_langs(
     tokenizer, texts: list[str], langs: list[str], max_length: int, device
 ) -> tuple[torch.Tensor, torch.Tensor]:
@@ -202,27 +257,23 @@ def train_model(model, tokenizer, corpus_objects: list, cfg: RunConfig) -> None:
     losses: list[float] = []
     loss_rows: list[dict[str, object]] = []
     total_steps = 0
-    # Combine
-    dfs = []
-    src_langs_all, tgt_langs_all = [], []
-    for i, corpus in enumerate(corpus_objects):
-        df = corpus.df_train.copy()
-        df['corpus_idx'] = i
-        dfs.append(df)
-        src_langs_all.extend([corpus.source_lang_nllb] * len(df))
-        tgt_langs_all.extend([corpus.target_lang_nllb] * len(df))
-    df_all = pd.concat(dfs).reset_index(drop=True)
-    N = len(df_all)
 
-    # Preprocess alles in één keer
-    orig_xx = df_all['source_sentence'].apply(preproc)
-    orig_yy = df_all['target_sentence'].apply(preproc)
-    srcs = np.array(src_langs_all, dtype=object)
-    tgts = np.array(tgt_langs_all, dtype=object)
+    # Preprocess once — preproc is deterministic, no need to redo every epoch
+    for corpus in corpus_objects:
+        corpus.df_train = corpus.df_train.copy()
+        corpus.df_train['source_sentence'] = corpus.df_train['source_sentence'].apply(preproc)
+        corpus.df_train['target_sentence'] = corpus.df_train['target_sentence'].apply(preproc)
 
     for epoch in range(num_epochs):
-        xx = orig_xx.copy()
-        yy = orig_yy.copy()
+        # Re-sample every epoch so oversampled duplicates get fresh augmentations
+        df_all, srcs, tgts = get_balanced_df(
+            corpus_objects,
+            temperature=cfg.sampling_temperature,
+        )
+        N = len(df_all)
+
+        xx = df_all['source_sentence'].copy()
+        yy = df_all['target_sentence'].copy()
 
         # Some additional data variation
         xx, yy = apply_variations(xx, yy)

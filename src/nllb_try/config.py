@@ -35,6 +35,7 @@ class RunConfig:
     max_length: int = 43 # Tokens
     warmup_steps: int = 110
     num_epochs: int = 12
+    sampling_temperature: float = 5.0  # Temperature for balanced corpus sampling (1=proportional, inf=equal)
     device: str = "cuda"
 
     @property
