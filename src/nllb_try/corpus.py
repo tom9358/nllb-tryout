@@ -213,3 +213,43 @@ def main_corpus(
         print("No variety directory provided.")
 
     return corpora
+
+
+def pool_varieties_into_tatoeba(corpora: list[BaseParallelCorpus]) -> list[BaseParallelCorpus]:
+    """Pool variety training data into matching Tatoeba corpora.
+
+    For each VarietyCorpus, finds the first TatoebaCorpus with the same
+    language pair and appends the variety's ``df_train`` rows to it.
+    Returns a new list containing only the (now-enlarged) Tatoeba corpora.
+
+    This avoids temperature-sampling problems where tiny variety files
+    get their own sampling slots and are oversampled dozens of times.
+    After pooling, all data of the same language pair shares one slot.
+
+    **Use for training only.**  For evaluation, pass the original unpooled
+    list, so per-variety metrics are still reported separately.
+    """
+    tatoeba: list[BaseParallelCorpus] = [c for c in corpora if isinstance(c, TatoebaCorpus)]
+    varieties = [c for c in corpora if isinstance(c, VarietyCorpus)]
+
+    for vc in varieties:
+        key = frozenset([vc.source_lang_nllb, vc.target_lang_nllb])
+        match = next(
+            (tc for tc in tatoeba
+             if frozenset([tc.source_lang_nllb, tc.target_lang_nllb]) == key),
+            None,
+        )
+        if match is None:
+            print(f"  Warning: no matching Tatoeba corpus for {vc.source_lang_nllb}-"
+                  f"{vc.target_lang_nllb}, keeping variety as standalone corpus.")
+            tatoeba.append(vc)
+        else:
+            before = len(match.df_train)
+            match.df_train = pd.concat(
+                [match.df_train, vc.df_train], ignore_index=True,
+            )
+            print(f"  Pooled variety ({len(vc.df_train):,} rows) into "
+                  f"{match.source_lang_nllb}-{match.target_lang_nllb}: "
+                  f"{before:,} -> {len(match.df_train):,} train rows")
+
+    return tatoeba
