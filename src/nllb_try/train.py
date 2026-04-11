@@ -36,7 +36,7 @@ synonym_pairs_gos = [
     ('huus', 'hoes'), ('huzen', 'hoezen'), ('huuske', 'hoeske'), ('groag', 'geern'), ('raais', 'raaize'), ('kees', 'keze'), ('week', 'weke'), ('mìns', 'mens'), ('mìnsk', 'mens'),
     ('mìnsen', 'mensen'), ('mìnsken', 'mìnsen'), ('uut', 'oet'), ('in', 'ien'), ('wer', 'wuir'), ('gebruuk', 'gebroek'), ('zuch', 'zok'), ('bruukst', 'broekst'), ('wind', 'wiend'),
     ('pampier', 'pepier'), ('vanuut', 'vanoet'), ('wazzen', 'waren'), ('mekoar', 'nkander'), ('bruken', 'broeken'), ('zuch', 'zuk'), ('vis', 'visk'), ('ìnde', 'ende'), ('ìnd', 'end'),
-    ('zuk', 'zok'), ('wotter', 'woater'), ('kraant', 'kraande'), ('haar', 'har'), ('bruuk', 'broek'), ('school', 'schoule'), ('schoul', 'schoule'), ('iezer', 'iesder'),
+    ('zuk', 'zok'), ('wotter', 'woater'), ('kraant', 'kraande'), ('haar', 'har'), ('bruuk', 'broek'), ('school', 'schoule'), ('schoul', 'schoule'), ('iezer', 'iesder'), ('kachel', 'kaggel'),
     ('ais', 'ains'), ('hebben', 'hemmen'), ('zotterdag', 'zoaterdag'), ('bruukt', 'broekt'), ('bruukten', 'broekten'), ('iezern', 'iesdern'), ('kind', 'kiend'), ('altied', 'aaltied'),
     ('mirreg', 'middag'), ('vast', 'vaast'), ('nacht', 'naacht'), ('kiender', 'kinder'), ('bruukte', 'broekte'), ('deus','deuze'), ('gelok', 'geluk'), ('gang', 'gaang'), ('olle', 'olde')
 ]
@@ -131,6 +131,17 @@ def apply_variations(xx: pd.Series, yy: pd.Series) -> tuple[pd.Series, pd.Series
     delete_idxs = idxs[n_upper + n_nocap + n_emoji : n_upper + n_nocap + n_emoji + n_delete]
     xx_vals[delete_idxs] = [s[:-1] if len(s) > 1 else s for s in xx_vals[delete_idxs]]
     yy_vals[delete_idxs] = [s[:-1] if len(s) > 1 else s for s in yy_vals[delete_idxs]]
+
+    # Random newline insertion (teaches the model to treat \n as whitespace)
+    n_newline = N // 8
+    newline_idxs = idxs[n_upper + n_nocap + n_emoji + n_delete : n_upper + n_nocap + n_emoji + n_delete + n_newline]
+    for arr in (xx_vals, yy_vals):
+        s = pd.Series(arr[newline_idxs])
+        # Append \n after sentence-ending punctuation, or at end of string
+        arr[newline_idxs] = s.str.replace(r'([.!?])\s*$', r'\1\n', regex=True).to_numpy()
+        # If no match (no final punctuation), just append \n
+        mask = ~pd.Series(arr[newline_idxs]).str.endswith('\n')
+        arr[newline_idxs[mask]] = [v + '\n' for v in arr[newline_idxs[mask]]]
 
     return pd.Series(xx_vals, index=xx.index), pd.Series(yy_vals, index=yy.index)
 
