@@ -77,7 +77,11 @@ namelist = np.array(['Tom','Sam','Ben','Nick','Ed','Noah','Joey','Rick','Rob','M
 pattern_names = r'\b(' + '|'.join(map(re.escape, common_tatoeba_name)) + r')\b'
 pattern_names_re = re.compile(pattern_names)
 
-emoji_choices = np.array(["😊", "😂", "😍", "👍", "🔥", "🎉", "🌟", "😎", "🥳", '❤️', '💀', '😭', '🫶', '🤣', '😘', '🥺', '🤔', '🙏', '🎄'], dtype=object)
+emoji_choices = np.array([
+    "😊", "😂", "😍", "👍", "🔥", "✨", "⭐", "😎", "😄", "❤️",
+    "😱", "😭", "💕", "🤣", "😘", "😢", "🤔", "🙏", "🎁", "😉",
+    "😅", "🙂", "👏", "😀", "😆", "😋", "😛", "😇", "🎵", "🌹",
+], dtype=object)
 
 def apply_variations(xx: pd.Series, yy: pd.Series) -> tuple[pd.Series, pd.Series]:
     N = len(xx)
@@ -132,16 +136,17 @@ def apply_variations(xx: pd.Series, yy: pd.Series) -> tuple[pd.Series, pd.Series
     xx_vals[delete_idxs] = [s[:-1] if len(s) > 1 else s for s in xx_vals[delete_idxs]]
     yy_vals[delete_idxs] = [s[:-1] if len(s) > 1 else s for s in yy_vals[delete_idxs]]
 
-    # Random newline insertion (teaches the model to treat \n as whitespace)
+    # Pilcrow insertion (teaches the model to preserve ¶ as a newline placeholder,
+    # since SentencePiece normalizes actual \n to whitespace)
     n_newline = N // 8
     newline_idxs = idxs[n_upper + n_nocap + n_emoji + n_delete : n_upper + n_nocap + n_emoji + n_delete + n_newline]
     for arr in (xx_vals, yy_vals):
         s = pd.Series(arr[newline_idxs])
-        # Append \n after sentence-ending punctuation, or at end of string
-        arr[newline_idxs] = s.str.replace(r'([.!?])\s*$', r'\1\n', regex=True).to_numpy()
-        # If no match (no final punctuation), just append \n
-        mask = ~pd.Series(arr[newline_idxs]).str.endswith('\n')
-        arr[newline_idxs[mask]] = [v + '\n' for v in arr[newline_idxs[mask]]]
+        # Append ¶ after sentence-ending punctuation, or at end of string
+        arr[newline_idxs] = s.str.replace(r'([.!?])\s*$', r'\1¶', regex=True).to_numpy()
+        # If no match (no final punctuation), just append ¶
+        mask = ~pd.Series(arr[newline_idxs]).str.endswith('¶')
+        arr[newline_idxs[mask]] = [v + '¶' for v in arr[newline_idxs[mask]]]
 
     return pd.Series(xx_vals, index=xx.index), pd.Series(yy_vals, index=yy.index)
 
