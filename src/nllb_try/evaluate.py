@@ -199,6 +199,10 @@ def main_evaluate(
             "seed": seed,
             "new_lang_nllb": new_lang_nllb,
             "epochs_evaluated": model_versions,
+            "corpus_names": {
+                f"corpus{i}": getattr(c, "path", f"tatoeba:{c.source_lang_nllb}-{c.target_lang_nllb}")
+                for i, c in enumerate(corpus_objects)
+            },
             "created_at": datetime.now().isoformat(timespec="seconds"),
         },
     )
