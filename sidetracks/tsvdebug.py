@@ -29,7 +29,7 @@ df = df[df['gronings'] != df['dutch']]
 df_filtered = df[~df['gronings'].str.contains('[ ,]', na=False) & ~df['dutch'].str.contains('[ ,]', na=False)]
 
 # Step 3: For each Dutch word with multiple Gronings translations, select the most frequent one or the shortest option
-def select_best_gronings(dutch_word, gronings_options, sorted_words):
+def select_best_gronings(gronings_options, sorted_words):
     max_freq = -1
     best_gronings = None
     for gronings_word in gronings_options:
@@ -51,7 +51,7 @@ filtered_rows = []
 for dutch_word, group in grouped:
     if len(group) > 1:
         gronings_options = group['gronings'].tolist()
-        best_gronings = select_best_gronings(dutch_word, gronings_options, sorted_words)
+        best_gronings = select_best_gronings(gronings_options, sorted_words)
         filtered_rows.append({'gronings': best_gronings, 'dutch': dutch_word})
     else:
         filtered_rows.append(group.iloc[0].to_dict())
