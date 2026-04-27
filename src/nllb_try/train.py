@@ -107,7 +107,7 @@ def tokenize_mixed_langs(
     attention_mask_tensor = torch.stack(attention_mask).to(device)
     return input_ids_tensor, attention_mask_tensor
 
-def train_model(model, tokenizer, corpus_objects: list, cfg: RunConfig) -> None:
+def train_model(model, tokenizer, corpus_objects: list, cfg: RunConfig, verbose: bool = True) -> None:
     batch_size: int = cfg.batch_size
     max_length: int = cfg.max_length
     num_epochs: int = cfg.num_epochs
@@ -118,6 +118,39 @@ def train_model(model, tokenizer, corpus_objects: list, cfg: RunConfig) -> None:
     train_dir = paths["train_dir"]
 
     device = next(model.parameters()).device
+
+    # ── Verbose: show sampling plan before training starts ──
+    if verbose:
+        counts = np.array([len(c.df_train) for c in corpus_objects], dtype=float)
+        total_original = int(counts.sum())
+        probs = counts ** (1.0 / cfg.sampling_temperature)
+        probs /= probs.sum()
+
+        print(f"\n{'='*65}")
+        print("  Training plan")
+        print(f"{'='*65}")
+        print(f"  Model:        {cfg.modelname}")
+        print(f"  Epochs:       {num_epochs}")
+        print(f"  Batch size:   {batch_size}")
+        print(f"  Max length:   {max_length} tokens")
+        print(f"  Warmup:       {warmup_steps} steps")
+        print(f"  Temperature:  {cfg.sampling_temperature}")
+        print(f"  Device:       {device}")
+        print(f"\n  {'Corpus':<30} {'Original':>10} {'Sampled':>10} {'Factor':>8} {'Share':>7}")
+        print(f"  {'-'*30} {'-'*10} {'-'*10} {'-'*8} {'-'*7}")
+        for i, corpus in enumerate(corpus_objects):
+            n_original = len(corpus.df_train)
+            n_sampled = max(int(probs[i] * total_original), 1)
+            factor = n_sampled / n_original
+            pair = f"{corpus.source_lang_nllb}-{corpus.target_lang_nllb}"
+            print(f"  {pair:<30} {n_original:>10,} {n_sampled:>10,} {factor:>7.2f}x {probs[i]*100:>6.1f}%")
+        total_sampled = sum(max(int(probs[i] * total_original), 1) for i in range(len(corpus_objects)))
+        n_batches = int(np.ceil(total_sampled / batch_size))
+        print(f"  {'':30} {'─'*10} {'─'*10}")
+        print(f"  {'Total':<30} {total_original:>10,} {total_sampled:>10,}")
+        print(f"\n  Steps/epoch:  {n_batches:,}")
+        print(f"  Total steps:  {n_batches * num_epochs:,}")
+        print(f"{'='*65}\n")
 
     optimizer = Adafactor(
         [p for p in model.parameters() if p.requires_grad],
@@ -250,7 +283,7 @@ def train_model(model, tokenizer, corpus_objects: list, cfg: RunConfig) -> None:
     plt.savefig(str(train_dir / "loss.png"))
     plt.close()
 
-def main_train(corpus_objects: list, cfg: RunConfig | None = None):
+def main_train(corpus_objects: list, cfg: RunConfig | None = None, verbose: bool = True):
     cfg = cfg or get_default_config()
     set_seed(cfg.seed)
 
@@ -259,6 +292,8 @@ def main_train(corpus_objects: list, cfg: RunConfig | None = None):
     run_config_dict = cfg.to_dict()
     write_json(paths["run_dir"] / "run_config.json", run_config_dict)
     (paths["run_dir"] / "run_config.txt").write_text(format_run_config_txt(run_config_dict), encoding="utf-8")
+    if verbose:
+        print("ron_config.json and run_config.txt saved")
 
     model, tokenizer = setup_model_and_tokenizer(
         cfg.modelname,
@@ -267,4 +302,4 @@ def main_train(corpus_objects: list, cfg: RunConfig | None = None):
         cfg.similar_lang_nllb,
         device=cfg.device,
     )
-    train_model(model, tokenizer, corpus_objects, cfg)
+    train_model(model, tokenizer, corpus_objects, cfg, verbose=verbose)
