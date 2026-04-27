@@ -17,7 +17,7 @@ from sacrebleu import corpus_bleu, corpus_chrf
 from .artifacts import write_json
 from .config import get_default_config
 from .seed import set_seed
-from .tokenizer_and_model_setup import setup_model_and_tokenizer, cleanup
+from .tokenizer_and_model_setup import setup_model_and_tokenizer
 from .augmentation import preproc
 
 def translate(text, src_lang: str, tgt_lang: str, model, tokenizer, a=16, b=1.5, max_input_length: int = 200, normalize_text: bool = False, **kwargs):
@@ -49,27 +49,40 @@ def _evaluate(
     src_lang: str,
     tgt_lang: str,
     model,
-    tokenizer
+    tokenizer,
+    batch_size: int = 64,
 ):
     """
-    Translates source_texts from src_lang to tgt_lang and calculates BLEU and
-    CHRF scores against target_references.
+    Translates source_texts from src_lang to tgt_lang in batches and
+    calculates BLEU and CHRF scores against references.
     """
-    translations = translate(
-        text=source_texts,
-        src_lang=src_lang,
-        tgt_lang=tgt_lang,
-        model=model,
-        tokenizer=tokenizer
-    )
+    translations = []
+    for i in range(0, len(source_texts), batch_size):
+        batch = source_texts[i : i + batch_size]
+        translations.extend(
+            translate(
+                text=batch,
+                src_lang=src_lang,
+                tgt_lang=tgt_lang,
+                model=model,
+                tokenizer=tokenizer,
+            )
+        )
     bleu_score = corpus_bleu(references, [translations]).score
     chrf_score = corpus_chrf(references, [translations]).score
-    if bleu_score<0.01: # DEBUG
+    if bleu_score<1: # DEBUG
         print(references[0:3], '\n', translations[0:3])
     return bleu_score, chrf_score
 
 # Calculate metrics for a single DataFrame split
-def _calculate_metrics_for_split(df_split: pd.DataFrame, src_lang_nllb: str, tgt_lang_nllb: str, model, tokenizer, sample_size: int | None = None):
+def _calculate_metrics_for_split(df_split: pd.DataFrame, src_lang_nllb: str, tgt_lang_nllb: str, model, tokenizer, sample_size: int | None = 200, batch_size: int = 64, verbose: bool = False):
+    """Calculate BLEU and CHRF metrics for a single DataFrame split in both directions.
+
+    Args:
+        sample_size: Number of sentences to sample for evaluation. Pass None to
+            evaluate on the entire split (may be slow for large datasets).
+        batch_size: Number of sentences to translate at once during evaluation.
+    """
     if df_split.empty:
         print(f"Warning: The provided DataFrame split for {src_lang_nllb}->{tgt_lang_nllb} is empty. Skipping evaluation for this split. Values set to 0.0.")
         return {
@@ -79,11 +92,14 @@ def _calculate_metrics_for_split(df_split: pd.DataFrame, src_lang_nllb: str, tgt
             f"chrf_{tgt_lang_nllb}_to_{src_lang_nllb}_tgt_to_src": -1.0,
         }
 
-    # By default, evaluate on the full split.
     if sample_size is None:
         df_sampled = df_split
     else:
         df_sampled = df_split.sample(n=min(len(df_split), sample_size), random_state=9358)
+
+    if verbose:
+        print(f"    Evaluating on {len(df_sampled)}/{len(df_split)} sentences "
+              f"({'all' if sample_size is None else f'sample_size={sample_size}'})")
 
     src_sentences = df_sampled['source_sentence'].tolist()
     tgt_sentences = df_sampled['target_sentence'].tolist()
@@ -95,7 +111,8 @@ def _calculate_metrics_for_split(df_split: pd.DataFrame, src_lang_nllb: str, tgt
         src_lang=src_lang_nllb,
         tgt_lang=tgt_lang_nllb,
         model=model,
-        tokenizer=tokenizer
+        tokenizer=tokenizer,
+        batch_size=batch_size,
     )
 
     # Evaluate Target to Source direction
@@ -105,7 +122,8 @@ def _calculate_metrics_for_split(df_split: pd.DataFrame, src_lang_nllb: str, tgt
         src_lang=tgt_lang_nllb,
         tgt_lang=src_lang_nllb,
         model=model,
-        tokenizer=tokenizer
+        tokenizer=tokenizer,
+        batch_size=batch_size,
     )
 
     return {
@@ -116,7 +134,7 @@ def _calculate_metrics_for_split(df_split: pd.DataFrame, src_lang_nllb: str, tgt
     }
 
 # Main evaluation function calls the helper for each split
-def evaluate_model(model, tokenizer, corpus_objects, sample_size: int | None = None):
+def evaluate_model(model, tokenizer, corpus_objects, sample_size: int | None = 200, batch_size: int = 64, verbose: bool = False):
     all_corpus_results = []
     for i, corpus in enumerate(corpus_objects):
         corpus_results = {}
@@ -126,14 +144,14 @@ def evaluate_model(model, tokenizer, corpus_objects, sample_size: int | None = N
 
         # Evaluate on Training Set
         train_metrics = _calculate_metrics_for_split(
-            corpus.df_train, corpus.source_lang_nllb, corpus.target_lang_nllb, model, tokenizer, sample_size = sample_size
+            corpus.df_train, corpus.source_lang_nllb, corpus.target_lang_nllb, model, tokenizer, sample_size=sample_size, batch_size=batch_size, verbose=verbose
         )
         for k, v in train_metrics.items():
             corpus_results[f"{corpus_id}_train_{k}"] = v
 
         # Evaluate on Validation Set
         validate_metrics = _calculate_metrics_for_split(
-            corpus.df_validate, corpus.source_lang_nllb, corpus.target_lang_nllb, model, tokenizer, sample_size = sample_size
+            corpus.df_validate, corpus.source_lang_nllb, corpus.target_lang_nllb, model, tokenizer, sample_size=sample_size, batch_size=batch_size, verbose=verbose
         )
         for k, v in validate_metrics.items():
             corpus_results[f"{corpus_id}_validate_{k}"] = v
@@ -147,18 +165,23 @@ def main_evaluate(
     new_lang_nllb: str,
     eval_id: str | None = None,
     device: str = "cuda",
-    sample_size: int | None = None,
+    sample_size: int | None = 200,
+    batch_size: int = 64,
     seed: int | None = None,
+    verbose: bool = True,
 ):
-    if seed is None:
-        seed = get_default_config().seed
     """Evaluate all epoch checkpoints found in a training run directory.
 
-    Writes evaluation outputs under:
-      <run_dir>/eval/<eval_id>/
+    Writes evaluation outputs under ``<run_dir>/eval/<eval_id>/``.
 
-    No training metadata is modified.
+    Args:
+        sample_size: Number of sentences to sample per split for evaluation.
+            Pass None to evaluate on the full splits (slower but more precise).
+        batch_size: Number of sentences to translate at once during evaluation.
+        verbose: Print per-split evaluation details (sentence counts, etc.).
     """
+    if seed is None:
+        seed = get_default_config().seed
 
     set_seed(seed)
     eval_id = eval_id or datetime.now().strftime("%Y%m%d-%H%M%S")
@@ -179,7 +202,7 @@ def main_evaluate(
         model_path = str(checkpoints_dir / model_name)
         model, tokenizer = setup_model_and_tokenizer(model_path, new_lang=new_lang_nllb, device=device)
         
-        version_results = evaluate_model(model, tokenizer, corpus_objects, sample_size=sample_size)
+        version_results = evaluate_model(model, tokenizer, corpus_objects, sample_size=sample_size, batch_size=batch_size, verbose=verbose)
 
         combined_version_results = {}
         for res_dict in version_results:
