@@ -37,6 +37,7 @@ def translate(text, src_lang: str, tgt_lang: str, model, tokenizer, a=16, b=1.5,
             **inputs.to(model.device),
             forced_bos_token_id=tokenizer.convert_tokens_to_ids(tgt_lang),
             max_new_tokens=int(a + b * inputs.input_ids.shape[1]),
+            max_length=None,
             **kwargs
         )
     return tokenizer.batch_decode(result, skip_special_tokens=True)
@@ -173,12 +174,8 @@ def main_evaluate(
         if d.is_dir() and d.name.startswith("epoch")
     ]
     model_versions.sort(key=lambda x: int(x.replace("epoch", "")))
-    model = None
-    tokenizer = None
     for model_name in model_versions:
         print(f"Evaluating model saved at step {model_name}...")
-        del model, tokenizer
-        cleanup()
         model_path = str(checkpoints_dir / model_name)
         model, tokenizer = setup_model_and_tokenizer(model_path, new_lang=new_lang_nllb, device=device)
         
