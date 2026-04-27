@@ -9,6 +9,7 @@ import os
 from datetime import datetime
 from pathlib import Path
 
+import torch
 import pandas as pd
 import matplotlib.pyplot as plt
 from sacrebleu import corpus_bleu, corpus_chrf
@@ -31,12 +32,13 @@ def translate(text, src_lang: str, tgt_lang: str, model, tokenizer, a=16, b=1.5,
         truncation=True,
         max_length=max_input_length
     )
-    result = model.generate(
-        **inputs.to(model.device),
-        forced_bos_token_id=tokenizer.convert_tokens_to_ids(tgt_lang),
-        max_new_tokens=int(a + b * inputs.input_ids.shape[1]),
-        **kwargs
-    )
+    with torch.no_grad():
+        result = model.generate(
+            **inputs.to(model.device),
+            forced_bos_token_id=tokenizer.convert_tokens_to_ids(tgt_lang),
+            max_new_tokens=int(a + b * inputs.input_ids.shape[1]),
+            **kwargs
+        )
     return tokenizer.batch_decode(result, skip_special_tokens=True)
 
 
@@ -171,8 +173,11 @@ def main_evaluate(
         if d.is_dir() and d.name.startswith("epoch")
     ]
     model_versions.sort(key=lambda x: int(x.replace("epoch", "")))
+    model = None
+    tokenizer = None
     for model_name in model_versions:
         print(f"Evaluating model saved at step {model_name}...")
+        del model, tokenizer
         cleanup()
         model_path = str(checkpoints_dir / model_name)
         model, tokenizer = setup_model_and_tokenizer(model_path, new_lang=new_lang_nllb, device=device)
