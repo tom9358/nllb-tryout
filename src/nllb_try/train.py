@@ -119,12 +119,14 @@ def train_model(model, tokenizer, corpus_objects: list, cfg: RunConfig, verbose:
 
     device = next(model.parameters()).device
 
-    # ── Verbose: show sampling plan before training starts ──
+    # ── Verbose: show training config ──
     if verbose:
         counts = np.array([len(c.df_train) for c in corpus_objects], dtype=float)
         total_original = int(counts.sum())
         probs = counts ** (1.0 / cfg.sampling_temperature)
         probs /= probs.sum()
+        total_sampled = sum(max(int(probs[i] * total_original), 1) for i in range(len(corpus_objects)))
+        n_batches = int(np.ceil(total_sampled / batch_size))
 
         print(f"\n{'='*65}")
         print("  Training plan")
@@ -136,19 +138,7 @@ def train_model(model, tokenizer, corpus_objects: list, cfg: RunConfig, verbose:
         print(f"  Warmup:       {warmup_steps} steps")
         print(f"  Temperature:  {cfg.sampling_temperature}")
         print(f"  Device:       {device}")
-        print(f"\n  {'Corpus':<30} {'Original':>10} {'Sampled':>10} {'Factor':>8} {'Share':>7}")
-        print(f"  {'-'*30} {'-'*10} {'-'*10} {'-'*8} {'-'*7}")
-        for i, corpus in enumerate(corpus_objects):
-            n_original = len(corpus.df_train)
-            n_sampled = max(int(probs[i] * total_original), 1)
-            factor = n_sampled / n_original
-            pair = f"{corpus.source_lang_nllb}-{corpus.target_lang_nllb}"
-            print(f"  {pair:<30} {n_original:>10,} {n_sampled:>10,} {factor:>7.2f}x {probs[i]*100:>6.1f}%")
-        total_sampled = sum(max(int(probs[i] * total_original), 1) for i in range(len(corpus_objects)))
-        n_batches = int(np.ceil(total_sampled / batch_size))
-        print(f"  {'':30} {'─'*10} {'─'*10}")
-        print(f"  {'Total':<30} {total_original:>10,} {total_sampled:>10,}")
-        print(f"\n  Steps/epoch:  {n_batches:,}")
+        print(f"  Steps/epoch:  {n_batches:,}")
         print(f"  Total steps:  {n_batches * num_epochs:,}")
         print(f"{'='*65}\n")
 
@@ -178,6 +168,7 @@ def train_model(model, tokenizer, corpus_objects: list, cfg: RunConfig, verbose:
         df_all, srcs, tgts = get_balanced_df(
             corpus_objects,
             temperature=cfg.sampling_temperature,
+            verbose=verbose and epoch == 0,  # only print sampling details for first epoch
         )
         N = len(df_all)
 
