@@ -17,7 +17,7 @@ from .artifacts import write_json
 from .config import get_default_config
 from .seed import set_seed
 from .tokenizer_and_model_setup import setup_model_and_tokenizer, cleanup
-from .train import preproc
+from .augmentation import preproc
 
 def translate(text, src_lang: str, tgt_lang: str, model, tokenizer, a=16, b=1.5, max_input_length: int = 200, normalize_text: bool = False, **kwargs):
     if normalize_text:
