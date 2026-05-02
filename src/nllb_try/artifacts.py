@@ -40,18 +40,3 @@ def format_run_config_txt(run_config: dict[str, Any]) -> str:
     for k in sorted(run_config.keys()):
         lines.append(f"{k}: {run_config[k]}")
     return "\n".join(lines) + "\n"
-
-
-def write_loss_csv(path: str | Path, rows: Iterable[dict[str, Any]]) -> None:
-    p = Path(path)
-    p.parent.mkdir(parents=True, exist_ok=True)
-
-    rows_list = list(rows)
-    if not rows_list:
-        return
-
-    fieldnames = list(rows_list[0].keys())
-    with p.open("w", newline="", encoding="utf-8") as f:
-        w = csv.DictWriter(f, fieldnames=fieldnames)
-        w.writeheader()
-        w.writerows(rows_list)

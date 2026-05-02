@@ -8,7 +8,6 @@ from .artifacts import (
     format_run_config_txt,
     init_run_dir,
     write_json,
-    write_loss_csv,
 )
 from .augmentation import (
     preproc,
@@ -266,9 +265,6 @@ def train_model(model, tokenizer, corpus_objects: list, cfg: RunConfig, verbose:
     plt.ylabel('Loss')
     plt.title('Training Loss Over Time')
     plt.legend()
-
-    # Save and plot loss history
-    write_loss_csv(train_dir / "loss.csv", loss_rows)
 
     # Save the plot as an image
     plt.savefig(str(train_dir / "loss.png"))
