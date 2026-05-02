@@ -20,7 +20,7 @@ def download_and_unpack_bz2(link: str, output_file: str):
         shutil.copyfileobj(file_in, uncompressed_out)
     print(f'Unpacked to {output_file}.')
 
-def download_and_unpack_links_file(tatoeba_path: str, redownload: bool = False):
+def download_and_unpack_links_file(tatoeba_path: str, redownload: bool = False, verbose: bool = False):
     links_file_url = r'https://downloads.tatoeba.org/exports/links.tar.bz2'
     tar_file = os.path.join(tatoeba_path, "links.tar")
     csv_file = os.path.join(tatoeba_path, "links.csv")
@@ -32,21 +32,21 @@ def download_and_unpack_links_file(tatoeba_path: str, redownload: bool = False):
         with tarfile.open(tar_file, "r") as tar:
             tar.extractall(tatoeba_path)
         print(f'Links CSV unpacked to {tatoeba_path}.')
-    else:
+    elif verbose:
         print('Links CSV already exists. Skipping download and unpacking.')
 
-def download_and_unpack_tatoeba(tatoeba_path: str, source_lang: str, redownload: bool = False):
+def download_and_unpack_tatoeba(tatoeba_path: str, source_lang: str, redownload: bool = False, verbose: bool = False):
     sentence_file_url = rf'https://downloads.tatoeba.org/exports/per_language/{source_lang}/{source_lang}_sentences.tsv.bz2'
     unpacked_file = os.path.join(tatoeba_path, f"{source_lang}_sentences.tsv")
 
     if redownload or not os.path.exists(unpacked_file):
         _ensure_directory(tatoeba_path)
         download_and_unpack_bz2(sentence_file_url, unpacked_file)
-    else:
+    elif verbose:
         print(f'{unpacked_file} already exists. Skipping download and unpacking.')
 
-def main_download(source_langs, redownload: bool = False, tatoeba_path: str = "data/tatoeba"):
+def main_download(source_langs, redownload: bool = False, tatoeba_path: str = "data/tatoeba", verbose: bool = False):
     print('Downloading necessary Tatoeba files...')
-    download_and_unpack_links_file(tatoeba_path=tatoeba_path, redownload=redownload)
+    download_and_unpack_links_file(tatoeba_path=tatoeba_path, redownload=redownload, verbose=verbose)
     for src_lang in tqdm(source_langs):
-        download_and_unpack_tatoeba(tatoeba_path=tatoeba_path, source_lang=src_lang, redownload=redownload)
+        download_and_unpack_tatoeba(tatoeba_path=tatoeba_path, source_lang=src_lang, redownload=redownload, verbose=verbose)
