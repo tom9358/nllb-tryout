@@ -1,0 +1,28 @@
+{
+  "batch_size": 256,
+  "data_root_path": "data",
+  "device": "cuda",
+  "max_chars": 200,
+  "max_length": 47,
+  "model_cache_path": "hfacemodels",
+  "modelname": "facebook/nllb-200-distilled-600M",
+  "new_lang_nllb": "gos_Latn",
+  "num_epochs": 12,
+  "run_dir": "checkpoints/nllb-200-distilled-600M-nld-gos-deu-20260503-145514",
+  "run_id": "20260503-145514",
+  "sampling_temperature": 5.0,
+  "seed": 9358,
+  "similar_lang_nllb": "nld_Latn",
+  "source_langs_nllb": [
+    "nld_Latn",
+    "gos_Latn",
+    "deu_Latn"
+  ],
+  "source_langs_tatoeba": [
+    "nld",
+    "gos",
+    "deu"
+  ],
+  "tatoeba_path": "data/tatoeba",
+  "warmup_steps": 70
+}
