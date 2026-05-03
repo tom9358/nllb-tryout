@@ -20,7 +20,7 @@ from .seed import set_seed
 from .tokenizer_and_model_setup import setup_model_and_tokenizer
 from .augmentation import preproc
 
-def translate(text, src_lang: str, tgt_lang: str, model, tokenizer, a=16, b=1.5, max_input_length: int = 200, normalize_text: bool = False, **kwargs):
+def translate(text, src_lang: str, tgt_lang: str, model, tokenizer, a: float = 16, b: float = 1.5, max_input_length: int = 200, normalize_text: bool = False, **kwargs):
     if normalize_text:
         text = preproc(text)
     tokenizer.src_lang = src_lang
@@ -168,6 +168,7 @@ def main_evaluate(
     sample_size: int | None = 200,
     batch_size: int = 64,
     seed: int | None = None,
+    include_baseline: bool = False,
     verbose: bool = True,
 ):
     """Evaluate all epoch checkpoints found in a training run directory.
@@ -178,6 +179,8 @@ def main_evaluate(
         sample_size: Number of sentences to sample per split for evaluation.
             Pass None to evaluate on the full splits (slower but more precise).
         batch_size: Number of sentences to translate at once during evaluation.
+        include_baseline: If True, evaluate the pretrained model (before any
+            fine-tuning) as the first entry in the results, labelled "baseline".
         verbose: Print per-split evaluation details (sentence counts, etc.).
     """
     if seed is None:
@@ -192,6 +195,25 @@ def main_evaluate(
 
     all_results: dict[str, dict] = {}
 
+    # --- Baseline (untrained model) ---
+    if include_baseline:
+        import json
+        run_config = json.loads((run_path / "run_config.json").read_text())
+        print("Evaluating baseline (untrained) model...")
+        model, tokenizer = setup_model_and_tokenizer(
+            run_config["modelname"],
+            modelpath=run_config.get("model_cache_path"),
+            new_lang=new_lang_nllb,
+            similar_lang=run_config.get("similar_lang_nllb"),
+            device=device,
+        )
+        baseline_results = evaluate_model(model, tokenizer, corpus_objects, sample_size=sample_size, batch_size=batch_size, verbose=verbose)
+        combined = {}
+        for res_dict in baseline_results:
+            combined.update(res_dict)
+        all_results["baseline"] = combined
+        del model, tokenizer
+
     model_versions = [
         d.name for d in checkpoints_dir.iterdir()
         if d.is_dir() and d.name.startswith("epoch")
@@ -201,19 +223,19 @@ def main_evaluate(
         print(f"Evaluating model saved at step {model_name}...")
         model_path = str(checkpoints_dir / model_name)
         model, tokenizer = setup_model_and_tokenizer(model_path, new_lang=new_lang_nllb, device=device)
-        
+
         version_results = evaluate_model(model, tokenizer, corpus_objects, sample_size=sample_size, batch_size=batch_size, verbose=verbose)
 
         combined_version_results = {}
         for res_dict in version_results:
             combined_version_results.update(res_dict)
-            
+
         all_results[model_name] = combined_version_results
-        
+
     df_results = pd.DataFrame.from_dict(all_results, orient="index")
     df_results.index.name = "Training Steps"
     df_results.reset_index(inplace=True)
-    
+
     write_json(
         eval_dir / "eval_config.json",
         {
