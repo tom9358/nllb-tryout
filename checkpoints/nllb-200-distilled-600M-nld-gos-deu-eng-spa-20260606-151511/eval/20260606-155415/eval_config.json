@@ -1,0 +1,35 @@
+{
+  "corpus_names": {
+    "corpus0": "tatoeba:nld_Latn-gos_Latn",
+    "corpus1": "tatoeba:nld_Latn-deu_Latn",
+    "corpus2": "tatoeba:nld_Latn-eng_Latn",
+    "corpus3": "tatoeba:nld_Latn-spa_Latn",
+    "corpus4": "tatoeba:gos_Latn-deu_Latn",
+    "corpus5": "tatoeba:gos_Latn-eng_Latn",
+    "corpus6": "tatoeba:gos_Latn-spa_Latn",
+    "corpus7": "tatoeba:deu_Latn-eng_Latn",
+    "corpus8": "tatoeba:deu_Latn-spa_Latn",
+    "corpus9": "tatoeba:eng_Latn-spa_Latn"
+  },
+  "created_at": "2026-06-06T16:12:48",
+  "device": "cuda",
+  "epochs_evaluated": [
+    "epoch1",
+    "epoch2",
+    "epoch3",
+    "epoch4",
+    "epoch5",
+    "epoch6",
+    "epoch7",
+    "epoch8",
+    "epoch9",
+    "epoch10",
+    "epoch11",
+    "epoch12"
+  ],
+  "eval_id": "20260606-155415",
+  "new_lang_nllb": "gos_Latn",
+  "run_dir": "/home/tom.brand/offline/nllb-tryout/checkpoints/nllb-200-distilled-600M-nld-gos-deu-eng-spa-20260606-151511",
+  "sample_size": 750,
+  "seed": 9358
+}

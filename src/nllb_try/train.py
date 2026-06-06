@@ -21,27 +21,100 @@ import pandas as pd
 import matplotlib.pyplot as plt
 
 
-def get_balanced_df(
+def _find_focus_corpus_index(
+    corpus_objects: list, focus_lang_pair: tuple[str, str] | None
+) -> int:
+    if focus_lang_pair is None:
+        raise ValueError("focus_lang_pair must be set when sampling_strategy='focus_cap'")
+
+    focus_key = frozenset(focus_lang_pair)
+    matches = [
+        i
+        for i, corpus in enumerate(corpus_objects)
+        if frozenset((corpus.source_lang_nllb, corpus.target_lang_nllb)) == focus_key
+    ]
+
+    if not matches:
+        raise ValueError(f"Focus pair {tuple(focus_lang_pair)} not found in the corpora")
+    if len(matches) > 1:
+        raise ValueError(
+            f"Focus pair {tuple(focus_lang_pair)} matched multiple corpora, expected one"
+        )
+    return matches[0]
+
+
+def _get_temperature_sample_counts(
     corpus_objects: list,
-    temperature: float = 5.0,
+    temperature: float,
     target_total_samples: int | None = None,
-    verbose: bool = False,
-) -> tuple[pd.DataFrame, np.ndarray, np.ndarray]:
-    """Sample from each corpus using temperature-based balancing.
-
-    With *T=1* you get proportional sampling (status quo).
-    With *T → ∞* every corpus contributes equally.
-    *T=5* is a standard middle-ground for multilingual MT (NLLB / M2M-100).
-
-    Returns (df, src_langs, tgt_langs) where *df* has columns
-    ``source_sentence``, ``target_sentence``, and ``corpus_idx``.
-    """
+) -> tuple[np.ndarray, np.ndarray, np.ndarray]:
     counts = np.array([len(c.df_train) for c in corpus_objects], dtype=float)
     probs = counts ** (1.0 / temperature)
     probs /= probs.sum()
 
-    if verbose:
-        print(f"Balanced sampling with temperature={temperature}")
+    if target_total_samples is None:
+        target_total_samples = int(counts.sum())
+
+    sample_counts = np.maximum((probs * target_total_samples).astype(int), 1)
+    return counts, probs, sample_counts
+
+
+def _get_focus_cap_sample_counts(
+    corpus_objects: list, focus_lang_pair: tuple[str, str] | None
+) -> tuple[np.ndarray, np.ndarray, int]:
+    counts = np.array([len(c.df_train) for c in corpus_objects], dtype=int)
+    focus_idx = _find_focus_corpus_index(corpus_objects, focus_lang_pair)
+    focus_size = counts[focus_idx]
+    sample_counts = np.minimum(counts, focus_size)
+    sample_counts[focus_idx] = focus_size
+    return counts, sample_counts, focus_idx
+
+
+def get_balanced_df(
+    corpus_objects: list,
+    temperature: float = 5.0,
+    sampling_strategy: str = "temperature",
+    focus_lang_pair: tuple[str, str] | None = None,
+    target_total_samples: int | None = None,
+    verbose: bool = False,
+) -> tuple[pd.DataFrame, np.ndarray, np.ndarray]:
+    """Sample from each corpus using the configured balancing strategy.
+
+    ``temperature`` reproduces the current temperature-based multilingual
+    balancing.
+    With *T=1* you get proportional sampling (status quo).
+    With *T → ∞* every corpus contributes equally.
+    *T=5* is a standard middle-ground for multilingual MT (NLLB / M2M-100)
+    
+    ``focus_cap`` instead keeps one configured focus pair at full
+    size and caps every other pair at that same size, with fresh per-epoch
+    sampling for the larger corpora
+
+    Returns (df, src_langs, tgt_langs) where *df* has columns
+    ``source_sentence``, ``target_sentence``, and ``corpus_idx``.
+    """
+    if sampling_strategy == "temperature":
+        counts, probs, sample_counts = _get_temperature_sample_counts(
+            corpus_objects,
+            temperature=temperature,
+            target_total_samples=target_total_samples,
+        )
+        if verbose:
+            print(f"Balanced sampling with temperature={temperature}")
+    elif sampling_strategy == "focus_cap":
+        counts, sample_counts, focus_idx = _get_focus_cap_sample_counts(
+            corpus_objects, focus_lang_pair
+        )
+        focus_corpus = corpus_objects[focus_idx]
+        probs = None
+        if verbose:
+            print(
+                "Focused sampling without temperature balancing "
+                f"(focus={focus_corpus.source_lang_nllb}↔{focus_corpus.target_lang_nllb}, "
+                f"reference size={sample_counts[focus_idx]:,})"
+            )
+    else:
+        raise ValueError(f"Unknown sampling_strategy: {sampling_strategy}")
 
     if target_total_samples is None:
         target_total_samples = int(counts.sum())
@@ -49,10 +122,8 @@ def get_balanced_df(
     dfs: list[pd.DataFrame] = []
     src_langs_all: list[str] = []
     tgt_langs_all: list[str] = []
-
     for i, corpus in enumerate(corpus_objects):
-        n_samples = int(probs[i] * target_total_samples)
-        n_samples = max(n_samples, 1)  # always at least one sample
+        n_samples = int(sample_counts[i])
 
         replace = n_samples > len(corpus.df_train)
         sampled = corpus.df_train.sample(n=n_samples, replace=replace)
@@ -63,16 +134,26 @@ def get_balanced_df(
         tgt_langs_all.extend([corpus.target_lang_nllb] * n_samples)
 
         if verbose:
-            pct = probs[i] * 100
             ratio = n_samples / len(corpus.df_train)
-            direction = (
-                "oversampled" if ratio > 1 else "undersampled" if ratio < 1 else "exact"
-            )
-            print(
-                f"  Corpus {i} ({corpus.source_lang_nllb}→{corpus.target_lang_nllb}): "
-                f"{len(corpus.df_train):,} original → {n_samples:,} sampled "
-                f"({pct:.1f}%, {ratio:.2f}x, {direction})"
-            )
+            if sampling_strategy == "temperature":
+                pct = probs[i] * 100
+                direction = (
+                    "oversampled"
+                    if ratio > 1
+                    else "undersampled" if ratio < 1 else "exact"
+                )
+                print(
+                    f"  Corpus {i} ({corpus.source_lang_nllb}→{corpus.target_lang_nllb}): "
+                    f"{len(corpus.df_train):,} original → {n_samples:,} sampled "
+                    f"({pct:.1f}%, {ratio:.2f}x, {direction})"
+                )
+            else:
+                status = "focus" if i == focus_idx else "capped" if ratio < 1 else "kept"
+                print(
+                    f"  Corpus {i} ({corpus.source_lang_nllb}→{corpus.target_lang_nllb}): "
+                    f"{len(corpus.df_train):,} original → {n_samples:,} sampled "
+                    f"({ratio:.2f}x, {status})"
+                )
 
     df = pd.concat(dfs).reset_index(drop=True)
     return (
@@ -131,13 +212,19 @@ def train_model(
 
     # ── Verbose: show training config ──
     if verbose:
-        counts = np.array([len(c.df_train) for c in corpus_objects], dtype=float)
-        total_original = int(counts.sum())
-        probs = counts ** (1.0 / cfg.sampling_temperature)
-        probs /= probs.sum()
-        total_sampled = sum(
-            max(int(probs[i] * total_original), 1) for i in range(len(corpus_objects))
-        )
+        total_original = sum(len(c.df_train) for c in corpus_objects)
+        if cfg.sampling_strategy == "temperature":
+            _, _, sample_counts = _get_temperature_sample_counts(
+                corpus_objects, temperature=cfg.sampling_temperature
+            )
+        elif cfg.sampling_strategy == "focus_cap":
+            _, sample_counts, focus_idx = _get_focus_cap_sample_counts(
+                corpus_objects, cfg.focus_lang_pair
+            )
+        else:
+            raise ValueError(f"Unknown sampling_strategy: {cfg.sampling_strategy}")
+
+        total_sampled = int(sample_counts.sum())
         n_batches = int(np.ceil(total_sampled / batch_size))
 
         print(f"\n{'=' * 65}")
@@ -148,8 +235,19 @@ def train_model(
         print(f"  Batch size:   {batch_size}")
         print(f"  Max length:   {max_length} tokens")
         print(f"  Warmup:       {warmup_steps} steps")
-        print(f"  Temperature:  {cfg.sampling_temperature}")
+        print(f"  Sampling:     {cfg.sampling_strategy}")
+        if cfg.sampling_strategy == "temperature":
+            print(f"  Temperature:  {cfg.sampling_temperature}")
+        else:
+            focus_corpus = corpus_objects[focus_idx]
+            print(
+                "  Focus pair:   "
+                f"{focus_corpus.source_lang_nllb}↔{focus_corpus.target_lang_nllb}"
+            )
+            print(f"  Focus size:   {sample_counts[focus_idx]:,}")
         print(f"  Device:       {device}")
+        print(f"  Original rows:{total_original:,}")
+        print(f"  Sampled rows: {total_sampled:,}")
         print(f"  Steps/epoch:  {n_batches:,}")
         print(f"  Total steps:  {n_batches * num_epochs:,}")
         print(f"{'=' * 65}\n")
@@ -186,6 +284,8 @@ def train_model(
         df_all, srcs, tgts = get_balanced_df(
             corpus_objects,
             temperature=cfg.sampling_temperature,
+            sampling_strategy=cfg.sampling_strategy,
+            focus_lang_pair=cfg.focus_lang_pair,
             verbose=verbose
             and epoch == 0,  # only print sampling details for first epoch
         )

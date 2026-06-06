@@ -40,6 +40,8 @@ class RunConfig:
     sampling_temperature: float = (
         5.0  # Temperature for balanced corpus sampling (1=proportional, inf=equal)
     )
+    sampling_strategy: str = "temperature"  # "temperature" or "focus_cap"
+    focus_lang_pair: tuple[str, str] | None = None
     device: str = "cuda"
 
     @property
