@@ -1,6 +1,7 @@
 import os
 import pandas as pd
 
+
 def _clean_df(df: pd.DataFrame, nl_col: str, var_col: str) -> pd.DataFrame:
     df = df.dropna(subset=[nl_col, var_col])
     df = df[df[nl_col].str.strip().str.len() > 2]
@@ -9,11 +10,16 @@ def _clean_df(df: pd.DataFrame, nl_col: str, var_col: str) -> pd.DataFrame:
     df = df.rename(columns={nl_col: "source_sentence", var_col: "target_sentence"})
     return df
 
-def load_parallel_table(path: str, sep: str = ";") -> pd.DataFrame:
-    df_raw = pd.read_csv(path, sep=sep, header=0, encoding='utf-8-sig')
 
-    invalid = [c for c in df_raw.columns if not isinstance(c, str) or c.strip() == "" or c.strip().startswith("Unnamed:")]
-    valid   = [c for c in df_raw.columns if c not in invalid]
+def load_parallel_table(path: str, sep: str = ";") -> pd.DataFrame:
+    df_raw = pd.read_csv(path, sep=sep, header=0, encoding="utf-8-sig")
+
+    invalid = [
+        c
+        for c in df_raw.columns
+        if not isinstance(c, str) or c.strip() == "" or c.strip().startswith("Unnamed:")
+    ]
+    valid = [c for c in df_raw.columns if c not in invalid]
 
     for c in invalid:
         df_raw = df_raw[df_raw[c].isna() | (df_raw[c].astype(str).str.strip() == "")]
@@ -32,6 +38,7 @@ def load_parallel_table(path: str, sep: str = ";") -> pd.DataFrame:
     var_col = variety_cols[0]
 
     return _clean_df(df_raw, nl_col, var_col)
+
 
 def find_variety_files(base_dir: str, recursive: bool = True) -> list[str]:
     """Zoek alle .csv en .tsv bestanden in base_dir (+ subfolders als recursive=True)."""

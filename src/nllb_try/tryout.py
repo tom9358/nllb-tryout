@@ -3,16 +3,18 @@ from .tokenizer_and_model_setup import setup_model_and_tokenizer, cleanup
 from .config import get_default_config
 from .evaluate import translate
 
+
 def main_tryout(
     model_save_path: str,
     new_lang_nllb: str,
     sentences_to_translate: list,
-    src_lang: str = 'nld_Latn',
-    tgt_lang: str = 'gos_Latn'
+    src_lang: str = "nld_Latn",
+    tgt_lang: str = "gos_Latn",
 ) -> list:
     # Load the latest model
     model_versions = [
-        d for d in os.listdir(model_save_path)
+        d
+        for d in os.listdir(model_save_path)
         if os.path.isdir(os.path.join(model_save_path, d)) and d.startswith("epoch")
     ]
     model_versions.sort(key=lambda x: int(x.replace("epoch", "")))
@@ -20,7 +22,9 @@ def main_tryout(
     model_path = os.path.join(model_save_path, latest_model)
     print(f"Loading model from {model_path}...")
     cfg = get_default_config()
-    model, tokenizer = setup_model_and_tokenizer(model_path, new_lang=new_lang_nllb, device=cfg.device)
+    model, tokenizer = setup_model_and_tokenizer(
+        model_path, new_lang=new_lang_nllb, device=cfg.device
+    )
     print("Model loaded successfully.")
 
     # List to store translations
@@ -39,7 +43,7 @@ def main_tryout(
                 src_lang=src_lang,
                 tgt_lang=tgt_lang,
                 model=model,
-                tokenizer=tokenizer
+                tokenizer=tokenizer,
             )[0]
             print(f"Original ({src_lang}): {user_input}")
             print(f"Translation ({tgt_lang}): {translation}\n")
@@ -50,6 +54,7 @@ def main_tryout(
             continue
     cleanup()
     return translations
+
 
 if __name__ == "__main__":
     cfg = get_default_config()

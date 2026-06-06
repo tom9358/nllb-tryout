@@ -65,7 +65,9 @@ def get_balanced_df(
         if verbose:
             pct = probs[i] * 100
             ratio = n_samples / len(corpus.df_train)
-            direction = "oversampled" if ratio > 1 else "undersampled" if ratio < 1 else "exact"
+            direction = (
+                "oversampled" if ratio > 1 else "undersampled" if ratio < 1 else "exact"
+            )
             print(
                 f"  Corpus {i} ({corpus.source_lang_nllb}→{corpus.target_lang_nllb}): "
                 f"{len(corpus.df_train):,} original → {n_samples:,} sampled "
@@ -73,7 +75,11 @@ def get_balanced_df(
             )
 
     df = pd.concat(dfs).reset_index(drop=True)
-    return df, np.array(src_langs_all, dtype=object), np.array(tgt_langs_all, dtype=object)
+    return (
+        df,
+        np.array(src_langs_all, dtype=object),
+        np.array(tgt_langs_all, dtype=object),
+    )
 
 
 def tokenize_mixed_langs(
@@ -92,21 +98,26 @@ def tokenize_mixed_langs(
         tokenizer.src_lang = lang
         feats = tokenizer(
             batch_texts,
-            return_tensors='pt',
+            return_tensors="pt",
             truncation=True,
-            padding='max_length',
-            max_length=max_length
+            padding="max_length",
+            max_length=max_length,
         )
         for j, i_global in enumerate(idxs):
-            input_ids_dict[i_global] = feats['input_ids'][j]
-            attention_mask_dict[i_global] = feats['attention_mask'][j]
+            input_ids_dict[i_global] = feats["input_ids"][j]
+            attention_mask_dict[i_global] = feats["attention_mask"][j]
     input_ids: list[torch.Tensor] = [input_ids_dict[i] for i in range(len(texts))]
-    attention_mask: list[torch.Tensor] = [attention_mask_dict[i] for i in range(len(texts))]
+    attention_mask: list[torch.Tensor] = [
+        attention_mask_dict[i] for i in range(len(texts))
+    ]
     input_ids_tensor = torch.stack(input_ids).to(device)
     attention_mask_tensor = torch.stack(attention_mask).to(device)
     return input_ids_tensor, attention_mask_tensor
 
-def train_model(model, tokenizer, corpus_objects: list, cfg: RunConfig, verbose: bool = True) -> None:
+
+def train_model(
+    model, tokenizer, corpus_objects: list, cfg: RunConfig, verbose: bool = True
+) -> None:
     batch_size: int = cfg.batch_size
     max_length: int = cfg.max_length
     num_epochs: int = cfg.num_epochs
@@ -124,12 +135,14 @@ def train_model(model, tokenizer, corpus_objects: list, cfg: RunConfig, verbose:
         total_original = int(counts.sum())
         probs = counts ** (1.0 / cfg.sampling_temperature)
         probs /= probs.sum()
-        total_sampled = sum(max(int(probs[i] * total_original), 1) for i in range(len(corpus_objects)))
+        total_sampled = sum(
+            max(int(probs[i] * total_original), 1) for i in range(len(corpus_objects))
+        )
         n_batches = int(np.ceil(total_sampled / batch_size))
 
-        print(f"\n{'='*65}")
+        print(f"\n{'=' * 65}")
         print("  Training plan")
-        print(f"{'='*65}")
+        print(f"{'=' * 65}")
         print(f"  Model:        {cfg.modelname}")
         print(f"  Epochs:       {num_epochs}")
         print(f"  Batch size:   {batch_size}")
@@ -139,7 +152,7 @@ def train_model(model, tokenizer, corpus_objects: list, cfg: RunConfig, verbose:
         print(f"  Device:       {device}")
         print(f"  Steps/epoch:  {n_batches:,}")
         print(f"  Total steps:  {n_batches * num_epochs:,}")
-        print(f"{'='*65}\n")
+        print(f"{'=' * 65}\n")
 
     optimizer = Adafactor(
         [p for p in model.parameters() if p.requires_grad],
@@ -149,7 +162,9 @@ def train_model(model, tokenizer, corpus_objects: list, cfg: RunConfig, verbose:
         clip_threshold=1.0,
         weight_decay=1e-3,
     )
-    scheduler = get_constant_schedule_with_warmup(optimizer, num_warmup_steps=warmup_steps)
+    scheduler = get_constant_schedule_with_warmup(
+        optimizer, num_warmup_steps=warmup_steps
+    )
 
     cleanup()
     losses: list[float] = []
@@ -159,34 +174,41 @@ def train_model(model, tokenizer, corpus_objects: list, cfg: RunConfig, verbose:
     # Preprocess once — preproc is deterministic, no need to redo every epoch
     for corpus in corpus_objects:
         corpus.df_train = corpus.df_train.copy()
-        corpus.df_train['source_sentence'] = corpus.df_train['source_sentence'].apply(preproc)
-        corpus.df_train['target_sentence'] = corpus.df_train['target_sentence'].apply(preproc)
+        corpus.df_train["source_sentence"] = corpus.df_train["source_sentence"].apply(
+            preproc
+        )
+        corpus.df_train["target_sentence"] = corpus.df_train["target_sentence"].apply(
+            preproc
+        )
 
     for epoch in range(num_epochs):
         # Re-sample every epoch so oversampled duplicates get fresh augmentations
         df_all, srcs, tgts = get_balanced_df(
             corpus_objects,
             temperature=cfg.sampling_temperature,
-            verbose=verbose and epoch == 0,  # only print sampling details for first epoch
+            verbose=verbose
+            and epoch == 0,  # only print sampling details for first epoch
         )
         N = len(df_all)
 
-        xx = df_all['source_sentence'].copy()
-        yy = df_all['target_sentence'].copy()
+        xx = df_all["source_sentence"].copy()
+        yy = df_all["target_sentence"].copy()
 
         # Some additional data variation
         xx, yy = apply_variations(xx, yy)
 
         # Gronings-specific augmentation
-        if np.any(tgts == 'gos_Latn'): # we should know where the gronings sentences are. TODO
-            idxs = np.where(tgts == 'gos_Latn')[0]
+        if np.any(
+            tgts == "gos_Latn"
+        ):  # we should know where the gronings sentences are. TODO
+            idxs = np.where(tgts == "gos_Latn")[0]
             yy_idxs = list(yy[i] for i in idxs)
             yy_vals = add_gronings_variations(yy_idxs)
             yy_syns = swap_synonyms(yy_vals, synonym_pairs_gos)
             for k, i in enumerate(idxs):
                 yy[i] = yy_syns[k]
-        if np.any(srcs == 'gos_Latn'):
-            idxs = np.where(srcs == 'gos_Latn')[0]
+        if np.any(srcs == "gos_Latn"):
+            idxs = np.where(srcs == "gos_Latn")[0]
             xx_idxs = list(xx[i] for i in idxs)
             xx_vals = add_gronings_variations(xx_idxs)
             xx_syns = swap_synonyms(xx_vals, synonym_pairs_gos)
@@ -208,33 +230,41 @@ def train_model(model, tokenizer, corpus_objects: list, cfg: RunConfig, verbose:
 
         # Shuffle
         final_idxs = np.random.permutation(N)
-        df_all_aug = pd.DataFrame({
-            "source_sentence": xx_swapped[final_idxs],
-            "target_sentence": yy_swapped[final_idxs],
-            "src_lang": src_swapped[final_idxs],
-            "tgt_lang": tgt_swapped[final_idxs],
-        })
+        df_all_aug = pd.DataFrame(
+            {
+                "source_sentence": xx_swapped[final_idxs],
+                "target_sentence": yy_swapped[final_idxs],
+                "src_lang": src_swapped[final_idxs],
+                "tgt_lang": tgt_swapped[final_idxs],
+            }
+        )
         df_epoch = df_all_aug.sample(frac=1).reset_index(drop=True)
         # Bulk pre-tokenize all epoch data
-        xx_texts = df_epoch['source_sentence'].tolist()
-        yy_texts = df_epoch['target_sentence'].tolist()
-        src_langs_epoch = df_epoch['src_lang'].tolist()
-        tgt_langs_epoch = df_epoch['tgt_lang'].tolist()
+        xx_texts = df_epoch["source_sentence"].tolist()
+        yy_texts = df_epoch["target_sentence"].tolist()
+        src_langs_epoch = df_epoch["src_lang"].tolist()
+        tgt_langs_epoch = df_epoch["tgt_lang"].tolist()
 
-        xx_input_ids, xx_attention = tokenize_mixed_langs(tokenizer, xx_texts, src_langs_epoch, max_length, device)
-        yy_input_ids, yy_attention = tokenize_mixed_langs(tokenizer, yy_texts, tgt_langs_epoch, max_length, device)
-        yy_input_ids[yy_input_ids == tokenizer.pad_token_id] = -100  # Masked loss targets
+        xx_input_ids, xx_attention = tokenize_mixed_langs(
+            tokenizer, xx_texts, src_langs_epoch, max_length, device
+        )
+        yy_input_ids, yy_attention = tokenize_mixed_langs(
+            tokenizer, yy_texts, tgt_langs_epoch, max_length, device
+        )
+        yy_input_ids[
+            yy_input_ids == tokenizer.pad_token_id
+        ] = -100  # Masked loss targets
 
         n_samples_total = len(df_epoch)
         n_batches = int(np.ceil(n_samples_total / batch_size))
-        tq = trange(n_batches, desc=f"Epoch {epoch+1}/{num_epochs}")
+        tq = trange(n_batches, desc=f"Epoch {epoch + 1}/{num_epochs}")
         for step in tq:
             batch_start = step * batch_size
-            batch_end = min((step+1)*batch_size, n_samples_total)
+            batch_end = min((step + 1) * batch_size, n_samples_total)
 
             x = {
                 "input_ids": xx_input_ids[batch_start:batch_end],
-                "attention_mask": xx_attention[batch_start:batch_end]
+                "attention_mask": xx_attention[batch_start:batch_end],
             }
             y_input_ids_batch = yy_input_ids[batch_start:batch_end]
             loss = model(**x, labels=y_input_ids_batch).loss
@@ -245,32 +275,41 @@ def train_model(model, tokenizer, corpus_objects: list, cfg: RunConfig, verbose:
             scheduler.step()
             loss_value = float(loss.item())
             losses.append(loss_value)
-            loss_rows.append({"step": total_steps, "epoch": epoch + 1, "loss": loss_value})
-            tq.set_postfix({'loss': np.mean(losses[-25:])})
+            loss_rows.append(
+                {"step": total_steps, "epoch": epoch + 1, "loss": loss_value}
+            )
+            tq.set_postfix({"loss": np.mean(losses[-25:])})
             total_steps += 1
 
-        print(f"Saving after epoch {epoch+1}")
+        print(f"Saving after epoch {epoch + 1}")
         # Save checkpoints
-        epoch_dir = checkpoints_dir / f"epoch{epoch+1}"
+        epoch_dir = checkpoints_dir / f"epoch{epoch + 1}"
         model.save_pretrained(str(epoch_dir))
         tokenizer.save_pretrained(str(epoch_dir))
         cleanup()
 
     # Plotting and saving the losses
     plt.figure(figsize=(10, 5))
-    pd.Series(losses).plot(label='Mean Loss')
-    pd.Series(losses).ewm(span=30).mean().plot(label='Exponentially weighted moving average, 30 steps')
-    pd.Series(losses).ewm(span=100).mean().plot(label='Exponentially weighted moving average, 100 steps')
-    plt.xlabel('Training Steps')
-    plt.ylabel('Loss')
-    plt.title('Training Loss Over Time')
+    pd.Series(losses).plot(label="Mean Loss")
+    pd.Series(losses).ewm(span=30).mean().plot(
+        label="Exponentially weighted moving average, 30 steps"
+    )
+    pd.Series(losses).ewm(span=100).mean().plot(
+        label="Exponentially weighted moving average, 100 steps"
+    )
+    plt.xlabel("Training Steps")
+    plt.ylabel("Loss")
+    plt.title("Training Loss Over Time")
     plt.legend()
 
     # Save the plot as an image
     plt.savefig(str(train_dir / "loss.png"))
     plt.close()
 
-def main_train(corpus_objects: list, cfg: RunConfig | None = None, verbose: bool = True):
+
+def main_train(
+    corpus_objects: list, cfg: RunConfig | None = None, verbose: bool = True
+):
     cfg = cfg or get_default_config()
     set_seed(cfg.seed)
 
@@ -278,7 +317,9 @@ def main_train(corpus_objects: list, cfg: RunConfig | None = None, verbose: bool
     paths = init_run_dir(cfg.run_dir)
     run_config_dict = cfg.to_dict()
     write_json(paths["run_dir"] / "run_config.json", run_config_dict)
-    (paths["run_dir"] / "run_config.txt").write_text(format_run_config_txt(run_config_dict), encoding="utf-8")
+    (paths["run_dir"] / "run_config.txt").write_text(
+        format_run_config_txt(run_config_dict), encoding="utf-8"
+    )
     if verbose:
         print("ron_config.json and run_config.txt saved")
 

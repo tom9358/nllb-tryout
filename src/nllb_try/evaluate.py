@@ -20,17 +20,29 @@ from .seed import set_seed
 from .tokenizer_and_model_setup import setup_model_and_tokenizer
 from .augmentation import preproc
 
-def translate(text, src_lang: str, tgt_lang: str, model, tokenizer, a: float = 16, b: float = 1.5, max_input_length: int = 200, normalize_text: bool = False, **kwargs):
+
+def translate(
+    text,
+    src_lang: str,
+    tgt_lang: str,
+    model,
+    tokenizer,
+    a: float = 16,
+    b: float = 1.5,
+    max_input_length: int = 200,
+    normalize_text: bool = False,
+    **kwargs,
+):
     if normalize_text:
         text = preproc(text)
     tokenizer.src_lang = src_lang
     tokenizer.tgt_lang = tgt_lang
     inputs = tokenizer(
         text,
-        return_tensors='pt',
-        padding='longest',
+        return_tensors="pt",
+        padding="longest",
         truncation=True,
-        max_length=max_input_length
+        max_length=max_input_length,
     )
     with torch.no_grad():
         result = model.generate(
@@ -38,7 +50,7 @@ def translate(text, src_lang: str, tgt_lang: str, model, tokenizer, a: float = 1
             forced_bos_token_id=tokenizer.convert_tokens_to_ids(tgt_lang),
             max_new_tokens=int(a + b * inputs.input_ids.shape[1]),
             max_length=None,
-            **kwargs
+            **kwargs,
         )
     return tokenizer.batch_decode(result, skip_special_tokens=True)
 
@@ -70,12 +82,22 @@ def _evaluate(
         )
     bleu_score = corpus_bleu(references, [translations]).score
     chrf_score = corpus_chrf(references, [translations]).score
-    if bleu_score<1: # DEBUG
-        print(references[0:3], '\n', translations[0:3])
+    if bleu_score < 1:  # DEBUG
+        print(references[0:3], "\n", translations[0:3])
     return bleu_score, chrf_score
 
+
 # Calculate metrics for a single DataFrame split
-def _calculate_metrics_for_split(df_split: pd.DataFrame, src_lang_nllb: str, tgt_lang_nllb: str, model, tokenizer, sample_size: int | None = 200, batch_size: int = 64, verbose: bool = False):
+def _calculate_metrics_for_split(
+    df_split: pd.DataFrame,
+    src_lang_nllb: str,
+    tgt_lang_nllb: str,
+    model,
+    tokenizer,
+    sample_size: int | None = 200,
+    batch_size: int = 64,
+    verbose: bool = False,
+):
     """Calculate BLEU and CHRF metrics for a single DataFrame split in both directions.
 
     Args:
@@ -84,7 +106,9 @@ def _calculate_metrics_for_split(df_split: pd.DataFrame, src_lang_nllb: str, tgt
         batch_size: Number of sentences to translate at once during evaluation.
     """
     if df_split.empty:
-        print(f"Warning: The provided DataFrame split for {src_lang_nllb}->{tgt_lang_nllb} is empty. Skipping evaluation for this split. Values set to 0.0.")
+        print(
+            f"Warning: The provided DataFrame split for {src_lang_nllb}->{tgt_lang_nllb} is empty. Skipping evaluation for this split. Values set to 0.0."
+        )
         return {
             f"bleu_{src_lang_nllb}_to_{tgt_lang_nllb}_src_to_tgt": -1.0,
             f"bleu_{tgt_lang_nllb}_to_{src_lang_nllb}_tgt_to_src": -1.0,
@@ -95,14 +119,18 @@ def _calculate_metrics_for_split(df_split: pd.DataFrame, src_lang_nllb: str, tgt
     if sample_size is None:
         df_sampled = df_split
     else:
-        df_sampled = df_split.sample(n=min(len(df_split), sample_size), random_state=9358)
+        df_sampled = df_split.sample(
+            n=min(len(df_split), sample_size), random_state=9358
+        )
 
     if verbose:
-        print(f"    Evaluating on {len(df_sampled)}/{len(df_split)} sentences "
-              f"({'all' if sample_size is None else f'sample_size={sample_size}'})")
+        print(
+            f"    Evaluating on {len(df_sampled)}/{len(df_split)} sentences "
+            f"({'all' if sample_size is None else f'sample_size={sample_size}'})"
+        )
 
-    src_sentences = df_sampled['source_sentence'].tolist()
-    tgt_sentences = df_sampled['target_sentence'].tolist()
+    src_sentences = df_sampled["source_sentence"].tolist()
+    tgt_sentences = df_sampled["target_sentence"].tolist()
 
     # Evaluate Source to Target direction
     bleu_src_to_tgt, chrf_src_to_tgt = _evaluate(
@@ -133,25 +161,49 @@ def _calculate_metrics_for_split(df_split: pd.DataFrame, src_lang_nllb: str, tgt
         f"chrf_{tgt_lang_nllb}_to_{src_lang_nllb}_tgt_to_src": chrf_tgt_to_src,
     }
 
+
 # Main evaluation function calls the helper for each split
-def evaluate_model(model, tokenizer, corpus_objects, sample_size: int | None = 200, batch_size: int = 64, verbose: bool = False):
+def evaluate_model(
+    model,
+    tokenizer,
+    corpus_objects,
+    sample_size: int | None = 200,
+    batch_size: int = 64,
+    verbose: bool = False,
+):
     all_corpus_results = []
     for i, corpus in enumerate(corpus_objects):
         corpus_results = {}
         corpus_id = f"corpus{i}"
-        
-        print(f"  Evaluating {corpus.source_lang_nllb}-{corpus.target_lang_nllb} pair ({corpus_id})...")
+
+        print(
+            f"  Evaluating {corpus.source_lang_nllb}-{corpus.target_lang_nllb} pair ({corpus_id})..."
+        )
 
         # Evaluate on Training Set
         train_metrics = _calculate_metrics_for_split(
-            corpus.df_train, corpus.source_lang_nllb, corpus.target_lang_nllb, model, tokenizer, sample_size=sample_size, batch_size=batch_size, verbose=verbose
+            corpus.df_train,
+            corpus.source_lang_nllb,
+            corpus.target_lang_nllb,
+            model,
+            tokenizer,
+            sample_size=sample_size,
+            batch_size=batch_size,
+            verbose=verbose,
         )
         for k, v in train_metrics.items():
             corpus_results[f"{corpus_id}_train_{k}"] = v
 
         # Evaluate on Validation Set
         validate_metrics = _calculate_metrics_for_split(
-            corpus.df_validate, corpus.source_lang_nllb, corpus.target_lang_nllb, model, tokenizer, sample_size=sample_size, batch_size=batch_size, verbose=verbose
+            corpus.df_validate,
+            corpus.source_lang_nllb,
+            corpus.target_lang_nllb,
+            model,
+            tokenizer,
+            sample_size=sample_size,
+            batch_size=batch_size,
+            verbose=verbose,
         )
         for k, v in validate_metrics.items():
             corpus_results[f"{corpus_id}_validate_{k}"] = v
@@ -198,6 +250,7 @@ def main_evaluate(
     # --- Baseline (untrained model) ---
     if include_baseline:
         import json
+
         run_config = json.loads((run_path / "run_config.json").read_text())
         print("Evaluating baseline (untrained) model...")
         model, tokenizer = setup_model_and_tokenizer(
@@ -207,7 +260,14 @@ def main_evaluate(
             similar_lang=run_config.get("similar_lang_nllb"),
             device=device,
         )
-        baseline_results = evaluate_model(model, tokenizer, corpus_objects, sample_size=sample_size, batch_size=batch_size, verbose=verbose)
+        baseline_results = evaluate_model(
+            model,
+            tokenizer,
+            corpus_objects,
+            sample_size=sample_size,
+            batch_size=batch_size,
+            verbose=verbose,
+        )
         combined = {}
         for res_dict in baseline_results:
             combined.update(res_dict)
@@ -215,16 +275,26 @@ def main_evaluate(
         del model, tokenizer
 
     model_versions = [
-        d.name for d in checkpoints_dir.iterdir()
+        d.name
+        for d in checkpoints_dir.iterdir()
         if d.is_dir() and d.name.startswith("epoch")
     ]
     model_versions.sort(key=lambda x: int(x.replace("epoch", "")))
     for model_name in model_versions:
         print(f"Evaluating model saved at step {model_name}...")
         model_path = str(checkpoints_dir / model_name)
-        model, tokenizer = setup_model_and_tokenizer(model_path, new_lang=new_lang_nllb, device=device)
+        model, tokenizer = setup_model_and_tokenizer(
+            model_path, new_lang=new_lang_nllb, device=device
+        )
 
-        version_results = evaluate_model(model, tokenizer, corpus_objects, sample_size=sample_size, batch_size=batch_size, verbose=verbose)
+        version_results = evaluate_model(
+            model,
+            tokenizer,
+            corpus_objects,
+            sample_size=sample_size,
+            batch_size=batch_size,
+            verbose=verbose,
+        )
 
         combined_version_results = {}
         for res_dict in version_results:
@@ -247,7 +317,9 @@ def main_evaluate(
             "new_lang_nllb": new_lang_nllb,
             "epochs_evaluated": model_versions,
             "corpus_names": {
-                f"corpus{i}": getattr(c, "path", f"tatoeba:{c.source_lang_nllb}-{c.target_lang_nllb}")
+                f"corpus{i}": getattr(
+                    c, "path", f"tatoeba:{c.source_lang_nllb}-{c.target_lang_nllb}"
+                )
                 for i, c in enumerate(corpus_objects)
             },
             "created_at": datetime.now().isoformat(timespec="seconds"),
@@ -304,13 +376,32 @@ def main_evaluate(
         )
 
 
-def plot_results(df_results, metric_train, metric_validate, title, evaldata_folder, timestamp, corpus_id=""):
+def plot_results(
+    df_results,
+    metric_train,
+    metric_validate,
+    title,
+    evaldata_folder,
+    timestamp,
+    corpus_id="",
+):
     plt.figure(figsize=(12, 6))
-    
+
     if metric_train in df_results.columns:
-        plt.plot(df_results["Training Steps"], df_results[metric_train], label="Train", marker='o', linestyle='--')
+        plt.plot(
+            df_results["Training Steps"],
+            df_results[metric_train],
+            label="Train",
+            marker="o",
+            linestyle="--",
+        )
     if metric_validate in df_results.columns:
-        plt.plot(df_results["Training Steps"], df_results[metric_validate], label="Validate", marker='x')
+        plt.plot(
+            df_results["Training Steps"],
+            df_results[metric_validate],
+            label="Validate",
+            marker="x",
+        )
 
     plt.xlabel("Training Steps")
     plt.ylabel("Score")
@@ -318,8 +409,16 @@ def plot_results(df_results, metric_train, metric_validate, title, evaldata_fold
     plt.legend()
     plt.grid(True)
     plt.tight_layout()
-    safe_title = title.replace(' ', '_').replace('(', '').replace(')', '').replace('\u2192', 'to').replace('-', '_')
+    safe_title = (
+        title.replace(" ", "_")
+        .replace("(", "")
+        .replace(")", "")
+        .replace("\u2192", "to")
+        .replace("-", "_")
+    )
     prefix = f"{corpus_id}_" if corpus_id else ""
-    plot_filename = os.path.join(evaldata_folder, f"{prefix}{safe_title.lower()}_plot_{timestamp}.png")
+    plot_filename = os.path.join(
+        evaldata_folder, f"{prefix}{safe_title.lower()}_plot_{timestamp}.png"
+    )
     plt.savefig(plot_filename)
     plt.close()

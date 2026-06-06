@@ -32,6 +32,7 @@ from .csv_list_loader import load_parallel_table, find_variety_files
 GLOBAL_HOLDOUT_FRACTION = 0.02
 SPLIT_SEED = 9358
 
+
 class BaseParallelCorpus:
     """Generic parallel corpus with a standardized interface."""
 
@@ -77,6 +78,7 @@ class TatoebaCorpus(BaseParallelCorpus):
     def load(self):
         return load_tatoeba(self.sl_tat, self.tl_tat, cfg=self.cfg)
 
+
 class VarietyCorpus(BaseParallelCorpus):
     """One CSV/TSV file = one corpus object. Currently Assumes DUTCH as one of the two languages!"""
 
@@ -87,6 +89,7 @@ class VarietyCorpus(BaseParallelCorpus):
 
     def load(self):
         return load_parallel_table(self.path, sep=self.sep)
+
 
 def load_tatoeba(src: str, trg: str, cfg: RunConfig) -> pd.DataFrame:
     """Load a Tatoeba language pair, keeping sentence IDs for global splitting.
@@ -100,17 +103,22 @@ def load_tatoeba(src: str, trg: str, cfg: RunConfig) -> pd.DataFrame:
     trg_file = os.path.join(cfg.tatoeba_path, f"{trg}_sentences.tsv")
     link_file = os.path.join(cfg.tatoeba_path, "links.csv")
 
-    src_df = pd.read_csv(src_file, sep="\t", header=None, names=["id", "lang", "source_sentence"])
-    trg_df = pd.read_csv(trg_file, sep="\t", header=None, names=["id", "lang", "target_sentence"])
-    link   = pd.read_csv(link_file, sep="\t", header=None, names=["origin", "translation"])
+    src_df = pd.read_csv(
+        src_file, sep="\t", header=None, names=["id", "lang", "source_sentence"]
+    )
+    trg_df = pd.read_csv(
+        trg_file, sep="\t", header=None, names=["id", "lang", "target_sentence"]
+    )
+    link = pd.read_csv(
+        link_file, sep="\t", header=None, names=["origin", "translation"]
+    )
 
-    df = (
-        link
-        .merge(trg_df, left_on="origin", right_on="id")
-        .merge(src_df, left_on="translation", right_on="id")
+    df = link.merge(trg_df, left_on="origin", right_on="id").merge(
+        src_df, left_on="translation", right_on="id"
     )
     df = df.rename(columns={"id_x": "trg_id", "id_y": "src_id"})
     return df[["src_id", "trg_id", "source_sentence", "target_sentence"]]
+
 
 def _global_tatoeba_split(tatoeba_corpora: list[TatoebaCorpus]) -> None:
     """Split all Tatoeba corpora using a single global set of held-out sentence IDs.
@@ -140,24 +148,27 @@ def _global_tatoeba_split(tatoeba_corpora: list[TatoebaCorpus]) -> None:
     rng = random.Random(SPLIT_SEED)
     holdout_ids = set(rng.sample(all_ids_sorted, holdout_n))
 
-    print(f"Global Tatoeba split: {len(all_ids_sorted):,} unique sentence IDs, "
-          f"{holdout_n:,} ({GLOBAL_HOLDOUT_FRACTION:.0%}) held out for validation")
+    print(
+        f"Global Tatoeba split: {len(all_ids_sorted):,} unique sentence IDs, "
+        f"{holdout_n:,} ({GLOBAL_HOLDOUT_FRACTION:.0%}) held out for validation"
+    )
 
     # Step 3 — split each corpus
     sentence_cols = ["source_sentence", "target_sentence"]
     for corpus in tatoeba_corpora:
-        is_val = (
-            corpus.df["src_id"].isin(holdout_ids)
-            | corpus.df["trg_id"].isin(holdout_ids)
+        is_val = corpus.df["src_id"].isin(holdout_ids) | corpus.df["trg_id"].isin(
+            holdout_ids
         )
         corpus.df_validate = corpus.df.loc[is_val, sentence_cols].reset_index(drop=True)
-        corpus.df_train    = corpus.df.loc[~is_val, sentence_cols].reset_index(drop=True)
+        corpus.df_train = corpus.df.loc[~is_val, sentence_cols].reset_index(drop=True)
 
         pair = f"{corpus.source_lang_nllb}-{corpus.target_lang_nllb}"
         total = len(corpus.df)
         n_val = len(corpus.df_validate)
-        print(f"  {pair}: {total:,} total -> {n_val:,} val ({100*n_val/total:.1f}%), "
-              f"{total - n_val:,} train")
+        print(
+            f"  {pair}: {total:,} total -> {n_val:,} val ({100 * n_val / total:.1f}%), "
+            f"{total - n_val:,} train"
+        )
 
         # Step 4 — drop IDs from df too (no longer needed)
         corpus.df = corpus.df[sentence_cols].reset_index(drop=True)
@@ -167,8 +178,8 @@ def main_corpus(
     source_langs_tatoeba,
     source_langs_nllb,
     variety_dir=None,
-    recursive: bool=True,
-    sep: str=";",
+    recursive: bool = True,
+    sep: str = ";",
     cfg: RunConfig | None = None,
 ):
     """
@@ -189,7 +200,7 @@ def main_corpus(
     zipped = list(zip(source_langs_tatoeba, source_langs_nllb))
 
     for i, (sl_tat, sl_nllb) in enumerate(zipped):
-        for tl_tat, tl_nllb in zipped[i + 1:]:
+        for tl_tat, tl_nllb in zipped[i + 1 :]:
             print(f"Setting up Tatoeba corpus for {sl_nllb} - {tl_nllb}")
             tatoeba_corpora.append(
                 TatoebaCorpus(sl_tat, tl_tat, sl_nllb, tl_nllb, cfg=cfg)
@@ -215,7 +226,9 @@ def main_corpus(
     return corpora
 
 
-def pool_varieties_into_tatoeba(corpora: list[BaseParallelCorpus]) -> list[BaseParallelCorpus]:
+def pool_varieties_into_tatoeba(
+    corpora: list[BaseParallelCorpus],
+) -> list[BaseParallelCorpus]:
     """Pool variety training data into matching Tatoeba corpora.
 
     For each VarietyCorpus, finds the first TatoebaCorpus with the same
@@ -229,27 +242,37 @@ def pool_varieties_into_tatoeba(corpora: list[BaseParallelCorpus]) -> list[BaseP
     **Use for training only.**  For evaluation, pass the original unpooled
     list, so per-variety metrics are still reported separately.
     """
-    tatoeba: list[BaseParallelCorpus] = [c for c in corpora if isinstance(c, TatoebaCorpus)]
+    tatoeba: list[BaseParallelCorpus] = [
+        c for c in corpora if isinstance(c, TatoebaCorpus)
+    ]
     varieties = [c for c in corpora if isinstance(c, VarietyCorpus)]
 
     for vc in varieties:
         key = frozenset([vc.source_lang_nllb, vc.target_lang_nllb])
         match = next(
-            (tc for tc in tatoeba
-             if frozenset([tc.source_lang_nllb, tc.target_lang_nllb]) == key),
+            (
+                tc
+                for tc in tatoeba
+                if frozenset([tc.source_lang_nllb, tc.target_lang_nllb]) == key
+            ),
             None,
         )
         if match is None:
-            print(f"  Warning: no matching Tatoeba corpus for {vc.source_lang_nllb}-"
-                  f"{vc.target_lang_nllb}, keeping variety as standalone corpus.")
+            print(
+                f"  Warning: no matching Tatoeba corpus for {vc.source_lang_nllb}-"
+                f"{vc.target_lang_nllb}, keeping variety as standalone corpus."
+            )
             tatoeba.append(vc)
         else:
             before = len(match.df_train)
             match.df_train = pd.concat(
-                [match.df_train, vc.df_train], ignore_index=True,
+                [match.df_train, vc.df_train],
+                ignore_index=True,
             )
-            print(f"  Pooled variety ({len(vc.df_train):,} rows) into "
-                  f"{match.source_lang_nllb}-{match.target_lang_nllb}: "
-                  f"{before:,} -> {len(match.df_train):,} train rows")
+            print(
+                f"  Pooled variety ({len(vc.df_train):,} rows) into "
+                f"{match.source_lang_nllb}-{match.target_lang_nllb}: "
+                f"{before:,} -> {len(match.df_train):,} train rows"
+            )
 
     return tatoeba

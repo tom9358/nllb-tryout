@@ -15,14 +15,16 @@ class RunConfig:
     seed: int = 9358
 
     # Model configuration
-    modelname: str = "facebook/nllb-200-distilled-600M" #'facebook/nllb-200-distilled-1.3B'
+    modelname: str = (
+        "facebook/nllb-200-distilled-600M"  #'facebook/nllb-200-distilled-1.3B'
+    )
     source_langs_tatoeba: tuple[str, ...] = ("nld", "gos")
     source_langs_nllb: tuple[str, ...] = ("nld_Latn", "gos_Latn")
     new_lang_nllb: str = "gos_Latn"
     similar_lang_nllb: str = "nld_Latn"
 
     # Paths
-    data_root_path: str = "data" # Root for all data
+    data_root_path: str = "data"  # Root for all data
     tatoeba_path: str = str(Path("data") / "tatoeba")
     model_cache_path: str = "hfacemodels"
 
@@ -32,10 +34,12 @@ class RunConfig:
     # Training parameters
     batch_size: int = 25
     max_chars: int | None = 200
-    max_length: int = 43 # Tokens
+    max_length: int = 43  # Tokens
     warmup_steps: int = 110
     num_epochs: int = 12
-    sampling_temperature: float = 5.0  # Temperature for balanced corpus sampling (1=proportional, inf=equal)
+    sampling_temperature: float = (
+        5.0  # Temperature for balanced corpus sampling (1=proportional, inf=equal)
+    )
     device: str = "cuda"
 
     @property
@@ -57,4 +61,3 @@ def get_default_config() -> RunConfig:
     No filesystem I/O is performed here.
     """
     return RunConfig()
-

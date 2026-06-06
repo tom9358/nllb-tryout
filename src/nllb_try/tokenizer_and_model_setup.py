@@ -2,10 +2,12 @@ from transformers import NllbTokenizer, AutoModelForSeq2SeqLM
 from gc import collect
 import torch
 
+
 def cleanup():
     """Try to free some memory."""
     collect()
     torch.cuda.empty_cache()
+
 
 def setup_model_and_tokenizer(
     modelname: str,
@@ -24,13 +26,11 @@ def setup_model_and_tokenizer(
     - new_lang: Optional; The new language code to add. (In nllb format, e.g. 'gos_Latn')
     - similar_lang: Optional; If provided, the similar language's weights initialize the new language. (nllb format)
     """
-    torch_device = torch.device(device)# if torch.cuda.is_available() else "cpu")
+    torch_device = torch.device(device)  # if torch.cuda.is_available() else "cpu")
 
     if new_lang:
         tokenizer = NllbTokenizer.from_pretrained(
-            modelname,
-            cache_dir=modelpath,
-            additional_special_tokens=[new_lang]
+            modelname, cache_dir=modelpath, additional_special_tokens=[new_lang]
         )
     else:
         tokenizer = NllbTokenizer.from_pretrained(modelname, cache_dir=modelpath)
@@ -40,7 +40,8 @@ def setup_model_and_tokenizer(
         modelname,
         cache_dir=modelpath,
         device_map={"": str(torch_device)},
-        dtype=torch.bfloat16) # should halve memory usage on supported hardware
+        dtype=torch.bfloat16,
+    )  # should halve memory usage on supported hardware
     model.resize_token_embeddings(len(tokenizer))
     model.tie_weights()
 
@@ -49,7 +50,9 @@ def setup_model_and_tokenizer(
         added_token_id = tokenizer.convert_tokens_to_ids(new_lang)
         similar_lang_id = tokenizer.convert_tokens_to_ids(similar_lang)
         # Adjust model weights
-        model.model.shared.weight.data[added_token_id] = model.model.shared.weight.data[similar_lang_id]
-        print(f'Initialized weights for {new_lang} equal to those of {similar_lang}')
+        model.model.shared.weight.data[added_token_id] = model.model.shared.weight.data[
+            similar_lang_id
+        ]
+        print(f"Initialized weights for {new_lang} equal to those of {similar_lang}")
 
     return model, tokenizer
