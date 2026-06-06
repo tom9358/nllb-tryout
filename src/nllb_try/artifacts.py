@@ -1,9 +1,8 @@
 from __future__ import annotations
 
-import csv
 import json
 from pathlib import Path
-from typing import Any, Iterable
+from typing import Any
 
 
 def init_run_dir(run_dir: str) -> dict[str, Path]:

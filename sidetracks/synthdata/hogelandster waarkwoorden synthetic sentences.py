@@ -14,14 +14,13 @@ import random
 import json
 import os
 import re
-from datetime import datetime
-from typing import Dict, List, Tuple, Optional
+from typing import Dict, Tuple, Optional
 import sys
 
 # Optionele imports voor LLM ondersteuning
 try:
     import torch
-    from transformers import pipeline, AutoModelForCausalLM, AutoTokenizer
+    from transformers import AutoModelForCausalLM, AutoTokenizer
     LLM_AVAILABLE = True
 except ImportError:
     LLM_AVAILABLE = False
@@ -150,7 +149,7 @@ class GroningsZinnenGenerator:
         if not vorm or pd.isna(vorm):
             return vorm, None
         
-        original = vorm
+        original = vorm # NOT USED TODO
         alternative = None
         
         # Patroon voor enkele letter direct na tekst (geen spatie)
@@ -205,7 +204,7 @@ class GroningsZinnenGenerator:
                             'voorbeeldzin': None
                         }
             self.save_database()
-            print(f"✓ Nieuwe database aangemaakt")
+            print("✓ Nieuwe database aangemaakt")
 
     def save_database(self):
         """Sla de database op naar schijf."""

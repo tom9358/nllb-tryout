@@ -35,7 +35,6 @@ import pandas as pd
 from datasets import load_dataset
 from tokenizers import ByteLevelBPETokenizer
 from transformers import (
-    AutoModelForCausalLM,
     AutoConfig,
     AutoTokenizer,
     GPT2LMHeadModel,
@@ -44,8 +43,6 @@ from transformers import (
     DataCollatorForLanguageModeling
 )
 from tqdm import tqdm
-import numpy as np
-import pickle
 from multiprocessing import Pool, cpu_count
 
 # Helper function for parallel processing - MUST be at module level for Windows
@@ -124,7 +121,7 @@ def main():
 
     # ============ 2. Load pretrained base model and tokenizers ============
     print(f"📦 Loading base model: {args.base_model}")
-    config = AutoConfig.from_pretrained(args.base_model)
+    config = AutoConfig.from_pretrained(args.base_model) # NOT USED! TODO
     model = GPT2LMHeadModel.from_pretrained(args.base_model)
 
     # Load both tokenizers
@@ -225,7 +222,6 @@ def main():
         print(f"💾 Saving embedding checkpoint to {embedding_checkpoint}")
         torch.save({
             'embedding_weights': new_emb.weight.data,
-            'embedding_weights': new_emb.weight.data,
             'mapped_tokens': mapped_tokens,
             'direct_matches': direct_matches,
             'subword_matches': subword_matches,
@@ -236,7 +232,7 @@ def main():
     model.resize_token_embeddings(new_vocab_size)
 
     # ============ 4. Freeze everything except embeddings ============
-    for name, param in model.named_parameters():
+    for _, param in model.named_parameters():
         param.requires_grad = False
 
     for param in model.transformer.wte.parameters():
