@@ -1,7 +1,7 @@
 from sentence_transformers import SentenceTransformer, util
 
 # Laad het voorgetrainde BERT model via SentenceTransformer
-model = SentenceTransformer('GroNLP/bert-base-dutch-cased-gronings')
+model = SentenceTransformer("GroNLP/bert-base-dutch-cased-gronings")
 
 # Definieer de teksten waarvan je de gelijkenis wilt berekenen
 text1 = "De zun schient vandoag."

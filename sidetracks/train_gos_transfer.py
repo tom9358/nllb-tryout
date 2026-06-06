@@ -28,6 +28,7 @@ Usage:
   # Test the trained model only:
   python test_gos_gpt2.py --model_dir gos-transfer-gpt2
 """
+
 import argparse
 from pathlib import Path
 import torch
@@ -40,31 +41,32 @@ from transformers import (
     GPT2LMHeadModel,
     Trainer,
     TrainingArguments,
-    DataCollatorForLanguageModeling
+    DataCollatorForLanguageModeling,
 )
 from tqdm import tqdm
 from multiprocessing import Pool, cpu_count
+
 
 # Helper function for parallel processing - MUST be at module level for Windows
 def process_token_batch(args_tuple):
     tokens_batch, tokenizer_dutch_vocab, old_vocab_size, word_mapping = args_tuple
     batch_results = []
-    
+
     for grn_token, grn_id in tokens_batch:
-        clean_grn = grn_token.replace('Ġ', '').lower()
-        
+        clean_grn = grn_token.replace("Ġ", "").lower()
+
         # Check if this token exists in Dutch tokenizer
         if grn_token in tokenizer_dutch_vocab:
             dutch_id = tokenizer_dutch_vocab[grn_token]
             if dutch_id < old_vocab_size:
-                batch_results.append((grn_id, dutch_id, 'direct'))
+                batch_results.append((grn_id, dutch_id, "direct"))
                 continue
-        
+
         # Try dictionary-based mapping
         if word_mapping:
             best_match = None
             best_score = 0
-            
+
             for dutch_word, gronings_word in word_mapping.items():
                 if clean_grn in gronings_word:
                     pos = gronings_word.find(clean_grn)
@@ -72,38 +74,73 @@ def process_token_batch(args_tuple):
                         rel_pos = pos / len(gronings_word)
                         dutch_substr_start = int(rel_pos * len(dutch_word))
                         dutch_substr_end = dutch_substr_start + len(clean_grn)
-                        
+
                         if dutch_substr_end <= len(dutch_word):
-                            dutch_substr = dutch_word[dutch_substr_start:dutch_substr_end]
-                            
+                            dutch_substr = dutch_word[
+                                dutch_substr_start:dutch_substr_end
+                            ]
+
                             for dutch_token, dutch_id in tokenizer_dutch_vocab.items():
-                                clean_dutch = dutch_token.replace('Ġ', '').lower()
-                                if dutch_substr in clean_dutch and dutch_id < old_vocab_size:
-                                    score = len(dutch_substr) / max(len(clean_dutch), len(clean_grn))
+                                clean_dutch = dutch_token.replace("Ġ", "").lower()
+                                if (
+                                    dutch_substr in clean_dutch
+                                    and dutch_id < old_vocab_size
+                                ):
+                                    score = len(dutch_substr) / max(
+                                        len(clean_dutch), len(clean_grn)
+                                    )
                                     if score > best_score:
                                         best_match = dutch_id
                                         best_score = score
-            
+
             if best_match is not None and best_score > 0.5:
-                batch_results.append((grn_id, best_match, 'dict'))
-    
+                batch_results.append((grn_id, best_match, "dict"))
+
     return batch_results
+
 
 def main():
     # ============ Parse args ============
     parser = argparse.ArgumentParser()
-    parser.add_argument("--base_model", type=str, required=True, help="Hugging Face model to reuse (e.g. GroNLP/gpt2-small-dutch)")
-    parser.add_argument("--text", type=str, required=True, help="Path to corpus text file")
-    parser.add_argument("--dict", type=str, help="Path to dictionary CSV (Dutch,Gronings columns)")
-    parser.add_argument("--output_dir", type=str, default="grn-transfer-gpt2", help="Where to save model and tokenizer")
+    parser.add_argument(
+        "--base_model",
+        type=str,
+        required=True,
+        help="Hugging Face model to reuse (e.g. GroNLP/gpt2-small-dutch)",
+    )
+    parser.add_argument(
+        "--text", type=str, required=True, help="Path to corpus text file"
+    )
+    parser.add_argument(
+        "--dict", type=str, help="Path to dictionary CSV (Dutch,Gronings columns)"
+    )
+    parser.add_argument(
+        "--output_dir",
+        type=str,
+        default="grn-transfer-gpt2",
+        help="Where to save model and tokenizer",
+    )
     parser.add_argument("--vocab_size", type=int, default=40000)
     parser.add_argument("--epochs", type=int, default=3)
     parser.add_argument("--batch_size", type=int, default=2)
     parser.add_argument("--block_size", type=int, default=512)
     parser.add_argument("--lr", type=float, default=5e-4)
-    parser.add_argument("--push_to_hub", action="store_true", help="Upload to Hugging Face after training")
-    parser.add_argument("--resume_from_checkpoint", action="store_true", help="Resume from saved embedding checkpoint")
-    parser.add_argument("--num_workers", type=int, default=None, help="Number of workers for token mapping (default: CPU count)")
+    parser.add_argument(
+        "--push_to_hub",
+        action="store_true",
+        help="Upload to Hugging Face after training",
+    )
+    parser.add_argument(
+        "--resume_from_checkpoint",
+        action="store_true",
+        help="Resume from saved embedding checkpoint",
+    )
+    parser.add_argument(
+        "--num_workers",
+        type=int,
+        default=None,
+        help="Number of workers for token mapping (default: CPU count)",
+    )
     args = parser.parse_args()
 
     output_dir = Path(args.output_dir)
@@ -121,7 +158,7 @@ def main():
 
     # ============ 2. Load pretrained base model and tokenizers ============
     print(f"📦 Loading base model: {args.base_model}")
-    config = AutoConfig.from_pretrained(args.base_model) # NOT USED! TODO
+    config = AutoConfig.from_pretrained(args.base_model)  # NOT USED! TODO
     model = GPT2LMHeadModel.from_pretrained(args.base_model)
 
     # Load both tokenizers
@@ -148,10 +185,10 @@ def main():
     if args.resume_from_checkpoint and embedding_checkpoint.exists():
         print(f"📥 Loading embedding checkpoint from {embedding_checkpoint}")
         checkpoint_data = torch.load(embedding_checkpoint)
-        new_emb.weight.data = checkpoint_data['embedding_weights']
-        mapped_tokens = checkpoint_data['mapped_tokens']
-        direct_matches = checkpoint_data['direct_matches']
-        subword_matches = checkpoint_data['subword_matches']
+        new_emb.weight.data = checkpoint_data["embedding_weights"]
+        mapped_tokens = checkpoint_data["mapped_tokens"]
+        direct_matches = checkpoint_data["direct_matches"]
+        subword_matches = checkpoint_data["subword_matches"]
         print(f"✅ Loaded {len(mapped_tokens)} pre-mapped tokens from checkpoint")
         print(f"   - Direct matches: {direct_matches}")
         print(f"   - Dictionary-based matches: {subword_matches}")
@@ -168,18 +205,22 @@ def main():
         if args.dict:
             print("📖 Loading dictionary for token mapping...")
             if args.dict[-4:].lower() == ".tsv":
-                print('tsv', end='')
-                df = pd.read_csv(args.dict, header=None, names=['gronings', 'dutch'], sep='\t')
-                print(' loaded')
+                print("tsv", end="")
+                df = pd.read_csv(
+                    args.dict, header=None, names=["gronings", "dutch"], sep="\t"
+                )
+                print(" loaded")
             else:
-                df = pd.read_csv(args.dict, header=None, names=['gronings', 'dutch'])
-            
+                df = pd.read_csv(args.dict, header=None, names=["gronings", "dutch"])
+
             # Create mapping from Dutch words to Gronings words
             word_mapping = {}
             for _, row in df.iterrows():
-                if pd.notna(row['dutch']) and pd.notna(row['gronings']):
-                    word_mapping[row['dutch'].strip().lower()] = row['gronings'].strip().lower()
-            
+                if pd.notna(row["dutch"]) and pd.notna(row["gronings"]):
+                    word_mapping[row["dutch"].strip().lower()] = (
+                        row["gronings"].strip().lower()
+                    )
+
             print(f"   Found {len(word_mapping)} word pairs in dictionary")
         else:
             word_mapping = {}
@@ -187,28 +228,36 @@ def main():
         # Prepare data for parallel processing
         vocab_items = list(tokenizer_gronings.get_vocab().items())
         batch_size = max(1, len(vocab_items) // num_workers)
-        batches = [vocab_items[i:i+batch_size] for i in range(0, len(vocab_items), batch_size)]
-        
+        batches = [
+            vocab_items[i : i + batch_size]
+            for i in range(0, len(vocab_items), batch_size)
+        ]
+
         tokenizer_dutch_vocab = tokenizer_dutch.get_vocab()
-        
+
         print(f"🚀 Mapping tokens using {num_workers} workers...")
-        
+
         # Process in parallel
-        pool_args = [(batch, tokenizer_dutch_vocab, old_vocab_size, word_mapping) for batch in batches]
-        
+        pool_args = [
+            (batch, tokenizer_dutch_vocab, old_vocab_size, word_mapping)
+            for batch in batches
+        ]
+
         with Pool(num_workers) as pool:
-            results = list(tqdm(
-                pool.imap(process_token_batch, pool_args),
-                total=len(batches),
-                desc="Mapping tokens"
-            ))
-        
+            results = list(
+                tqdm(
+                    pool.imap(process_token_batch, pool_args),
+                    total=len(batches),
+                    desc="Mapping tokens",
+                )
+            )
+
         # Aggregate results
         for batch_results in results:
             for grn_id, dutch_id, match_type in batch_results:
                 new_emb.weight.data[grn_id] = old_emb.weight.data[dutch_id].clone()
                 mapped_tokens.add(grn_id)
-                if match_type == 'direct':
+                if match_type == "direct":
                     direct_matches += 1
                 else:
                     subword_matches += 1
@@ -217,15 +266,18 @@ def main():
         print(f"   - Direct matches: {direct_matches}")
         print(f"   - Dictionary-based matches: {subword_matches}")
         print(f"   - Random initialization: {new_vocab_size - len(mapped_tokens)}")
-        
+
         # Save checkpoint
         print(f"💾 Saving embedding checkpoint to {embedding_checkpoint}")
-        torch.save({
-            'embedding_weights': new_emb.weight.data,
-            'mapped_tokens': mapped_tokens,
-            'direct_matches': direct_matches,
-            'subword_matches': subword_matches,
-        }, embedding_checkpoint)
+        torch.save(
+            {
+                "embedding_weights": new_emb.weight.data,
+                "mapped_tokens": mapped_tokens,
+                "direct_matches": direct_matches,
+                "subword_matches": subword_matches,
+            },
+            embedding_checkpoint,
+        )
 
     # Replace the embedding layer
     model.transformer.wte = new_emb
@@ -240,7 +292,9 @@ def main():
 
     trainable_params = sum(p.numel() for p in model.parameters() if p.requires_grad)
     total_params = sum(p.numel() for p in model.parameters())
-    print(f"🧊 Training only embeddings ({trainable_params:,}/{total_params:,} params ≈ {100*trainable_params/total_params:.2f}%)")
+    print(
+        f"🧊 Training only embeddings ({trainable_params:,}/{total_params:,} params ≈ {100 * trainable_params / total_params:.2f}%)"
+    )
 
     # ============ 5. Prepare dataset ============
     print("📚 Loading dataset...")
@@ -248,25 +302,23 @@ def main():
 
     def tokenize_function(examples):
         return tokenizer_gronings(
-            examples["text"], 
-            truncation=True,
-            padding=False,
-            max_length=args.block_size
+            examples["text"], truncation=True, padding=False, max_length=args.block_size
         )
 
-    tokenized = dataset.map(
-        tokenize_function, 
-        batched=True, 
-        remove_columns=["text"]
-    )
+    tokenized = dataset.map(tokenize_function, batched=True, remove_columns=["text"])
 
     def group_texts(examples):
         # Concatenate everything
         concatenated = {k: sum(examples[k], []) for k in examples.keys()}
-        total_length = (len(concatenated["input_ids"]) // args.block_size) * args.block_size
+        total_length = (
+            len(concatenated["input_ids"]) // args.block_size
+        ) * args.block_size
         # Split by block_size
         result = {
-            k: [t[i : i + args.block_size] for i in range(0, total_length, args.block_size)]
+            k: [
+                t[i : i + args.block_size]
+                for i in range(0, total_length, args.block_size)
+            ]
             for k, t in concatenated.items()
         }
         result["labels"] = result["input_ids"].copy()
@@ -363,11 +415,7 @@ def main():
 
     # ============ 8. Example generation ============
     print("💬 Testing generation...")
-    test_prompts = [
-        "Waor komt gain",
-        "Ik bin",
-        "t Is n mooi"
-    ]
+    test_prompts = ["Waor komt gain", "Ik bin", "t Is n mooi"]
 
     model.eval()
     device = next(model.parameters()).device  # Get model's device
@@ -382,12 +430,16 @@ def main():
                 top_p=0.95,
                 do_sample=True,
                 pad_token_id=tokenizer_gronings.pad_token_id,
-                eos_token_id=tokenizer_gronings.eos_token_id
+                eos_token_id=tokenizer_gronings.eos_token_id,
             )
         print(f"Prompt: {prompt}")
-        print(f"Generated: {tokenizer_gronings.decode(output[0], skip_special_tokens=True)}\n")
+        print(
+            f"Generated: {tokenizer_gronings.decode(output[0], skip_special_tokens=True)}\n"
+        )
 
-if __name__ == '__main__':
+
+if __name__ == "__main__":
     from multiprocessing import freeze_support
+
     freeze_support()
     main()
