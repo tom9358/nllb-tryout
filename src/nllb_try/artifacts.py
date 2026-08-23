@@ -38,7 +38,5 @@ def write_text(path: str | Path, text: str) -> None:
 
 def format_run_config_txt(run_config: dict[str, Any]) -> str:
     """Human-readable summary derived from run_config.json."""
-    lines: list[str] = []
-    for k in sorted(run_config.keys()):
-        lines.append(f"{k}: {run_config[k]}")
+    lines: list[str] = [f"{k}: {run_config[k]}" for k in sorted(run_config)]
     return "\n".join(lines) + "\n"

@@ -48,12 +48,14 @@ def find_variety_files(base_dir: str, recursive: bool = True) -> list[str]:
 
     if recursive:
         for root, _, files in os.walk(base_dir):
-            for f in files:
-                if f.lower().endswith(exts):
-                    found.append(os.path.join(root, f))
+            found.extend(
+                os.path.join(root, f) for f in files if f.lower().endswith(exts)
+            )
     else:
-        for f in os.listdir(base_dir):
-            if f.lower().endswith(exts):
-                found.append(os.path.join(base_dir, f))
+        found.extend(
+            os.path.join(base_dir, f)
+            for f in os.listdir(base_dir)
+            if f.lower().endswith(exts)
+        )
 
     return found
