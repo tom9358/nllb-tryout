@@ -355,7 +355,7 @@ def train_model(
         xx_input_ids, xx_attention = tokenize_mixed_langs(
             tokenizer, xx_texts, src_langs_epoch, max_length, device
         )
-        yy_input_ids, yy_attention = tokenize_mixed_langs(
+        yy_input_ids, _ = tokenize_mixed_langs(
             tokenizer, yy_texts, tgt_langs_epoch, max_length, device
         )
         yy_input_ids[
