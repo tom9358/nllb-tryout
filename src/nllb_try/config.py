@@ -1,13 +1,9 @@
 from __future__ import annotations
 
-import locale
 from dataclasses import asdict, dataclass
 from datetime import datetime
 from pathlib import Path
 from typing import Any
-
-locale.getpreferredencoding = lambda: "UTF-8"
-
 
 @dataclass(frozen=True, slots=True)
 class RunConfig:
