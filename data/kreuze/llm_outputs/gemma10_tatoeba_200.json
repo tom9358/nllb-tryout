@@ -1,0 +1,1002 @@
+[
+  {
+    "gos": "Dou Mary heur loa open dee, von ze n roos en n braif.",
+    "ref": "Toen Mary haar la opendeed, vond ze een roos en een brief.",
+    "pred": "Toen Mary haar lade opende, vond ze een roos en een brief."
+  },
+  {
+    "gos": "Zai gong ien dij richten.",
+    "ref": "Ze ging in die richting.",
+    "pred": "Zij ging een richting op."
+  },
+  {
+    "gos": "k Mot heur vienen.",
+    "ref": "Ik moet haar vinden.",
+    "pred": "Ik moet haar vinden."
+  },
+  {
+    "gos": "Bottervogels leggen aaikes.",
+    "ref": "Vlinders leggen eitjes.",
+    "pred": "Bijen leggen eitjes."
+  },
+  {
+    "gos": "k Bin joen keunenk.",
+    "ref": "Ik ben jullie koning.",
+    "pred": "Ik ben jouw koning."
+  },
+  {
+    "gos": "t Vogeltje zat op n tak van appelboom.",
+    "ref": "Het vogeltje zat op een tak van de appelboom.",
+    "pred": "Het vogeltje zat op een tak van de appelboom."
+  },
+  {
+    "gos": "Binnen joe mit penzioun?",
+    "ref": "Bent u met pensioen?",
+    "pred": "Bent u met pensioen?"
+  },
+  {
+    "gos": "Is dat nait normoal?",
+    "ref": "Is dat niet normaal?",
+    "pred": "Is dat niet normaal?"
+  },
+  {
+    "gos": "Bist doe allain?",
+    "ref": "Ben je alleen?",
+    "pred": "Ben je alleen?"
+  },
+  {
+    "gos": "Der binnen gain nije òfleverns meer.",
+    "ref": "Er zijn geen nieuwe afleveringen meer.",
+    "pred": "Er zijn geen nieuwe afleveringen meer."
+  },
+  {
+    "gos": "Hebben ie n vroag?",
+    "ref": "Hebben jullie een vraag?",
+    "pred": "Heeft u een vraag?"
+  },
+  {
+    "gos": "t Oog zugt en t oor heurt.",
+    "ref": "Het oog ziet en het oor hoort.",
+    "pred": "Het oog ziet en het oor hoort."
+  },
+  {
+    "gos": "Tom haar nooit mit pensioun goan most.",
+    "ref": "Tom had nooit met pensioen moeten gaan.",
+    "pred": "Tom had nooit met pensioen moeten gaan."
+  },
+  {
+    "gos": "Ze woont bie heur oma.",
+    "ref": "Ze woont bij haar oma.",
+    "pred": "Ze woont bij haar oma."
+  },
+  {
+    "gos": "k Heb allain n tuur van viefteg meter.",
+    "ref": "Ik heb alleen een touw van vijftig meter.",
+    "pred": "Ik heb alleen een tuin van vijftien meter."
+  },
+  {
+    "gos": "n Noflek feest!",
+    "ref": "Een aangenaam feest!",
+    "pred": "Een fantastisch feest!"
+  },
+  {
+    "gos": "Waist doe woar mien vent touholdt?",
+    "ref": "Weet jij waar mijn vent uithangt?",
+    "pred": "Weet jij waar mijn man verblijft?"
+  },
+  {
+    "gos": "t Begroot mie dat k der nait meer welkom bin.",
+    "ref": "Ik betreur het dat ik er niet meer welkom ben.",
+    "pred": "Het komt mij zo voor dat ik daar niet meer welkom ben."
+  },
+  {
+    "gos": "Mien pa het zeuventien klaainkinder.",
+    "ref": "Mijn vader heeft zeventien kleinkinderen.",
+    "pred": "Mijn vader heeft zeventien kleinkinderen."
+  },
+  {
+    "gos": "Joe binnen schieterg.",
+    "ref": "Jullie zijn verlegen.",
+    "pred": "Je bent een schijterd."
+  },
+  {
+    "gos": "Knienen eten geern worrels.",
+    "ref": "Konijnen eten graag wortelen.",
+    "pred": "Konijnen eten graag wortels."
+  },
+  {
+    "gos": "Wat kin k eten?",
+    "ref": "Wat kan ik eten?",
+    "pred": "Wat kan ik eten?"
+  },
+  {
+    "gos": "Wat zit ter op brogge?",
+    "ref": "Wat zit er op de boterham?",
+    "pred": "Wat is er aan de hand?"
+  },
+  {
+    "gos": "Onderzuiken binnen in t Engels.",
+    "ref": "De onderzoeken zijn in het Engels.",
+    "pred": "Onderzoeken zijn in het Engels."
+  },
+  {
+    "gos": "VN stoat veur Verainde Noatsies.",
+    "ref": "VN staat voor Verenigde Naties.",
+    "pred": "VN staat voor Verenigde Naties."
+  },
+  {
+    "gos": "Kinst doe n aander doatum veurstellen?",
+    "ref": "Kun je een andere datum voorstellen?",
+    "pred": "Kun je een andere datum voorstellen?"
+  },
+  {
+    "gos": "Ik heb n board.",
+    "ref": "Ik heb een baard.",
+    "pred": "Ik heb een bord."
+  },
+  {
+    "gos": "De kat rook aan t nije vouer en keurde t òf.",
+    "ref": "De kat rook aan het nieuwe voer en keurde het af.",
+    "pred": "De kat rook aan het nieuwe voer en keurde het af."
+  },
+  {
+    "gos": "k Bin guster begund mit t schrieven van n nij bouk.",
+    "ref": "Ik ben gisteren begonnen met het schrijven van een nieuw boek.",
+    "pred": "Ik ben gisteren begonnen met het schrijven van een nieuw boek."
+  },
+  {
+    "gos": "Zollen ze dat doun?",
+    "ref": "Zouden ze dat doen?",
+    "pred": "Zullen ze dat doen?"
+  },
+  {
+    "gos": "Ik verstoa joe nait, ie mouten n beetje luder proaten.",
+    "ref": "Ik versta u niet, u moet een beetje luider spreken.",
+    "pred": "Ik versta je niet, je moet een beetje harder praten."
+  },
+  {
+    "gos": "Tom proat meerdere toalen.",
+    "ref": "Tom spreekt meerdere talen.",
+    "pred": "Tom spreekt meerdere talen."
+  },
+  {
+    "gos": "Der is wat aan t veraandern.",
+    "ref": "Iets is aan het veranderen.",
+    "pred": "Er is iets aan het veranderen."
+  },
+  {
+    "gos": "Ons pabbe is aan t boaien.",
+    "ref": "Papa is aan het baden.",
+    "pred": "Onze vader is aan het boren."
+  },
+  {
+    "gos": "Oh, waist wat?",
+    "ref": "Oh, weet je wat?",
+    "pred": "Oh, weet je wat?"
+  },
+  {
+    "gos": "Hai het heur zien laifde betuugd.",
+    "ref": "Hij heeft haar zijn liefde betuigd.",
+    "pred": "Hij heeft haar zijn liefde betuigd."
+  },
+  {
+    "gos": "Dij het n tik.",
+    "ref": "Die is gek.",
+    "pred": "Die heeft een tik."
+  },
+  {
+    "gos": "Ik kom mörgen terug.",
+    "ref": "Ik kom morgen terug.",
+    "pred": "Ik kom morgen terug."
+  },
+  {
+    "gos": "Elkenain zegt t zulfde.",
+    "ref": "Iedereen zegt hetzelfde.",
+    "pred": "Iedereen zegt hetzelfde."
+  },
+  {
+    "gos": "k Kom oet Noordkorea.",
+    "ref": "Ik kom uit Noord-Korea.",
+    "pred": "Ik kom uit Noord-Korea."
+  },
+  {
+    "gos": "Pa was zien dochter kwiet.",
+    "ref": "De vader was zijn dochter kwijt.",
+    "pred": "Vader was zijn dochter kwijt."
+  },
+  {
+    "gos": "t Is wat wieder vot.",
+    "ref": "Het is wat verder weg.",
+    "pred": "Het is weer voorbij."
+  },
+  {
+    "gos": "t Is sikkom veurbie.",
+    "ref": "Het is bijna voorbij.",
+    "pred": "Het is simpelweg voorbij."
+  },
+  {
+    "gos": "Loaten we doar mor eem noar kieken.",
+    "ref": "Laten we daar maar even naar kijken.",
+    "pred": "Laten we daar maar eens naar kijken."
+  },
+  {
+    "gos": "Dizze bloume is rood.",
+    "ref": "Deze bloem is rood.",
+    "pred": "Deze bloem is rood."
+  },
+  {
+    "gos": "Hai holdt van visk moar nait van groaden.",
+    "ref": "Hij houdt van vis maar niet van de graten.",
+    "pred": "Hij houdt van vis maar niet van groenten."
+  },
+  {
+    "gos": "Dizze viever is drij meter daip.",
+    "ref": "Deze vijver is drie meter diep.",
+    "pred": "Deze vijver is drie meter diep."
+  },
+  {
+    "gos": "Hai leerde mie hou mesien waarkte.",
+    "ref": "Hij leerde me hoe de machine werkte.",
+    "pred": "Hij leerde me hoe de machine werkte."
+  },
+  {
+    "gos": "k Zuik waark.",
+    "ref": "Ik zoek werk.",
+    "pred": "Ik zoek werk."
+  },
+  {
+    "gos": "Tom vergist zuk regelmoateg.",
+    "ref": "Tom vergist zich regelmatig.",
+    "pred": "Tom vergist zich regelmatig."
+  },
+  {
+    "gos": "Dat is ja begriepelk!",
+    "ref": "Dat is toch begrijpelijk!",
+    "pred": "Dat is ja begrijpelijk!"
+  },
+  {
+    "gos": "t Schoap begunt te poepen.",
+    "ref": "Het schaap begint te poepen.",
+    "pred": "Het schaap begint te poepen."
+  },
+  {
+    "gos": "Waist dat k perbaaierd heb hom vandoag in stad te zain.",
+    "ref": "Je weet dat ik geprobeerd heb hem vandaag in de stad te zien.",
+    "pred": "Weet je dat ik verrast ben hem vandaag in de stad te zien."
+  },
+  {
+    "gos": "Nederlaand wordt \"Nederland\" nuimt ien t Nederlaands.",
+    "ref": "Nederland wordt \"Nederland\" genoemd in het Nederlands.",
+    "pred": "Nederland wordt \"Nederland\" genoemd in het Nederlands."
+  },
+  {
+    "gos": "Dat is mien fiets.",
+    "ref": "Dat is mijn fiets.",
+    "pred": "Dat is mijn fiets."
+  },
+  {
+    "gos": "Amerikoanse Börgeroorlog duurde vaaier joar.",
+    "ref": "De Amerikaanse Burgeroorlog duurde vier jaar.",
+    "pred": "De Amerikaanse Burgeroorlog duurde vier jaar."
+  },
+  {
+    "gos": "Kadde trok zien klaauwen in.",
+    "ref": "De kat trok zijn klauwen in.",
+    "pred": "Kadde trok zijn klauwen in."
+  },
+  {
+    "gos": "Tom het niks eten van wat k veur hom kloarmoakt heb.",
+    "ref": "Tom heeft niets gegeten van wat ik voor hem heb klaargemaakt.",
+    "pred": "Tom heeft niets gegeten van wat ik voor hem klaargemaakt heb."
+  },
+  {
+    "gos": "t Hoes is leutje.",
+    "ref": "Het huis is klein.",
+    "pred": "Het huis is klein."
+  },
+  {
+    "gos": "Woarom binnen joe hier?",
+    "ref": "Waarom zijn jullie hier?",
+    "pred": "Waarom bent u hier?"
+  },
+  {
+    "gos": "Zai is Nederlaands.",
+    "ref": "Ze is Nederlands.",
+    "pred": "Zij is Nederlands."
+  },
+  {
+    "gos": "n Mooie maive vlaigt over zee.",
+    "ref": "Een mooie meeuw vliegt over de zee.",
+    "pred": "Een mooie meeuw vliegt over zee."
+  },
+  {
+    "gos": "Wilst nait mit mie mit?",
+    "ref": "Wil je niet met me mee?",
+    "pred": "Wil je niet met me mee?"
+  },
+  {
+    "gos": "Woar binnen wie?",
+    "ref": "Waar zijn we?",
+    "pred": "Waar zijn we?"
+  },
+  {
+    "gos": "Dat was de muite weerd.",
+    "ref": "Dat was de moeite waard.",
+    "pred": "Dat was de moeite waard."
+  },
+  {
+    "gos": "Ik waark as verkoper.",
+    "ref": "Ik werk als verkoper.",
+    "pred": "Ik werk als verkoper."
+  },
+  {
+    "gos": "Beetst doe die net op lip?",
+    "ref": "Beet jij net op je lip?",
+    "pred": "Zit je niet op je lip?"
+  },
+  {
+    "gos": "Oefen is belangrieker as theorie.",
+    "ref": "Oefenen is belangrijker dan theorie.",
+    "pred": "Oefening is belangrijker dan theorie."
+  },
+  {
+    "gos": "Sami raagde tegen Layla allain mor omreden zie n moslim was.",
+    "ref": "Sami schold tegen Layla alleen maar omdat ze een moslim was.",
+    "pred": "Sami vroeg het alleen aan Layla omdat zij een moslim was."
+  },
+  {
+    "gos": "t Begroot mie dat k der nait meer welkom bin.",
+    "ref": "Ik betreur het dat ik er niet meer welkom ben.",
+    "pred": "Het komt mij zo voor dat ik daar niet meer welkom ben."
+  },
+  {
+    "gos": "Elkenain wait t.",
+    "ref": "Iedereen weet het.",
+    "pred": "Iedereen weet het."
+  },
+  {
+    "gos": "Leg t op toavel.",
+    "ref": "Leg het op tafel.",
+    "pred": "Leg het op tafel."
+  },
+  {
+    "gos": "t Zel die nait belokken om pioano te rizzen.",
+    "ref": "Het zal je niet lukken de piano te tillen.",
+    "pred": "Het zal niet veel moeite kosten om piano te leren spelen."
+  },
+  {
+    "gos": "Ze wer leventeg begroaven.",
+    "ref": "Ze werd levend begraven.",
+    "pred": "Ze werd levend begraven."
+  },
+  {
+    "gos": "Zai is aan de beurt.",
+    "ref": "Zij is aan de beurt.",
+    "pred": "Zij is aan de beurt."
+  },
+  {
+    "gos": "k Mot heur vienen.",
+    "ref": "Ik moet haar vinden.",
+    "pred": "Ik moet haar vinden."
+  },
+  {
+    "gos": "t Snijde van moandag tot vrijdag tou.",
+    "ref": "Het sneeuwde van maandag tot vrijdag.",
+    "pred": "Het is van maandag tot vrijdag dicht."
+  },
+  {
+    "gos": "Woarom vroagst hom nait?",
+    "ref": "Waarom vraag je hem niet?",
+    "pred": "Waarom vraag je hem niet?"
+  },
+  {
+    "gos": "Ik weeg veul meer as doe.",
+    "ref": "Ik weeg veel meer dan jij.",
+    "pred": "Ik weeg veel meer dan jij."
+  },
+  {
+    "gos": "Volg de regels.",
+    "ref": "Volg de regels.",
+    "pred": "Volg de regels."
+  },
+  {
+    "gos": "Der bestoan meschain betere tieden, mor dizze tied is onzent.",
+    "ref": "Er bestaan misschien betere tijden, maar deze tijd is de onze.",
+    "pred": "Er bestaan misschien betere tijden, maar deze tijd is de onze."
+  },
+  {
+    "gos": "Kin k liepen?",
+    "ref": "Kan ik huilen?",
+    "pred": "Kan ik lopen?"
+  },
+  {
+    "gos": "k Mout t waiten.",
+    "ref": "Ik moet het weten.",
+    "pred": "Ik moet het weten."
+  },
+  {
+    "gos": "Hou kin k mien hoge blouddrok zakken loaten zunder medesienen?",
+    "ref": "Hoe kan ik mijn hoge bloeddruk verlagen zonder medicijnen?",
+    "pred": "Hoe kan ik mijn hoge bloeddruk laten zakken zonder medicijnen?"
+  },
+  {
+    "gos": "Dit zel n biezundere zummer worden.",
+    "ref": "Dit zal een bijzondere zomer worden.",
+    "pred": "Dit zal een bijzondere zomer worden."
+  },
+  {
+    "gos": "Hai kin vlaigen.",
+    "ref": "Hij kan vliegen.",
+    "pred": "Hij kan vliegen."
+  },
+  {
+    "gos": "Vatikaanstad is mit 0,44 vaaierkaante kilometer swerelds leutjeste stoat.",
+    "ref": "Vaticaanstad is met 0,44 vierkante kilometer 's werelds kleinste staat.",
+    "pred": "Vaticaanstad is met 0,44 vierkante kilometer 's werelds kleinste staat."
+  },
+  {
+    "gos": "Wichter binnen schieterg.",
+    "ref": "De meisjes zijn verlegen.",
+    "pred": "Wie zijn de schutters?"
+  },
+  {
+    "gos": "Koien geven ons melk en tuten aaier.",
+    "ref": "Koeien geven ons melk en kippen eieren.",
+    "pred": "Koeien geven ons melk en kippen eieren."
+  },
+  {
+    "gos": "Tom proat meerdere toalen.",
+    "ref": "Tom spreekt meerdere talen.",
+    "pred": "Tom spreekt meerdere talen."
+  },
+  {
+    "gos": "De schriever schrift aaltied laange zinnen.",
+    "ref": "De schrijver schrijft altijd lange zinnen.",
+    "pred": "De schrijver schrijft altijd lange zinnen."
+  },
+  {
+    "gos": "Hai het doar tien joar woond, en din is hai noar Kioto verhoesd.",
+    "ref": "Hij heeft daar tien jaar gewoond, en dan is hij verhuisd naar Kioto.",
+    "pred": "Hij heeft daar tien jaar gewoond, en daarna is hij naar Kyoto verhuisd."
+  },
+  {
+    "gos": "Twij gebakken aaier en kovvie, asjeblieft.",
+    "ref": "Twee gebakken eieren en koffie, alstublieft.",
+    "pred": "Twee gebakken eieren en koffie, alstublieft."
+  },
+  {
+    "gos": "Kevin vond zien videogame belangrieker as zien vrunden.",
+    "ref": "Kevin vond zijn videogame belangrijker dan zijn vrienden.",
+    "pred": "Kevin vond zijn videogame belangrijker dan zijn vrienden."
+  },
+  {
+    "gos": "Yanni hoat pizza.",
+    "ref": "Yanni haat pizza.",
+    "pred": "Yanni heeft pizza."
+  },
+  {
+    "gos": "Dij het n tik.",
+    "ref": "Die spoort niet.",
+    "pred": "Die heeft een tik."
+  },
+  {
+    "gos": "Dizze viever is drij meter daip.",
+    "ref": "Deze vijver is drie meter diep.",
+    "pred": "Deze vijver is drie meter diep."
+  },
+  {
+    "gos": "Waarkst doe in t gemaintehoes?",
+    "ref": "Werk jij in het gemeentehuis?",
+    "pred": "Werk je in het gemeentehuis?"
+  },
+  {
+    "gos": "Ik heb gain oareghaid aan koken.",
+    "ref": "Ik beleef geen plezier aan koken.",
+    "pred": "Ik heb geen zin in koken."
+  },
+  {
+    "gos": "Wie slaipen in aigenste koamer.",
+    "ref": "We sliepen in dezelfde kamer.",
+    "pred": "We slapen in eigen kamer."
+  },
+  {
+    "gos": "Doe zagst dat moeke dou ophil veur elkenain n stuk of wat eerappels te schillen.",
+    "ref": "Jij zag dat mama toen ophield voor iedereen een paar aardappelen te schillen.",
+    "pred": "Je zei dat moeder je vroeg om voor iedereen een stuk of wat appels te schillen."
+  },
+  {
+    "gos": "t Kin duur wezen.",
+    "ref": "Het kan duur zijn.",
+    "pred": "Het kan duur zijn."
+  },
+  {
+    "gos": "Ik heb gain oareghaid aan koken.",
+    "ref": "Ik haal geen plezier uit koken.",
+    "pred": "Ik heb geen zin in koken."
+  },
+  {
+    "gos": "Hai holdt van tiegers.",
+    "ref": "Hij houdt van tijgers.",
+    "pred": "Hij houdt van tijgers."
+  },
+  {
+    "gos": "t Nijs muik hom bliede.",
+    "ref": "Het nieuws maakte hem blij.",
+    "pred": "Het nieuws maakte hem blij."
+  },
+  {
+    "gos": "Luuster nait noar dij man.",
+    "ref": "Luister niet naar die man.",
+    "pred": "Luister niet naar die man."
+  },
+  {
+    "gos": "Dien Nederlaands is alleriezelkst.",
+    "ref": "Jouw Nederlands is verschrikkelijk.",
+    "pred": "Je Nederlands is verschrikkelijk."
+  },
+  {
+    "gos": "Groaf n daip gat.",
+    "ref": "Graaf een diep gat.",
+    "pred": "Graaf een diep gat."
+  },
+  {
+    "gos": "Hier is n braif veur die.",
+    "ref": "Hier is een brief voor jou.",
+    "pred": "Hier is een brief voor je."
+  },
+  {
+    "gos": "Hai haar heur woarschaauwen most.",
+    "ref": "Hij had haar moeten waarschuwen.",
+    "pred": "Hij had haar moeten waarschuwen."
+  },
+  {
+    "gos": "Kopernikus studeerde wiskunde en steernskunde aan universiteit van Krakau.",
+    "ref": "Copernicus studeerde wiskunde en sterrenkunde aan de universiteit van Krakau.",
+    "pred": "Copernicus studeerde wiskunde en sterrenkunde aan de universiteit van Krakau."
+  },
+  {
+    "gos": "k Goa keern van appel nait opeten.",
+    "ref": "Ik ga het klokhuis van de appel niet opeten.",
+    "pred": "Ik ga nooit meer appels eten."
+  },
+  {
+    "gos": "Mòst nait zo vrezelk kaarmen!",
+    "ref": "Je moet niet zo vreselijk kermen!",
+    "pred": "Moet je niet zo verschrikkelijk klagen!"
+  },
+  {
+    "gos": "Wat hest keken?",
+    "ref": "Wat heb je gekeken?",
+    "pred": "Waar kijk je naar?"
+  },
+  {
+    "gos": "k Heb twij boksems kocht.",
+    "ref": "Ik heb twee broeken gekocht.",
+    "pred": "Ik heb twee dozen gekocht."
+  },
+  {
+    "gos": "Bist doe allain?",
+    "ref": "Ben je alleen?",
+    "pred": "Ben je alleen?"
+  },
+  {
+    "gos": "Ik heb veul van die leerd.",
+    "ref": "Ik heb veel van je geleerd.",
+    "pred": "Ik heb veel van die geleerd."
+  },
+  {
+    "gos": "Kinnen joe mie n pampieren puutje geven?",
+    "ref": "Kunt u mij een papieren zakje geven?",
+    "pred": "Kun je mij een papieren zakje geven?"
+  },
+  {
+    "gos": "Woar is hai?",
+    "ref": "Waar is hij?",
+    "pred": "Waar is hij?"
+  },
+  {
+    "gos": "k Heb n kadde.",
+    "ref": "Ik heb een kat.",
+    "pred": "Ik heb een kat."
+  },
+  {
+    "gos": "Perbaaier dizze ais.",
+    "ref": "Probeer deze eens.",
+    "pred": "Probeer deze eens."
+  },
+  {
+    "gos": "Dat is totoal gain probleem.",
+    "ref": "Dat is totaal geen probleem.",
+    "pred": "Dat is totaal geen probleem."
+  },
+  {
+    "gos": "Zai is aachte.",
+    "ref": "Zij is acht.",
+    "pred": "Zij is acht."
+  },
+  {
+    "gos": "Hebben ie n òfsproak?",
+    "ref": "Hebben jullie een afspraak?",
+    "pred": "Heeft u een afspraak?"
+  },
+  {
+    "gos": "k Heurde die proesten.",
+    "ref": "Ik hoorde je niezen.",
+    "pred": "Ik hoorde hem lachen."
+  },
+  {
+    "gos": "Vrumd dat gainaine ons kent.",
+    "ref": "Vreemd dat niemand ons kent.",
+    "pred": "Vreemd dat niemand ons kent."
+  },
+  {
+    "gos": "Popke mos drinken hemmen.",
+    "ref": "De baby moest drinken hebben.",
+    "pred": "Popke moet drinken hebben."
+  },
+  {
+    "gos": "De jong dijstoe zagst dou k binnenkwam, het mien sleudels vonden.",
+    "ref": "De jongen die je zag toen ik binnenkwam, heeft mijn sleutels gevonden.",
+    "pred": "De jongen die je zag toen je binnenkwam, heeft mijn sleutels gevonden."
+  },
+  {
+    "gos": "k Heb der aine kwastjed.",
+    "ref": "Ik heb er een geschilderd.",
+    "pred": "Ik heb er een klein kwastje."
+  },
+  {
+    "gos": "Denkst dast winnen zelst?",
+    "ref": "Denk je dat je gaat winnen?",
+    "pred": "Denk je dat je zult winnen?"
+  },
+  {
+    "gos": "Zai antwoordde hom.",
+    "ref": "Ze antwoordde hem.",
+    "pred": "Zij antwoordde hem."
+  },
+  {
+    "gos": "Tom het niks eten van wat k veur hom kloarmoakt heb.",
+    "ref": "Tom heeft niets gegeten van wat ik voor hem heb klaargemaakt.",
+    "pred": "Tom heeft niets gegeten van wat ik voor hem klaargemaakt heb."
+  },
+  {
+    "gos": "Sami haar gain spiekers.",
+    "ref": "Sami had geen spijkers.",
+    "pred": "Sami had geen spijkers."
+  },
+  {
+    "gos": "t Is eerste moal da'k n lötterij wonnen heb.",
+    "ref": "Het is de eerste keer dat ik een loterij gewonnen heb.",
+    "pred": "Het is de eerste keer dat ik een loterij heb gewonnen."
+  },
+  {
+    "gos": "Vrumd dat gainaine ons kent.",
+    "ref": "Vreemd dat niemand ons kent.",
+    "pred": "Vreemd dat niemand ons kent."
+  },
+  {
+    "gos": "Plietsie het Tom zien fiets vonden.",
+    "ref": "De politie heeft Toms fiets gevonden.",
+    "pred": "Heeft u de fiets van Tom gevonden?"
+  },
+  {
+    "gos": "Dij het van dij onbetoalboare schilderijen aan de muur.",
+    "ref": "Die heeft van die onbetaalbare schilderijen aan de muur.",
+    "pred": "Die heeft van die onbetaalbare schilderijen aan de muur."
+  },
+  {
+    "gos": "Wie hebben òfbeeldens.",
+    "ref": "We hebben afbeeldingen.",
+    "pred": "We hebben afbeeldingen."
+  },
+  {
+    "gos": "k Mout t waiten.",
+    "ref": "Ik moet het weten.",
+    "pred": "Ik moet het weten."
+  },
+  {
+    "gos": "Roak nadde vaarf nait aan.",
+    "ref": "Raak de natte verf niet aan.",
+    "pred": "Raak de vaart niet aan."
+  },
+  {
+    "gos": "Ik heb n board.",
+    "ref": "Ik heb een baard.",
+    "pred": "Ik heb een bord."
+  },
+  {
+    "gos": "Ik heb nog nooit n regenboog zain.",
+    "ref": "Ik heb nog nooit een regenboog gezien.",
+    "pred": "Ik heb nog nooit een regenboog gezien."
+  },
+  {
+    "gos": "Wie hebben twij oren.",
+    "ref": "We hebben twee oren.",
+    "pred": "We hebben twee oren."
+  },
+  {
+    "gos": "t Begroot mie dat k der nait meer welkom bin.",
+    "ref": "Ik vind het jammer dat ik er niet meer welkom ben.",
+    "pred": "Het komt mij zo voor dat ik daar niet meer welkom ben."
+  },
+  {
+    "gos": "De printer waarkt nait.",
+    "ref": "De printer werkt niet.",
+    "pred": "De printer werkt niet."
+  },
+  {
+    "gos": "Ik begriep wat doe zegst.",
+    "ref": "Ik begrijp wat je zegt.",
+    "pred": "Ik begreep wat je zei."
+  },
+  {
+    "gos": "Dij koater kin goud sloepen.",
+    "ref": "Die kater kan goed sluipen.",
+    "pred": "Die kat kan goed sluipen."
+  },
+  {
+    "gos": "k Leer Ieslaands.",
+    "ref": "Ik leer IJslands.",
+    "pred": "Ik leer IJslands."
+  },
+  {
+    "gos": "Tom het drij siktoarissen.",
+    "ref": "Tom heeft drie secretarissen.",
+    "pred": "Tom heeft drie secretaresses."
+  },
+  {
+    "gos": "Ik bin echt bliede dat wie nkander kennen leerd hebben.",
+    "ref": "Ik ben echt blij dat wij elkaar hebben leren kennen.",
+    "pred": "Ik ben echt blij dat we elkaar hebben leren kennen."
+  },
+  {
+    "gos": "Mòst nait zo vrezelk kaarmen!",
+    "ref": "Je moet niet zo vreselijk kermen!",
+    "pred": "Moet je niet zo verschrikkelijk klagen!"
+  },
+  {
+    "gos": "t Is transparant.",
+    "ref": "Het is doorzichtig.",
+    "pred": "Het is transparant."
+  },
+  {
+    "gos": "Sami gruilt van sukkeloa.",
+    "ref": "Sami geniet van chocolade.",
+    "pred": "Sami heeft een hekel aan sukkelen."
+  },
+  {
+    "gos": "Woar is dien pakkeloazie?",
+    "ref": "Waar is je bagage?",
+    "pred": "Waar is je identiteitsbewijs?"
+  },
+  {
+    "gos": "Der komt n nije kursus online dij we nou ontwikkeln.",
+    "ref": "Er komt een nieuwe cursus online die we nu ontwikkelen.",
+    "pred": "Er komt een nieuwe cursus online die we nu ontwikkelen."
+  },
+  {
+    "gos": "Noast n Hoag ligt Veurbörg.",
+    "ref": "Naast Den Haag ligt Voorburg.",
+    "pred": "Naast een Hoog ligt Veurborg."
+  },
+  {
+    "gos": "Hebben ie n òfsproak?",
+    "ref": "Heeft u een afspraak?",
+    "pred": "Heeft u een afspraak?"
+  },
+  {
+    "gos": "Zol Ludwiek XV nait hail zien keunenkriek opgeven hebben om op te stoan oet zien doodskist en drij doagen van jonkhaid en t leven te hebben?",
+    "ref": "Zou Lodewijk XV niet heel zijn koninkrijk hebben opgegeven om op te staan uit zijn doodskist en drie dagen van jeugd en het leven te hebben?",
+    "pred": "Zou Lodewijk XV niet zijn hele koninkrijk hebben opgegeven om op te staan uit zijn doodskist en drie dagen van jeugd en het leven te hebben?"
+  },
+  {
+    "gos": "Wie hebben òfbeeldens.",
+    "ref": "We hebben afbeeldingen.",
+    "pred": "We hebben afbeeldingen."
+  },
+  {
+    "gos": "Tom haar n auto-ongeluk in Rome.",
+    "ref": "Tom had een auto-ongeluk in Rome.",
+    "pred": "Tom had een auto-ongeluk in Rome."
+  },
+  {
+    "gos": "Woarom kloagdest doe as kind aalsmor?",
+    "ref": "Waarom klaagde jij als kind alsmaar?",
+    "pred": "Waarom klaagde je als kind altijd maar?"
+  },
+  {
+    "gos": "Dou t nou, veurdast t vergetst.",
+    "ref": "Doe het nu, voordat je het vergeet.",
+    "pred": "Doe het nu, voordat je het vergeet."
+  },
+  {
+    "gos": "Ik besloot te blieven.",
+    "ref": "Ik besloot te blijven.",
+    "pred": "Ik besloot te blijven."
+  },
+  {
+    "gos": "De piroat moakte n strop veur de gevangene.",
+    "ref": "De piraat maakte een strop voor de gevangene.",
+    "pred": "De piraat maakte een strop voor de gevangene."
+  },
+  {
+    "gos": "Yanni hoat pizza.",
+    "ref": "Yanni haat pizza.",
+    "pred": "Yanni heeft pizza."
+  },
+  {
+    "gos": "Spreken joe Italioans?",
+    "ref": "Spreken jullie Italiaans?",
+    "pred": "Spreekt u Italiaans?"
+  },
+  {
+    "gos": "Joen oom het nait luustern wild.",
+    "ref": "Jullie oom heeft niet willen luisteren.",
+    "pred": "Je oom wilde niet luisteren."
+  },
+  {
+    "gos": "Woar woont dien grootmoe?",
+    "ref": "Waar woont jouw grootmoeder?",
+    "pred": "Waar woont je grootmoeder?"
+  },
+  {
+    "gos": "Goa noar ootje tou!",
+    "ref": "Ga naar oma!",
+    "pred": "Ga naar buiten toe!"
+  },
+  {
+    "gos": "Wie hebben der vievenvatteg.",
+    "ref": "We hebben er vijfenveertig.",
+    "pred": "We zijn met vijfenveertig."
+  },
+  {
+    "gos": "Hai is nait traauwd.",
+    "ref": "Hij is niet getrouwd.",
+    "pred": "Hij is niet getrouwd."
+  },
+  {
+    "gos": "Dit is n veurbeeldzin.",
+    "ref": "Dit is een voorbeeldzin.",
+    "pred": "Dit is een voorbeeldzin."
+  },
+  {
+    "gos": "As n kat vis eet, is e bliede.",
+    "ref": "Als een kat vis eet, is ie blij.",
+    "pred": "Als een kat vis eet, is hij blij."
+  },
+  {
+    "gos": "Wie goan mörgen verhuzen.",
+    "ref": "We gaan morgen verhuizen.",
+    "pred": "We gaan morgen verhuizen."
+  },
+  {
+    "gos": "Ze wazzen soldoaten.",
+    "ref": "Ze waren soldaten.",
+    "pred": "Ze waren soldaten."
+  },
+  {
+    "gos": "Ontdek wat t perbleem is.",
+    "ref": "Ontdek wat het probleem is.",
+    "pred": "Ontdek wat het probleem is."
+  },
+  {
+    "gos": "Woar binnen d'olders?",
+    "ref": "Waar zijn de ouders?",
+    "pred": "Waar zijn de ouders?"
+  },
+  {
+    "gos": "Elkenain wait t.",
+    "ref": "Iedereen weet het.",
+    "pred": "Iedereen weet het."
+  },
+  {
+    "gos": "t Schip ligt in hoaven.",
+    "ref": "Het schip ligt in de haven.",
+    "pred": "Het schip ligt in de haven."
+  },
+  {
+    "gos": "Tom haar nooit mit pensioun goan most.",
+    "ref": "Tom had nooit met pensioen moeten gaan.",
+    "pred": "Tom had nooit met pensioen moeten gaan."
+  },
+  {
+    "gos": "Zai ik joe mörgen?",
+    "ref": "Zie ik u morgen?",
+    "pred": "Zie ik je morgen?"
+  },
+  {
+    "gos": "Zai kwastjede muur rood.",
+    "ref": "Ze verfde de muur rood.",
+    "pred": "Zij schilderde de muur rood."
+  },
+  {
+    "gos": "Woar is hai?",
+    "ref": "Waar is hij?",
+    "pred": "Waar is hij?"
+  },
+  {
+    "gos": "Holst van widde wien?",
+    "ref": "Hou je van witte wijn?",
+    "pred": "Houd je van witte wijn?"
+  },
+  {
+    "gos": "Eerdbevens vernailen gebaauwen.",
+    "ref": "Aardbevingen vernietigen gebouwen.",
+    "pred": "Aardbevingen vernielen gebouwen."
+  },
+  {
+    "gos": "k Heurde die proesten.",
+    "ref": "Ik hoorde je niezen.",
+    "pred": "Ik hoorde hem lachen."
+  },
+  {
+    "gos": "Baby mos drinken hebben.",
+    "ref": "De baby moest drinken hebben.",
+    "pred": "De baby moet drinken hebben."
+  },
+  {
+    "gos": "Wèl klopt op deur?",
+    "ref": "Wie klopt er op de deur?",
+    "pred": "Klop je wel op de deur?"
+  },
+  {
+    "gos": "Hebben ie n òfsproak?",
+    "ref": "Heeft u een afspraak?",
+    "pred": "Heeft u een afspraak?"
+  },
+  {
+    "gos": "Hou kin k mien hoge blouddrok zakken loaten zunder medesienen?",
+    "ref": "Hoe kan ik mijn hoge bloeddruk verlagen zonder medicijnen?",
+    "pred": "Hoe kan ik mijn hoge bloeddruk laten zakken zonder medicijnen?"
+  },
+  {
+    "gos": "Ze het die wekt.",
+    "ref": "Ze heeft je gewekt.",
+    "pred": "Ze hebben hem gewekt."
+  },
+  {
+    "gos": "Maria kookt zunder zolt.",
+    "ref": "Mary kookt zonder zout.",
+    "pred": "Maria kookt zonder zout."
+  },
+  {
+    "gos": "Wie goan mörgen verhoezen.",
+    "ref": "We gaan morgen verhuizen.",
+    "pred": "We gaan morgen verhuizen."
+  },
+  {
+    "gos": "k Heurde aine mien noam roupen.",
+    "ref": "Ik hoorde iemand mijn naam roepen.",
+    "pred": "Ik hoorde iemand mijn naam roepen."
+  },
+  {
+    "gos": "Haarst mie dat veuròf vertellen most.",
+    "ref": "Je had me dat vooraf moeten vertellen.",
+    "pred": "Dat had je me vooraf moeten vertellen."
+  },
+  {
+    "gos": "Tom haar n auto-ongeluk in Rome.",
+    "ref": "Tom had een auto-ongeluk in Rome.",
+    "pred": "Tom had een auto-ongeluk in Rome."
+  },
+  {
+    "gos": "Ik heb gusteroavend loat eten.",
+    "ref": "Ik heb gisteravond laat gegeten.",
+    "pred": "Ik heb gisteravond laat gegeten."
+  },
+  {
+    "gos": "D'soldoat gaf mie wotter.",
+    "ref": "De soldaat gaf me water.",
+    "pred": "De soldaat gaf me water."
+  },
+  {
+    "gos": "Woar binnen wie?",
+    "ref": "Waar zijn we?",
+    "pred": "Waar zijn we?"
+  },
+  {
+    "gos": "t Kind haar n zuver haart.",
+    "ref": "Het kind had een zuiver hart.",
+    "pred": "Het kind had een zuur hart."
+  }
+]

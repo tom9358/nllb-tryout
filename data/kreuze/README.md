@@ -21,6 +21,10 @@ Run the commands below from the repository root:
 Generated CSV and JSONL files are stored under `data/kreuze/`.
 All corpus metadata and conclusions are documented in
 `data/kreuze/metadata.md`.
+The detailed investigation log is in
+`data/kreuze/llm_investigation.md`.
+Saved benchmark outputs and prompt templates are in
+`data/kreuze/llm_outputs/`.
 
 ## NLLB generation
 

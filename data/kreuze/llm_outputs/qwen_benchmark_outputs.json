@@ -1,0 +1,449 @@
+{
+  "model": "hf.co/unsloth/Qwen3.6-35B-A3B-GGUF:Q8_K_XL",
+  "source": "Recovered from session event log. Complete 200-output lists were not printed by the original tests.",
+  "runs": [
+    {
+      "name": "qwen_20_glossary",
+      "sample_size": 20,
+      "records": [
+        {
+          "gos": "De kat rook aan t nije vouer en keurde t òf.",
+          "ref": "De kat rook aan het nieuwe voer en keurde het af.",
+          "pred": "De kat rook aan het nieuwe voer en keurde het af."
+        },
+        {
+          "gos": "Zai klopte mie op scholder.",
+          "ref": "Ze klopte me op de schouder.",
+          "pred": "Ze klopte me op de schouder."
+        },
+        {
+          "gos": "Ze rekent sneller as elke aandere student.",
+          "ref": "Ze rekent sneller dan elke andere student.",
+          "pred": "Ze rekent sneller dan elke andere student."
+        },
+        {
+          "gos": "Die wuir onrecht aandoan.",
+          "ref": "Je werd onrecht aangedaan.",
+          "pred": "Dat zou ik onrecht doen."
+        },
+        {
+          "gos": "Tom kin dat zunder mien hulp doun.",
+          "ref": "Tom kan dat zonder mijn hulp doen.",
+          "pred": "Tom kan dat zonder mijn hulp doen."
+        },
+        {
+          "gos": "Tom raaisde allinneg.",
+          "ref": "Tom reisde alleen.",
+          "pred": "Tom raakte alleen."
+        },
+        {
+          "gos": "Gain wonder dast muide bist!",
+          "ref": "Geen wonder dat je moe bent!",
+          "pred": "Wat een wonder dat je moe bent!"
+        },
+        {
+          "gos": "k Droag voak n houd.",
+          "ref": "Ik draag vaak een hoed.",
+          "pred": "Ik draag vaak een hoed."
+        },
+        {
+          "gos": "Is joen pa n dokter?",
+          "ref": "Is jullie vader een dokter?",
+          "pred": "Is je vader een dokter?"
+        },
+        {
+          "gos": "Zai sturf ien zien aarms.",
+          "ref": "Zij stierf in zijn armen.",
+          "pred": "Zij sterft in zijn armen."
+        },
+        {
+          "gos": "Hebben joe n fioul?",
+          "ref": "Heeft u een viool?",
+          "pred": "Heb jij een gevoel?"
+        },
+        {
+          "gos": "Programmeertoalen binnen zien hobby.",
+          "ref": "Programmeertalen zijn zijn hobby.",
+          "pred": "Programmeertalen zijn zijn hobby."
+        },
+        {
+          "gos": "Over n uur kom k bie die.",
+          "ref": "Over een uur kom ik bij je.",
+          "pred": "Over een uur kom ik bij die."
+        },
+        {
+          "gos": "Der binnen doezenden dailnemers in t evenement van vandoag.",
+          "ref": "Er zijn duizenden deelnemers in het evenement van vandaag.",
+          "pred": "Er zijn duizenden deelnemers aan het evenement van vandaag."
+        },
+        {
+          "gos": "Der binnen nait genog stopcontacten veur ale apperatuur.",
+          "ref": "Er zijn niet genoeg stopcontacten voor alle apparatuur.",
+          "pred": "Er zijn niet genoeg stopcontacten voor alle apparatuur."
+        },
+        {
+          "gos": "k Proat nait geern over dat soort dingen.",
+          "ref": "Over dat soort dingen praat ik niet graag.",
+          "pred": "Ik praat niet graag over dat soort dingen."
+        },
+        {
+          "gos": "Is t al oktober?",
+          "ref": "Is het al oktober?",
+          "pred": "Is het al oktober?"
+        },
+        {
+          "gos": "De zun komt in t oosten op en gaait in t westen onder.",
+          "ref": "De zon komt in het oosten op en gaat in het westen onder.",
+          "pred": "De zon komt in het oosten op en gaat in het westen onder."
+        },
+        {
+          "gos": "Dout groutnis aan vraauw Andreescu!",
+          "ref": "Doe de groeten aan mevrouw Andreescu!",
+          "pred": "Doe groetnis aan vrouw Andreescu!"
+        },
+        {
+          "gos": "t Is toamelk groot.",
+          "ref": "Het is tamelijk groot.",
+          "pred": "Het is tamelijk groot."
+        }
+      ],
+      "scores": {
+        "bleu": 75.9442388104869,
+        "chrf": 86.26491360038457,
+        "exact": null
+      },
+      "notes": "Only outputs printed by the original test are preserved; aggregate metrics cover the full sample."
+    },
+    {
+      "name": "qwen_20_three_shot",
+      "sample_size": 20,
+      "records": [
+        {
+          "gos": "De kat rook aan t nije vouer en keurde t òf.",
+          "ref": "De kat rook aan het nieuwe voer en keurde het af.",
+          "pred": "De kat rook aan het nieuwe voer en keurde het af."
+        },
+        {
+          "gos": "Zai klopte mie op scholder.",
+          "ref": "Ze klopte me op de schouder.",
+          "pred": "Ze klopte me op de schouder."
+        },
+        {
+          "gos": "Ze rekent sneller as elke aandere student.",
+          "ref": "Ze rekent sneller dan elke andere student.",
+          "pred": "Ze rekent sneller dan elke andere student."
+        },
+        {
+          "gos": "Die wuir onrecht aandoan.",
+          "ref": "Je werd onrecht aangedaan.",
+          "pred": "Die zou ik onrecht aandoen."
+        },
+        {
+          "gos": "Tom kin dat zunder mien hulp doun.",
+          "ref": "Tom kan dat zonder mijn hulp doen.",
+          "pred": "Tom kan dat zonder mijn hulp doen."
+        },
+        {
+          "gos": "Tom raaisde allinneg.",
+          "ref": "Tom reisde alleen.",
+          "pred": "Tom raakte alleen."
+        },
+        {
+          "gos": "Gain wonder dast muide bist!",
+          "ref": "Geen wonder dat je moe bent!",
+          "pred": "Geen wonder dat je moe bent!"
+        },
+        {
+          "gos": "k Droag voak n houd.",
+          "ref": "Ik draag vaak een hoed.",
+          "pred": "Ik draag vaak een hoed."
+        },
+        {
+          "gos": "Is joen pa n dokter?",
+          "ref": "Is jullie vader een dokter?",
+          "pred": "Is je vader een dokter?"
+        },
+        {
+          "gos": "Zai sturf ien zien aarms.",
+          "ref": "Zij stierf in zijn armen.",
+          "pred": "Ze stierf in zijn armen."
+        },
+        {
+          "gos": "Hebben joe n fioul?",
+          "ref": "Heeft u een viool?",
+          "pred": "Hebben jullie een gevoel?"
+        },
+        {
+          "gos": "Programmeertoalen binnen zien hobby.",
+          "ref": "Programmeertalen zijn zijn hobby.",
+          "pred": "Programmeertalen zijn mijn hobby."
+        },
+        {
+          "gos": "Over n uur kom k bie die.",
+          "ref": "Over een uur kom ik bij je.",
+          "pred": "Over een uur kom ik bij die."
+        },
+        {
+          "gos": "Der binnen doezenden dailnemers in t evenement van vandoag.",
+          "ref": "Er zijn duizenden deelnemers in het evenement van vandaag.",
+          "pred": "Er zijn duizenden deelnemers aan het evenement van vandaag."
+        },
+        {
+          "gos": "Der binnen nait genog stopcontacten veur ale apperatuur.",
+          "ref": "Er zijn niet genoeg stopcontacten voor alle apparatuur.",
+          "pred": "Er zijn niet genoeg stopcontacten voor alle apparatuur."
+        },
+        {
+          "gos": "k Proat nait geern over dat soort dingen.",
+          "ref": "Over dat soort dingen praat ik niet graag.",
+          "pred": "Ik praat niet graag over dat soort dingen."
+        },
+        {
+          "gos": "Is t al oktober?",
+          "ref": "Is het al oktober?",
+          "pred": "Is het al oktober?"
+        },
+        {
+          "gos": "De zun komt in t oosten op en gaait in t westen onder.",
+          "ref": "De zon komt in het oosten op en gaat in het westen onder.",
+          "pred": "De zon komt in het oosten op en gaat in het westen onder."
+        },
+        {
+          "gos": "Dout groutnis aan vraauw Andreescu!",
+          "ref": "Doe de groeten aan mevrouw Andreescu!",
+          "pred": "Dood aan vrouw Andreescu!"
+        },
+        {
+          "gos": "t Is toamelk groot.",
+          "ref": "Het is tamelijk groot.",
+          "pred": "Het is tamelijk groot."
+        }
+      ],
+      "scores": {
+        "bleu": 76.38708588027775,
+        "chrf": 86.2631814150361,
+        "exact": null
+      },
+      "notes": "Only outputs printed by the original test are preserved; aggregate metrics cover the full sample."
+    },
+    {
+      "name": "qwen_200_five_shot_with_system",
+      "sample_size": 200,
+      "records": [
+        {
+          "gos": "Dou Mary heur loa open dee, von ze n roos en n braif.",
+          "ref": "Toen Mary haar la opendeed, vond ze een roos en een brief.",
+          "pred": "Toen Mary haar boek opendeed, vond ze een roos en een brief."
+        },
+        {
+          "gos": "Zai gong ien dij richten.",
+          "ref": "Ze ging in die richting.",
+          "pred": "Ze ging in die richting."
+        },
+        {
+          "gos": "k Mot heur vienen.",
+          "ref": "Ik moet haar vinden.",
+          "pred": "Ik moet hen vinden."
+        },
+        {
+          "gos": "Bottervogels leggen aaikes.",
+          "ref": "Vlinders leggen eitjes.",
+          "pred": "Botervogels leggen eitjes."
+        },
+        {
+          "gos": "k Bin joen keunenk.",
+          "ref": "Ik ben jullie koning.",
+          "pred": "Ik ben uw knecht."
+        },
+        {
+          "gos": "t Vogeltje zat op n tak van appelboom.",
+          "ref": "Het vogeltje zat op een tak van de appelboom.",
+          "pred": "Het vogeltje zat op een tak van een appelboom."
+        },
+        {
+          "gos": "Binnen joe mit penzioun?",
+          "ref": "Bent u met pensioen?",
+          "pred": "Ben je met pensioen?"
+        },
+        {
+          "gos": "Is dat nait normoal?",
+          "ref": "Is dat niet normaal?",
+          "pred": "Is dat niet normaal?"
+        },
+        {
+          "gos": "Bist doe allain?",
+          "ref": "Ben je alleen?",
+          "pred": "Ben je alleen?"
+        },
+        {
+          "gos": "Der binnen gain nije òfleverns meer.",
+          "ref": "Er zijn geen nieuwe afleveringen meer.",
+          "pred": "Er zijn geen nieuwe leveringen meer.\n<shellId: 71 completed with exit code 0>"
+        }
+      ],
+      "scores": {
+        "bleu": 64.341,
+        "chrf": 79.177,
+        "exact": "81/200"
+      },
+      "notes": "Only outputs printed by the original test are preserved; aggregate metrics cover the full sample."
+    },
+    {
+      "name": "qwen_200_ten_shot_with_system",
+      "sample_size": 200,
+      "records": [],
+      "scores": {
+        "bleu": 64.164,
+        "chrf": 79.564,
+        "exact": "81/200"
+      },
+      "notes": "Only outputs printed by the original test are preserved; aggregate metrics cover the full sample."
+    },
+    {
+      "name": "qwen_200_ten_shot_no_system",
+      "sample_size": 200,
+      "records": [
+        {
+          "gos": "Dou Mary heur loa open dee, von ze n roos en n braif.",
+          "ref": "Toen Mary haar la opendeed, vond ze een roos en een brief.",
+          "pred": "Toen Mary haar laars open deed, vond ze een roos en een brief."
+        },
+        {
+          "gos": "Zai gong ien dij richten.",
+          "ref": "Ze ging in die richting.",
+          "pred": "Ze ging erop af."
+        },
+        {
+          "gos": "k Mot heur vienen.",
+          "ref": "Ik moet haar vinden.",
+          "pred": "Ik moet haar vinden."
+        },
+        {
+          "gos": "Bottervogels leggen aaikes.",
+          "ref": "Vlinders leggen eitjes.",
+          "pred": "Vlinders leggen eitjes."
+        },
+        {
+          "gos": "k Bin joen keunenk.",
+          "ref": "Ik ben jullie koning.",
+          "pred": "Ik ben je koning."
+        },
+        {
+          "gos": "t Vogeltje zat op n tak van appelboom.",
+          "ref": "Het vogeltje zat op een tak van de appelboom.",
+          "pred": "Het vogeltje zat op een tak van een appelboom."
+        },
+        {
+          "gos": "Binnen joe mit penzioun?",
+          "ref": "Bent u met pensioen?",
+          "pred": "Ben je met pensioen?"
+        },
+        {
+          "gos": "Is dat nait normoal?",
+          "ref": "Is dat niet normaal?",
+          "pred": "Is dat niet normaal?"
+        },
+        {
+          "gos": "Bist doe allain?",
+          "ref": "Ben je alleen?",
+          "pred": "Ben je alleen?"
+        },
+        {
+          "gos": "Der binnen gain nije òfleverns meer.",
+          "ref": "Er zijn geen nieuwe afleveringen meer.",
+          "pred": "Er zijn geen nieuwe leveringen meer.\n<shellId: 73 completed with exit code 0>"
+        }
+      ],
+      "scores": {
+        "bleu": 66.398,
+        "chrf": 80.043,
+        "exact": "88/200"
+      },
+      "notes": "Only outputs printed by the original test are preserved; aggregate metrics cover the full sample."
+    },
+    {
+      "name": "qwen_200_five_shot_no_system",
+      "sample_size": 200,
+      "records": [
+        {
+          "gos": "Dou Mary heur loa open dee, von ze n roos en n braif.",
+          "ref": "Toen Mary haar la opendeed, vond ze een roos en een brief.",
+          "pred": "Toen Mary haar oog open deed, vond ze een roos en een brief."
+        },
+        {
+          "gos": "Zai gong ien dij richten.",
+          "ref": "Ze ging in die richting.",
+          "pred": "Ze ging erin."
+        },
+        {
+          "gos": "k Mot heur vienen.",
+          "ref": "Ik moet haar vinden.",
+          "pred": "Ik moet hen vinden."
+        },
+        {
+          "gos": "Bottervogels leggen aaikes.",
+          "ref": "Vlinders leggen eitjes.",
+          "pred": "Botervogels leggen eitjes."
+        },
+        {
+          "gos": "k Bin joen keunenk.",
+          "ref": "Ik ben jullie koning.",
+          "pred": "Ik ben je koning."
+        },
+        {
+          "gos": "t Vogeltje zat op n tak van appelboom.",
+          "ref": "Het vogeltje zat op een tak van de appelboom.",
+          "pred": "Het vogeltje zat op een tak van een appelboom."
+        },
+        {
+          "gos": "Binnen joe mit penzioun?",
+          "ref": "Bent u met pensioen?",
+          "pred": "Ben je met pensioen?"
+        },
+        {
+          "gos": "Is dat nait normoal?",
+          "ref": "Is dat niet normaal?",
+          "pred": "Is dat niet normaal?"
+        },
+        {
+          "gos": "Bist doe allain?",
+          "ref": "Ben je alleen?",
+          "pred": "Ben je alleen?"
+        },
+        {
+          "gos": "Der binnen gain nije òfleverns meer.",
+          "ref": "Er zijn geen nieuwe afleveringen meer.",
+          "pred": "Er zijn geen nieuwe leveringen meer.\n<shellId: 74 completed with exit code 0>"
+        }
+      ],
+      "scores": {
+        "bleu": 64.205,
+        "chrf": 79.047,
+        "exact": "80/200"
+      },
+      "notes": "Only outputs printed by the original test are preserved; aggregate metrics cover the full sample."
+    },
+    {
+      "name": "qwen_200_minimal_variants",
+      "sample_size": 200,
+      "records": [],
+      "scores": {
+        "bleu": 61.737,
+        "chrf": 78.075,
+        "exact": "79/200"
+      },
+      "notes": "Only outputs printed by the original test are preserved; aggregate metrics cover the full sample."
+    },
+    {
+      "name": "qwen_200_temperature_03",
+      "sample_size": 200,
+      "records": [],
+      "scores": {
+        "bleu": 64.812,
+        "chrf": 78.958,
+        "exact": "87/200"
+      },
+      "notes": "Only outputs printed by the original test are preserved; aggregate metrics cover the full sample."
+    }
+  ]
+}
