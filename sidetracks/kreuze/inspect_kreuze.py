@@ -15,7 +15,10 @@ from audit_kreuze_synthetic import load_metadata, load_rows
 
 DATA_DIR = Path("data/kreuze")
 DEFAULT_PATHS = {
-    "epoch4": (DATA_DIR / "kreuze_synthetic_epoch4.csv", DATA_DIR / "kreuze_synthetic_epoch4.jsonl"),
+    "epoch4": (
+        DATA_DIR / "kreuze_synthetic_epoch4.csv",
+        DATA_DIR / "kreuze_synthetic_epoch4.jsonl",
+    ),
     "epoch8": (DATA_DIR / "kreuze_synthetic.csv", DATA_DIR / "kreuze_synthetic.jsonl"),
     "epoch12": (
         DATA_DIR / "kreuze_synthetic_epoch12.csv",
@@ -58,17 +61,14 @@ def load_dataset(
 
 
 def build_records(
-    datasets: dict[str, dict[str, dict[str, object]]]
+    datasets: dict[str, dict[str, dict[str, object]]],
 ) -> list[dict[str, object]]:
     common_sources = set.intersection(*(set(dataset) for dataset in datasets.values()))
     reference = datasets["epoch8"]
     return [
         {
             "gronings": source,
-            **{
-                name: datasets[name][source]["dutch"]
-                for name in datasets
-            },
+            **{name: datasets[name][source]["dutch"] for name in datasets},
             "metadata": reference[source]["metadata"],
         }
         for source in reference
@@ -126,7 +126,7 @@ def page_view(
     return (
         table_rows(indices[start:end], records, visible_models),
         f"Showing {start + 1:,}-{end:,} of {len(indices):,} matching rows "
-        f"(page {page}/{page_count})",
+        + f"(page {page}/{page_count})",
         page,
     )
 
@@ -137,17 +137,18 @@ def build_app(records: list[dict[str, object]]):
     all_indices = list(range(len(records)))
 
     def render(indices: list[int], page: int, visible_models: list[str]):
-        headers, datatypes, values = table_config(
-            indices, records, visible_models
+        headers, datatypes, _ = table_config(indices, records, visible_models)
+        table, status, page = page_view(indices, page, records, visible_models)
+        return (
+            gr.update(
+                headers=headers,
+                datatype=datatypes,
+                value=table,
+            ),
+            status,
+            indices,
+            page,
         )
-        table, status, page = page_view(
-            indices, page, records, visible_models
-        )
-        return gr.update(
-            headers=headers,
-            datatype=datatypes,
-            value=table,
-        ), status, indices, page
 
     def search(query: str, visible_models: list[str]):
         query = normalize(query or "")
@@ -169,18 +170,14 @@ def build_app(records: list[dict[str, object]]):
         table, status, indices, page = render(indices, 1, visible_models)
         return table, f"Random sample: {status}", indices, page
 
-    def change_page(
-        indices: list[int], page: int, visible_models: list[str]
-    ):
+    def change_page(indices: list[int], page: int, visible_models: list[str]):
         rendered = render(indices or all_indices, page, visible_models)
         return rendered[0], rendered[1], rendered[3]
 
     initial_headers, initial_datatypes, initial_table = table_config(
         all_indices, records, DEFAULT_VISIBLE_MODELS
     )
-    _, initial_status, _ = page_view(
-        all_indices, 1, records, DEFAULT_VISIBLE_MODELS
-    )
+    _, initial_status, _ = page_view(all_indices, 1, records, DEFAULT_VISIBLE_MODELS)
 
     with gr.Blocks(title="Kreuze synthetic corpus") as app:
         gr.Markdown(
@@ -198,9 +195,7 @@ def build_app(records: list[dict[str, object]]):
             search_button = gr.Button("Search", variant="primary", scale=1)
             random_button = gr.Button("Random sample", scale=1)
         visible_models = gr.CheckboxGroup(
-            choices=[
-                (label, model) for model, label in MODEL_LABELS.items()
-            ],
+            choices=[(label, model) for model, label in MODEL_LABELS.items()],
             value=DEFAULT_VISIBLE_MODELS,
             label="Visible translation columns",
             info="Gronings and provenance stay visible.",

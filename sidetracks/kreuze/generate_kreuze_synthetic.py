@@ -29,18 +29,19 @@ from tqdm.auto import tqdm
 from nllb_try.evaluate import translate
 from nllb_try.tokenizer_and_model_setup import setup_model_and_tokenizer
 
-
-DEFAULT_SOURCE_URL = (
-    "https://raw.githubusercontent.com/tom9358/kreuze-zuik/main/"
-    "sentences_kreuze.json"
-)
+DEFAULT_SOURCE = Path(__file__).with_name("sentences_kreuze.json")
 WHITESPACE_RE = re.compile(r"\s+")
 
 
-def load_sentences(source_url: str) -> list[dict[str, object]]:
+def load_sentences(source: str | Path) -> list[dict[str, object]]:
     """Load, normalize, and deduplicate source sentences."""
-    with urllib.request.urlopen(source_url) as response:
-        documents = json.load(response)
+    source_text = str(source)
+    if source_text.startswith(("http://", "https://")):
+        with urllib.request.urlopen(source_text) as response:
+            documents = json.load(response)
+    else:
+        with Path(source).open(encoding="utf-8") as source_file:
+            documents = json.load(source_file)
 
     rows: list[dict[str, object]] = []
     seen: set[str] = set()
@@ -76,9 +77,7 @@ def sort_by_token_length(
         lengths.extend(len(input_ids) for input_ids in encoded["input_ids"])
     return [
         row
-        for _, row in sorted(
-            zip(lengths, rows), key=lambda item: item[0], reverse=True
-        )
+        for _, row in sorted(zip(lengths, rows), key=lambda item: item[0], reverse=True)
     ]
 
 
@@ -112,9 +111,11 @@ def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--model-path", required=True, help="Checkpoint directory.")
     parser.add_argument(
+        "--source",
         "--source-url",
-        default=DEFAULT_SOURCE_URL,
-        help=f"Kreuze JSON URL (default: {DEFAULT_SOURCE_URL})",
+        dest="source",
+        default=str(DEFAULT_SOURCE),
+        help=f"Local Kreuze JSON file or URL (default: {DEFAULT_SOURCE})",
     )
     parser.add_argument(
         "--output",
@@ -178,7 +179,9 @@ def main() -> None:
     args = parser.parse_args()
 
     if args.batch_size < 1 or args.max_input_length < 1 or args.num_beams < 1:
-        parser.error("--batch-size, --max-input-length, and --num-beams must be positive")
+        parser.error(
+            "--batch-size, --max-input-length, and --num-beams must be positive"
+        )
     if args.device.startswith("cuda") and not torch.cuda.is_available():
         parser.error(f"CUDA device requested but CUDA is unavailable: {args.device}")
 
@@ -193,7 +196,7 @@ def main() -> None:
 
     rows = [
         row
-        for row in load_sentences(args.source_url)
+        for row in load_sentences(args.source)
         if len(str(row["gronings"]).split()) <= args.max_words
         and len(str(row["gronings"])) <= args.max_chars
     ]
@@ -218,9 +221,10 @@ def main() -> None:
 
     written = 0
     skipped = 0
-    with args.output.open("w", encoding="utf-8", newline="") as output_file, metadata_output.open(
-        "w", encoding="utf-8"
-    ) as metadata_file:
+    with (
+        args.output.open("w", encoding="utf-8", newline="") as output_file,
+        metadata_output.open("w", encoding="utf-8") as metadata_file,
+    ):
         output_writer = csv.writer(
             output_file, delimiter=args.separator, lineterminator="\n"
         )
@@ -255,7 +259,7 @@ def main() -> None:
                     dutch,
                     source,
                     args.model_path,
-                    args.source_url,
+                    args.source,
                 )
                 written += 1
             output_file.flush()

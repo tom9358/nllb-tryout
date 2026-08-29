@@ -23,10 +23,7 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
-DEFAULT_SOURCE_URL = (
-    "https://raw.githubusercontent.com/tom9358/kreuze-zuik/main/"
-    "sentences_kreuze.json"
-)
+DEFAULT_SOURCE = Path(__file__).with_name("sentences_kreuze.json")
 DEFAULT_MODEL = "hf.co/unsloth/gemma-4-31B-it-GGUF:Q8_K_XL"
 DEFAULT_ENDPOINT = os.getenv("LLAMA_API_ENDPOINT")
 DEFAULT_OUTPUT = Path("data/kreuze/kreuze_synthetic_gemma50.csv")
@@ -78,9 +75,14 @@ FEW_SHOT_EXAMPLES = (
 )
 
 
-def load_sentences(source_url: str) -> list[dict[str, object]]:
-    with urllib.request.urlopen(source_url) as response:
-        documents = json.load(response)
+def load_sentences(source: str | Path) -> list[dict[str, object]]:
+    source_text = str(source)
+    if source_text.startswith(("http://", "https://")):
+        with urllib.request.urlopen(source_text) as response:
+            documents = json.load(response)
+    else:
+        with Path(source).open(encoding="utf-8") as source_file:
+            documents = json.load(source_file)
 
     rows: list[dict[str, object]] = []
     seen: set[str] = set()
@@ -212,7 +214,13 @@ def translate_with_fallback(
 
 def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--source-url", default=DEFAULT_SOURCE_URL)
+    parser.add_argument(
+        "--source",
+        "--source-url",
+        dest="source",
+        default=str(DEFAULT_SOURCE),
+        help=f"Local Kreuze JSON file or URL (default: {DEFAULT_SOURCE})",
+    )
     parser.add_argument("--model", default=DEFAULT_MODEL)
     parser.add_argument(
         "--endpoint",
@@ -249,7 +257,7 @@ def main() -> None:
     if args.overwrite and args.resume:
         parser.error("--overwrite and --resume cannot be combined")
 
-    rows = load_sentences(args.source_url)
+    rows = load_sentences(args.source)
     if args.limit is not None:
         if args.limit < 1:
             parser.error("--limit must be positive")
@@ -303,8 +311,7 @@ def main() -> None:
         written = len(existing_rows)
         rows = rows[written:]
         print(
-            f"Resuming after {written:,} complete rows; "
-            f"{len(rows):,} remain.",
+            f"Resuming after {written:,} complete rows; {len(rows):,} remain.",
             flush=True,
         )
     elif args.overwrite:
@@ -312,11 +319,10 @@ def main() -> None:
 
     fallback_sizes: dict[int, int] = {}
     file_mode = "a" if args.resume else "w"
-    with args.output.open(
-        file_mode, encoding="utf-8", newline=""
-    ) as output_file, args.metadata_output.open(
-        file_mode, encoding="utf-8"
-    ) as metadata_file:
+    with (
+        args.output.open(file_mode, encoding="utf-8", newline="") as output_file,
+        args.metadata_output.open(file_mode, encoding="utf-8") as metadata_file,
+    ):
         writer = csv.writer(output_file, delimiter=";", lineterminator="\n")
         if not args.resume:
             writer.writerow(["Nederlands", "Gronings"])
@@ -347,7 +353,7 @@ def main() -> None:
                             "seed": args.seed,
                             "requested_block_size": 50,
                             "actual_block_size": actual_size,
-                            "source_url": args.source_url,
+                            "source": args.source,
                         },
                         ensure_ascii=False,
                     )

@@ -2,6 +2,8 @@
 
 These sidetrack utilities prepare and inspect synthetic Gronings–Dutch data
 from the [Kreuze sentence collection](https://github.com/tom9358/kreuze-zuik/blob/main/sentences_kreuze.json).
+The source copy used by the generators is versioned locally in
+`sidetracks/kreuze/sentences_kreuze.json`.
 
 ## Tools
 

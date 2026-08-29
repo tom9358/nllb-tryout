@@ -21,7 +21,6 @@ import random
 import re
 import statistics
 import sys
-from collections import Counter
 from pathlib import Path
 
 DEFAULT_CORPUS = Path("data/kreuze/kreuze_synthetic.csv")
@@ -86,15 +85,12 @@ def load_tatoeba_gos(path: Path) -> set[str]:
     return sentences
 
 
-def print_examples(
-    rows: list[dict[str, str]], scores: list[float], count: int
-) -> None:
+def print_examples(rows: list[dict[str, str]], scores: list[float], count: int) -> None:
     print("\nWorst round-trip examples:")
     for index in sorted(range(len(rows)), key=lambda i: scores[i])[:count]:
         row = rows[index]
         print(
-            f"CHRF={scores[index]:.1f} | "
-            f"GOS={row['Gronings']} | NL={row['Nederlands']}"
+            f"CHRF={scores[index]:.1f} | GOS={row['Gronings']} | NL={row['Nederlands']}"
         )
 
 
@@ -108,7 +104,6 @@ def roundtrip_audit(
     seed: int,
     worst_examples: int,
 ) -> None:
-    import pandas as pd
     from sacrebleu.metrics import CHRF
 
     from nllb_try.evaluate import translate
@@ -148,10 +143,13 @@ def roundtrip_audit(
         f"p10={sorted(scores)[int(0.10 * len(scores))]:.2f}, "
         f"p90={sorted(scores)[int(0.90 * len(scores))]:.2f}"
     )
-    print("Round-trip scores below:", ", ".join(
-        f"{threshold}={sum(score < threshold for score in scores):,}"
-        for threshold in (20, 30, 40, 50, 60, 70)
-    ))
+    print(
+        "Round-trip scores below:",
+        ", ".join(
+            f"{threshold}={sum(score < threshold for score in scores):,}"
+            for threshold in (20, 30, 40, 50, 60, 70)
+        ),
+    )
     if worst_examples:
         print_examples(sampled, scores, min(worst_examples, len(scores)))
 
@@ -161,7 +159,9 @@ def main() -> int:
     parser.add_argument("--corpus", type=Path, default=DEFAULT_CORPUS)
     parser.add_argument("--metadata", type=Path, default=DEFAULT_METADATA)
     parser.add_argument("--separator", default=";")
-    parser.add_argument("--tatoeba-gos", type=Path, default=Path("data/tatoeba/gos_sentences.tsv"))
+    parser.add_argument(
+        "--tatoeba-gos", type=Path, default=Path("data/tatoeba/gos_sentences.tsv")
+    )
     parser.add_argument("--max-words", type=int, default=48)
     parser.add_argument("--max-chars", type=int, default=200)
     parser.add_argument("--model-path", help="Enable optional round-trip scoring.")
