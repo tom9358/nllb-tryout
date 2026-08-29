@@ -241,6 +241,43 @@ the restarted epoch-zero parity is also the correct parity for logical epoch
 three. Loading a checkpoint explicitly disables Dutch-based initialization of
 the already-trained Gronings language embedding.
 
+Phase 1b results:
+
+Tatoeba validation:
+
+| Model | Dutch→Gronings BLEU | Dutch→Gronings chrF | Gronings→Dutch BLEU | Gronings→Dutch chrF |
+|---|---:|---:|---:|---:|
+| Phase 1 pooled, 902 steps | 49.51 | 73.57 | 70.53 | 81.69 |
+| +52 pooled steps | 49.98 | 73.81 | 70.68 | 81.68 |
+| +52 clean Tatoeba steps | **55.81** | **77.04** | **73.99** | **84.04** |
+| Phase 1 Tatoeba-only control | 55.39 | 75.75 | 71.94 | 83.16 |
+
+Kreuze validation:
+
+| Model | Dutch→Gronings BLEU | Dutch→Gronings chrF | Gronings→Dutch BLEU | Gronings→Dutch chrF |
+|---|---:|---:|---:|---:|
+| Phase 1 pooled, 902 steps | 49.77 | 73.47 | 65.37 | 80.36 |
+| +52 pooled steps | **50.00** | **73.59** | **65.38** | 80.20 |
+| +52 clean Tatoeba steps | 48.21 | 72.79 | 63.41 | 78.81 |
+| Phase 1 Tatoeba-only control | 34.60 | 61.42 | 48.03 | 67.72 |
+
+The extra pooled steps barely change either validation source. The clean finish
+raises Tatoeba by 6.30 BLEU / 3.46 chrF for Dutch→Gronings and 3.46 BLEU /
+2.35 chrF for Gronings→Dutch relative to the pooled checkpoint. It also
+slightly exceeds the equal-budget Tatoeba-only control on every primary metric.
+
+The cost on Kreuze is limited to 1.56 BLEU / 0.69 chrF for Dutch→Gronings and
+1.96 BLEU / 1.54 chrF for Gronings→Dutch. Relative to the Tatoeba-only control,
+the clean-finished model still retains gains of 13.60 and 15.38 BLEU in the two
+directions. This is strong evidence for the proposed two-stage recipe:
+synthetic pooling provides broad domain coverage, followed by one clean
+Tatoeba pass to restore the primary hand-written distribution.
+
+Run artifacts:
+
+- clean finish: `checkpoints/nllb-200-distilled-600M-nld-gos-kreuze-phase1b-clean-20260829-195150`
+- pooled continuation: `checkpoints/nllb-200-distilled-600M-nld-gos-kreuze-phase1b-pooled-20260829-195150`
+
 ### Phase 2: practical multilingual comparison
 
 If Phase 1 is positive, repeat the controlled comparison with supporting
