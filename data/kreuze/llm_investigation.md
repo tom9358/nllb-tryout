@@ -200,3 +200,6 @@ The local source copy used by the generators is
 preferred candidate for further synthetic-data and NLLB-training
 experiments. It remains synthetic data and should not be treated as gold
 reference data without further quality filtering.
+
+The follow-up NLLB experiments, validation safeguards and staged-training
+ideas are specified in [`training_plan.md`](training_plan.md).

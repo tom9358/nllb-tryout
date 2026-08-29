@@ -91,6 +91,49 @@ class ParallelFileCorpus(BaseParallelCorpus):
         super().__init__(source_lang_nllb, target_lang_nllb, df)
 
 
+def _normalize_for_overlap(text: str) -> str:
+    return " ".join(text.split()).casefold()
+
+
+def _remove_tatoeba_validation_overlap(
+    corpus: ParallelFileCorpus, tatoeba_corpora: list[TatoebaCorpus]
+) -> int:
+    """Remove parallel training pairs that contain held-out Tatoeba text.
+
+    Matching is language-aware and ignores whitespace and casing differences.
+    The parallel corpus's own validation set is left unchanged.
+    """
+    held_out_by_language: dict[str, set[str]] = {}
+    for tatoeba_corpus in tatoeba_corpora:
+        if tatoeba_corpus.df_validate is None:
+            raise RuntimeError(
+                "Tatoeba corpora must be split before overlap filtering."
+            )
+        for language, column in (
+            (tatoeba_corpus.source_lang_nllb, "source_sentence"),
+            (tatoeba_corpus.target_lang_nllb, "target_sentence"),
+        ):
+            held_out_by_language.setdefault(language, set()).update(
+                tatoeba_corpus.df_validate[column].map(_normalize_for_overlap)
+            )
+
+    source_overlap = (
+        corpus.df_train["source_sentence"]
+        .map(_normalize_for_overlap)
+        .isin(held_out_by_language.get(corpus.source_lang_nllb, set()))
+    )
+    target_overlap = (
+        corpus.df_train["target_sentence"]
+        .map(_normalize_for_overlap)
+        .isin(held_out_by_language.get(corpus.target_lang_nllb, set()))
+    )
+    overlap = source_overlap | target_overlap
+    removed = int(overlap.sum())
+    if removed:
+        corpus.df_train = corpus.df_train.loc[~overlap].reset_index(drop=True)
+    return removed
+
+
 def load_tatoeba(src: str, trg: str, cfg: RunConfig) -> pd.DataFrame:
     """Load a Tatoeba language pair, keeping sentence IDs for global splitting.
 
@@ -221,7 +264,18 @@ def main_corpus(
         else:
             for f in files:
                 print(f"Loading parallel data file: {f}")
-                corpora.append(ParallelFileCorpus(f, separator=parallel_data_separator))
+                parallel_corpus = ParallelFileCorpus(
+                    f, separator=parallel_data_separator
+                )
+                removed = _remove_tatoeba_validation_overlap(
+                    parallel_corpus, tatoeba_corpora
+                )
+                if removed:
+                    print(
+                        f"  Removed {removed:,} training pairs overlapping "
+                        "Tatoeba validation text."
+                    )
+                corpora.append(parallel_corpus)
     else:
         print("No additional parallel data paths provided.")
 

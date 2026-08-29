@@ -23,6 +23,8 @@ All corpus metadata and conclusions are documented in
 `data/kreuze/metadata.md`.
 The detailed investigation log is in
 `data/kreuze/llm_investigation.md`.
+The controlled NLLB experiment design is in
+`data/kreuze/training_plan.md`.
 Saved benchmark outputs and prompt templates are in
 `data/kreuze/llm_outputs/`.
 
