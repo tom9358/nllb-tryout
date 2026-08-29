@@ -41,6 +41,24 @@ used 2,268 queries and was resumable.
 
 ## Rough quality comparisons
 
+### NLLB first attempt
+
+I realized that I might try to do this with my own NLLB model first, hoping
+that an LLM might not be needed at all. So, I tried backtranslating with the
+NLLB model I have now. I did this at epochs 4, 8, and 12. All three have
+similar Gronings-to-Dutch validation scores, while the training score kept
+increasing.
+
+Based on heuristic checks for untranslated Gronings words and some manual
+inspection, it was immediately clear that the model actually performed very
+badly. I do not think these sentences would be a valuable quality-synthetic
+data addition. I am keeping the data, though. It would have been nice if it
+had worked, since the entire generation only took around 15 minutes.
+
+Considering the cost and time of generation with Qwen/Gemma, and the much
+better preliminary results with those models, I decided to continue with the
+LLM investigation.
+
 On the same 200 Tatoeba holdout sentences, the best tested Gemma setup was
 10-shot prompting in one user message without a system prompt:
 
