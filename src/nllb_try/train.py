@@ -1,31 +1,36 @@
-import torch
-from transformers import Adafactor, get_constant_schedule_with_warmup
+import math
+
+import matplotlib.pyplot as plt
 import numpy as np
-from .tokenizer_and_model_setup import setup_model_and_tokenizer, cleanup
-from .config import RunConfig, get_default_config
-from .seed import set_seed
+import pandas as pd
+import torch
+from tqdm.auto import trange
+from transformers import Adafactor, get_constant_schedule_with_warmup
+
 from .artifacts import (
     format_run_config_txt,
     init_run_dir,
     write_json,
 )
 from .augmentation import (
-    preproc,
-    apply_variations,
     add_gronings_variations,
+    apply_variations,
+    preproc,
     swap_synonyms,
     synonym_pairs_gos,
 )
-from tqdm.auto import trange
-import pandas as pd
-import matplotlib.pyplot as plt
+from .config import RunConfig, get_default_config
+from .seed import set_seed
+from .tokenizer_and_model_setup import cleanup, setup_model_and_tokenizer
 
 
 def _find_focus_corpus_index(
     corpus_objects: list, focus_lang_pair: tuple[str, str] | None
 ) -> int:
     if focus_lang_pair is None:
-        raise ValueError("focus_lang_pair must be set when sampling_strategy='focus_cap'")
+        raise ValueError(
+            "focus_lang_pair must be set when sampling_strategy='focus_cap'"
+        )
 
     focus_key = frozenset(focus_lang_pair)
     matches = [
@@ -35,7 +40,9 @@ def _find_focus_corpus_index(
     ]
 
     if not matches:
-        raise ValueError(f"Focus pair {tuple(focus_lang_pair)} not found in the corpora")
+        raise ValueError(
+            f"Focus pair {tuple(focus_lang_pair)} not found in the corpora"
+        )
     if len(matches) > 1:
         raise ValueError(
             f"Focus pair {tuple(focus_lang_pair)} matched multiple corpora, expected one"
@@ -85,13 +92,14 @@ def get_balanced_df(
     With *T=1* you get proportional sampling (status quo).
     With *T → ∞* every corpus contributes equally.
     *T=5* is a standard middle-ground for multilingual MT (NLLB / M2M-100)
-    
+
     ``focus_cap`` instead keeps one configured focus pair at full
     size and caps every other pair at that same size, with fresh per-epoch
     sampling for the larger corpora
 
     Returns (df, src_langs, tgt_langs) where *df* has columns
-    ``source_sentence``, ``target_sentence``, and ``corpus_idx``.
+    ``source_sentence``, ``target_sentence``, ``corpus_idx``, and the internal
+    ``_row_index`` used by alternating-direction training.
     """
     dfs: list[pd.DataFrame] = []
     src_langs_all: list[str] = []
@@ -112,6 +120,7 @@ def get_balanced_df(
             replace = n_samples > len(corpus.df_train)
             sampled = corpus.df_train.sample(n=n_samples, replace=replace)
             sampled = sampled.copy()
+            sampled["_row_index"] = sampled.index.to_numpy()
             sampled["corpus_idx"] = i
             dfs.append(sampled)
             src_langs_all.extend([corpus.source_lang_nllb] * n_samples)
@@ -121,7 +130,11 @@ def get_balanced_df(
                 ratio = n_samples / len(corpus.df_train)
                 pct = probs[i] * 100
                 direction = (
-                    "oversampled" if ratio > 1 else "undersampled" if ratio < 1 else "exact"
+                    "oversampled"
+                    if ratio > 1
+                    else "undersampled"
+                    if ratio < 1
+                    else "exact"
                 )
                 print(
                     f"  Corpus {i} ({corpus.source_lang_nllb}→{corpus.target_lang_nllb}): "
@@ -129,6 +142,11 @@ def get_balanced_df(
                     f"({pct:.1f}%, {ratio:.2f}x, {direction})"
                 )
     elif sampling_strategy == "focus_cap":
+        if target_total_samples is not None:
+            raise ValueError(
+                "target_total_samples is not supported with sampling_strategy="
+                "'focus_cap'; its per-corpus caps determine the epoch size."
+            )
         sample_counts, focus_idx = _get_focus_cap_sampling(
             corpus_objects, focus_lang_pair
         )
@@ -146,6 +164,7 @@ def get_balanced_df(
             replace = n_samples > len(corpus.df_train)
             sampled = corpus.df_train.sample(n=n_samples, replace=replace)
             sampled = sampled.copy()
+            sampled["_row_index"] = sampled.index.to_numpy()
             sampled["corpus_idx"] = i
             dfs.append(sampled)
             src_langs_all.extend([corpus.source_lang_nllb] * n_samples)
@@ -153,7 +172,9 @@ def get_balanced_df(
 
             if verbose:
                 ratio = n_samples / len(corpus.df_train)
-                status = "focus" if i == focus_idx else "capped" if ratio < 1 else "kept"
+                status = (
+                    "focus" if i == focus_idx else "capped" if ratio < 1 else "kept"
+                )
                 print(
                     f"  Corpus {i} ({corpus.source_lang_nllb}→{corpus.target_lang_nllb}): "
                     f"{len(corpus.df_train):,} original → {n_samples:,} sampled "
@@ -168,6 +189,56 @@ def get_balanced_df(
         np.array(src_langs_all, dtype=object),
         np.array(tgt_langs_all, dtype=object),
     )
+
+
+def get_training_budget(
+    corpus_objects: list, cfg: RunConfig
+) -> dict[str, int | list[int]]:
+    """Calculate the exact sample and optimizer-step budget for a run."""
+    if cfg.sampling_strategy == "temperature":
+        _, sample_counts = _get_temperature_sampling(
+            corpus_objects,
+            temperature=cfg.sampling_temperature,
+            target_total_samples=cfg.target_samples_per_epoch,
+        )
+    elif cfg.sampling_strategy == "focus_cap":
+        if cfg.target_samples_per_epoch is not None:
+            raise ValueError(
+                "target_samples_per_epoch is not supported with "
+                "sampling_strategy='focus_cap'."
+            )
+        sample_counts, _ = _get_focus_cap_sampling(corpus_objects, cfg.focus_lang_pair)
+    else:
+        raise ValueError(f"Unknown sampling_strategy: {cfg.sampling_strategy}")
+
+    samples_per_epoch = int(sample_counts.sum())
+    steps_per_epoch = math.ceil(samples_per_epoch / cfg.batch_size)
+    return {
+        "sample_counts": [int(count) for count in sample_counts],
+        "samples_per_epoch": samples_per_epoch,
+        "steps_per_epoch": steps_per_epoch,
+        "total_samples": samples_per_epoch * cfg.num_epochs,
+        "total_steps": steps_per_epoch * cfg.num_epochs,
+    }
+
+
+def _get_direction_mask(
+    df: pd.DataFrame,
+    permutation: np.ndarray,
+    epoch: int,
+    strategy: str,
+) -> np.ndarray:
+    """Choose which sampled pairs are reversed for one training epoch."""
+    if strategy == "random":
+        mask = np.zeros(len(df), dtype=bool)
+        mask[: len(df) // 2] = True
+        np.random.shuffle(mask)
+        return mask
+    if strategy == "alternating":
+        row_indices = df["_row_index"].to_numpy()[permutation]
+        corpus_indices = df["corpus_idx"].to_numpy()[permutation]
+        return (row_indices + corpus_indices + epoch) % 2 == 1
+    raise ValueError(f"Unknown direction_strategy: {strategy}")
 
 
 def tokenize_mixed_langs(
@@ -220,19 +291,10 @@ def train_model(
     # ── Verbose: show training config ──
     if verbose:
         total_original = sum(len(c.df_train) for c in corpus_objects)
-        if cfg.sampling_strategy == "temperature":
-            _, sample_counts = _get_temperature_sampling(
-                corpus_objects, temperature=cfg.sampling_temperature
-            )
-        elif cfg.sampling_strategy == "focus_cap":
-            sample_counts, focus_idx = _get_focus_cap_sampling(
-                corpus_objects, cfg.focus_lang_pair
-            )
-        else:
-            raise ValueError(f"Unknown sampling_strategy: {cfg.sampling_strategy}")
-
-        total_sampled = int(sample_counts.sum())
-        n_batches = int(np.ceil(total_sampled / batch_size))
+        budget = get_training_budget(corpus_objects, cfg)
+        sample_counts = budget["sample_counts"]
+        total_sampled = budget["samples_per_epoch"]
+        n_batches = budget["steps_per_epoch"]
 
         print(f"\n{'=' * 65}")
         print("  Training plan")
@@ -243,9 +305,13 @@ def train_model(
         print(f"  Max length:   {max_length} tokens")
         print(f"  Warmup:       {warmup_steps} steps")
         print(f"  Sampling:     {cfg.sampling_strategy}")
+        print(f"  Directions:   {cfg.direction_strategy}")
         if cfg.sampling_strategy == "temperature":
             print(f"  Temperature:  {cfg.sampling_temperature}")
+            if cfg.target_samples_per_epoch is not None:
+                print(f"  Epoch target: {cfg.target_samples_per_epoch:,} samples")
         else:
+            focus_idx = _find_focus_corpus_index(corpus_objects, cfg.focus_lang_pair)
             focus_corpus = corpus_objects[focus_idx]
             print(
                 "  Focus pair:   "
@@ -256,7 +322,7 @@ def train_model(
         print(f"  Original rows:{total_original:,}")
         print(f"  Sampled rows: {total_sampled:,}")
         print(f"  Steps/epoch:  {n_batches:,}")
-        print(f"  Total steps:  {n_batches * num_epochs:,}")
+        print(f"  Total steps:  {budget['total_steps']:,}")
         print(f"{'=' * 65}\n")
 
     optimizer = Adafactor(
@@ -293,6 +359,7 @@ def train_model(
             temperature=cfg.sampling_temperature,
             sampling_strategy=cfg.sampling_strategy,
             focus_lang_pair=cfg.focus_lang_pair,
+            target_total_samples=cfg.target_samples_per_epoch,
             verbose=verbose
             and epoch == 0,  # only print sampling details for first epoch
         )
@@ -309,26 +376,27 @@ def train_model(
             tgts == "gos_Latn"
         ):  # we should know where the gronings sentences are. TODO
             idxs = np.where(tgts == "gos_Latn")[0]
-            yy_idxs = list(yy[i] for i in idxs)
+            yy_idxs = [yy[i] for i in idxs]
             yy_vals = add_gronings_variations(yy_idxs)
             yy_syns = swap_synonyms(yy_vals, synonym_pairs_gos)
             for k, i in enumerate(idxs):
                 yy[i] = yy_syns[k]
         if np.any(srcs == "gos_Latn"):
             idxs = np.where(srcs == "gos_Latn")[0]
-            xx_idxs = list(xx[i] for i in idxs)
+            xx_idxs = [xx[i] for i in idxs]
             xx_vals = add_gronings_variations(xx_idxs)
             xx_syns = swap_synonyms(xx_vals, synonym_pairs_gos)
             for k, i in enumerate(idxs):
                 xx[i] = xx_syns[k]
 
-        # Randomly swap source and target languages
+        # Choose a direction for every sampled pair.
         swap_idxs = np.random.permutation(N)
-        half = N // 2
-
-        swap_mask = np.zeros(N, dtype=bool)
-        swap_mask[:half] = True
-        np.random.shuffle(swap_mask)
+        swap_mask = _get_direction_mask(
+            df_all,
+            permutation=swap_idxs,
+            epoch=epoch,
+            strategy=cfg.direction_strategy,
+        )
 
         xx_swapped = np.where(swap_mask, yy[swap_idxs], xx[swap_idxs])
         yy_swapped = np.where(swap_mask, xx[swap_idxs], yy[swap_idxs])

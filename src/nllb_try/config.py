@@ -41,6 +41,8 @@ class RunConfig:
     )
     sampling_strategy: str = "temperature"  # "temperature" or "focus_cap"
     focus_lang_pair: tuple[str, str] | None = None
+    target_samples_per_epoch: int | None = None
+    direction_strategy: str = "random"  # "random" or "alternating"
     device: str = "cuda"
 
     @property

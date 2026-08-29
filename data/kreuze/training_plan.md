@@ -122,21 +122,50 @@ to include.
 - [x] Remove language-aware overlap with Tatoeba validation from Kreuze
   training data.
 - [x] Measure token-length truncation.
-- [ ] Add the explicit alternating direction strategy.
-- [ ] Record exact sample and optimizer-step budgets before launching runs.
+- [x] Add a configurable explicit alternating direction strategy.
+- [x] Add exact sample and optimizer-step budget reporting.
+- [ ] Configure and smoke-test the two Phase 1 runs.
 
 ### Phase 1: cheap Dutch–Gronings signal test
 
 Train two fresh 600M models from the same pretrained weights:
 
-| Run | Training data | Approximate budget |
-|---|---|---:|
-| Control | Tatoeba Dutch–Gronings only | about 900 steps |
-| Treatment | Tatoeba + pooled Kreuze Dutch–Gronings | about 900 steps |
+| Run | Training data | Epochs | Samples per epoch |
+|---|---|---:|---:|
+| Control | Tatoeba Dutch–Gronings only, repeated with replacement | 2 | pooled corpus size |
+| Treatment | Tatoeba + pooled Kreuze Dutch–Gronings | 2 | pooled corpus size |
 
-With current corpus sizes, this is approximately eighteen Tatoeba-only epochs
-versus two pooled epochs. The exact budget should be fixed in optimizer steps,
-not inferred from epoch labels.
+Both runs therefore have the same number of epochs, examples and optimizer
+steps. In the control, the small hand-written corpus is repeated with
+replacement; in the treatment, almost every sampled pair is unique. This
+tests whether the diverse synthetic data is more useful than spending the same
+compute repeatedly training on the clean data.
+
+The current two-language snapshot gives:
+
+| Variant | Unique train rows | Samples/epoch | Steps/epoch | Total steps |
+|---|---:|---:|---:|---:|
+| Control | 13,058 | 115,410 | 451 | 902 |
+| Pooled | 115,410 | 115,410 | 451 | 902 |
+
+Six Kreuze train pairs are removed for overlap with the two-language Tatoeba
+validation split. This is fewer than the 40 removed in the five-language setup,
+because the global Tatoeba hold-out depends on the configured language set.
+
+With `direction_strategy="alternating"`, each stable training row uses one
+direction in the first epoch and the opposite direction in the second. Repeated
+copies of the same control row have the same direction within an epoch.
+
+The dedicated runner builds both variants from the same corpus definitions:
+
+```bash
+uv run python run_kreuze_experiment.py --variant control --dry-run
+uv run python run_kreuze_experiment.py --variant pooled --dry-run
+```
+
+Remove `--dry-run` to start training. The run configuration records
+`target_samples_per_epoch` and `direction_strategy`, and the runner adds the
+experiment label `kreuze-phase1-control` or `kreuze-phase1-pooled`.
 
 This experiment is intentionally cheap and isolates the value of the
 synthetic pairs from multilingual transfer. It is a diagnostic, not
