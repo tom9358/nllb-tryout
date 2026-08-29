@@ -80,3 +80,37 @@ Gradio comparison viewer is:
 ```bash
 uv run sidetracks/kreuze/inspect_kreuze.py
 ```
+
+## Cost estimate
+
+Doing this locally saves a lot of money compared with using an API from one
+of the big tech companies.
+
+Rough assumptions:
+
+- 300 W for the GPU;
+- 100 W for the CPU;
+- 100 W for other components such as RAM and storage.
+
+The GPU is by far the bottleneck, so the CPU is not running at 100%. Actual
+power usage may therefore be lower, but 500 W total is a reasonable
+ballpark estimate.
+
+A block of 50 sentences takes around 23 seconds. With roughly 120,000
+sentences in Kreuze:
+
+```text
+120,000 / 50 blocks × 23 seconds / 3,600 seconds per hour
+≈ 15.8 hours
+```
+
+At an electricity price just under €0.30 per kWh in the Netherlands:
+
+```text
+500 W × 15.8 hours / 1,000 ≈ 7.9 kWh
+7.9 kWh × €0.30 ≈ €2.37
+```
+At company prices instead of consumer prices, it would be even cheaper.
+This is a rough estimate, but it shows that local generation is extremely
+cheap. Even if the GPU were dozens of times less energy-efficient, this
+approach would still be very attractive.
