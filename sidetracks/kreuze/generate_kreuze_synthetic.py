@@ -26,8 +26,8 @@ from pathlib import Path
 import torch
 from tqdm.auto import tqdm
 
-from src.nllb_try.evaluate import translate
-from src.nllb_try.tokenizer_and_model_setup import setup_model_and_tokenizer
+from nllb_try.evaluate import translate
+from nllb_try.tokenizer_and_model_setup import setup_model_and_tokenizer
 
 
 DEFAULT_SOURCE_URL = (

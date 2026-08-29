@@ -111,8 +111,8 @@ def roundtrip_audit(
     import pandas as pd
     from sacrebleu.metrics import CHRF
 
-    from src.nllb_try.evaluate import translate
-    from src.nllb_try.tokenizer_and_model_setup import setup_model_and_tokenizer
+    from nllb_try.evaluate import translate
+    from nllb_try.tokenizer_and_model_setup import setup_model_and_tokenizer
 
     sample_size = min(sample_size, len(rows))
     indices = random.Random(seed).sample(range(len(rows)), sample_size)
