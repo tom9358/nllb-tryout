@@ -356,6 +356,23 @@ Run artifacts:
 - extended control: `checkpoints/nllb-200-distilled-1.3B-nld-gos-kreuze-phase1b-control-20260829-204754`
 - pooled continuation: `checkpoints/nllb-200-distilled-1.3B-nld-gos-kreuze-phase1b-pooled-20260829-204957`
 
+#### Combined 600M versus 1.3B comparison
+
+All four models below received exactly 954 optimizer steps. The
+synthetic-plus-clean models used 902 pooled steps followed by 52 Tatoeba-only
+steps; the controls used Tatoeba only for all 954 steps.
+
+| Validation | Direction | Metric | 600M Tatoeba-only | 600M synthetic + clean | 1.3B Tatoeba-only | 1.3B synthetic + clean |
+|---|---|---|---:|---:|---:|---:|
+| Tatoeba | Dutch→Gronings | BLEU | 57.16 | 55.81 | 57.17 | **60.93** |
+| Tatoeba | Dutch→Gronings | chrF | 76.72 | 77.04 | 77.48 | **81.01** |
+| Tatoeba | Gronings→Dutch | BLEU | 71.96 | 73.99 | 77.14 | **80.63** |
+| Tatoeba | Gronings→Dutch | chrF | 83.33 | 84.04 | 86.13 | **88.23** |
+| Kreuze | Dutch→Gronings | BLEU | 34.09 | 48.21 | 34.12 | **49.89** |
+| Kreuze | Dutch→Gronings | chrF | 61.29 | 72.79 | 61.14 | **74.41** |
+| Kreuze | Gronings→Dutch | BLEU | 47.44 | 63.41 | 49.64 | **66.32** |
+| Kreuze | Gronings→Dutch | chrF | 67.63 | 78.81 | 68.88 | **80.77** |
+
 ### Phase 2: practical multilingual comparison
 
 If Phase 1 is positive, repeat the controlled comparison with supporting
