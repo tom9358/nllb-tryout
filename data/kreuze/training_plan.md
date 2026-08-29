@@ -124,7 +124,9 @@ to include.
 - [x] Measure token-length truncation.
 - [x] Add a configurable explicit alternating direction strategy.
 - [x] Add exact sample and optimizer-step budget reporting.
-- [ ] Configure and smoke-test the two Phase 1 runs.
+- [x] Configure and smoke-test the two Phase 1 runs.
+- [x] Train both variants and evaluate every checkpoint on the full validation
+  splits.
 
 ### Phase 1: cheap Dutch–Gronings signal test
 
@@ -170,6 +172,55 @@ experiment label `kreuze-phase1-control` or `kreuze-phase1-pooled`.
 This experiment is intentionally cheap and isolates the value of the
 synthetic pairs from multilingual transfer. It is a diagnostic, not
 necessarily the final model.
+
+#### Phase 1 results
+
+Both runs completed on the same 902-step budget. Evaluation used all 529
+Tatoeba validation pairs and all 2,089 independently held-out Kreuze pairs,
+in both directions. BLEU and chrF treat model output as the hypothesis and
+the corpus sentence as the reference.
+
+Tatoeba validation:
+
+| Model | Dutch→Gronings BLEU | Dutch→Gronings chrF | Gronings→Dutch BLEU | Gronings→Dutch chrF |
+|---|---:|---:|---:|---:|
+| Untrained baseline | 5.72 | 38.97 | 28.11 | 48.88 |
+| Control, epoch 1 | 46.88 | 70.55 | 65.93 | 79.46 |
+| Control, epoch 2 | **55.39** | **75.75** | **71.94** | **83.16** |
+| Pooled, epoch 1 | 39.84 | 66.68 | 64.40 | 77.39 |
+| Pooled, epoch 2 | 49.51 | 73.57 | 70.53 | 81.69 |
+
+Kreuze validation:
+
+| Model | Dutch→Gronings BLEU | Dutch→Gronings chrF | Gronings→Dutch BLEU | Gronings→Dutch chrF |
+|---|---:|---:|---:|---:|
+| Untrained baseline | 8.92 | 38.09 | 19.13 | 43.18 |
+| Control, epoch 1 | 30.56 | 58.35 | 44.95 | 65.88 |
+| Control, epoch 2 | 34.60 | 61.42 | 48.03 | 67.72 |
+| Pooled, epoch 1 | 45.01 | 70.27 | 61.27 | 77.61 |
+| Pooled, epoch 2 | **49.77** | **73.47** | **65.37** | **80.36** |
+
+At epoch 2, pooling changes the scores relative to the equal-budget control:
+
+- Tatoeba: -5.88 BLEU / -2.18 chrF for Dutch→Gronings and -1.41 BLEU /
+  -1.47 chrF for Gronings→Dutch.
+- Kreuze: +15.17 BLEU / +12.06 chrF for Dutch→Gronings and +17.34 BLEU /
+  +12.63 chrF for Gronings→Dutch.
+
+The synthetic corpus therefore adds a strong and genuine Kreuze-domain signal,
+but simple proportional pooling does not beat repeated clean training on the
+primary hand-written Tatoeba validation set. The larger regression in
+Dutch→Gronings is consistent with synthetic Dutch inputs being useful but
+different from Tatoeba Dutch, while the authentic Gronings targets remain
+valuable. A short equal-step continuation experiment is the next cheapest way
+to test whether a clean Tatoeba finish can retain the domain gain while
+recovering the primary validation scores.
+
+Run artifacts:
+
+- control: `checkpoints/nllb-200-distilled-600M-nld-gos-kreuze-phase1-control-20260829-193625`
+- pooled: `checkpoints/nllb-200-distilled-600M-nld-gos-kreuze-phase1-pooled-20260829-193625`
+- evaluation ID: `kreuze-phase1-full-validation`
 
 ### Phase 2: practical multilingual comparison
 

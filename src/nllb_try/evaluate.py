@@ -6,19 +6,19 @@ monitor model improvement and potential overfitting.
 """
 
 import os
-from datetime import datetime
+from datetime import datetime, timezone
 from pathlib import Path
 
-import torch
-import pandas as pd
 import matplotlib.pyplot as plt
+import pandas as pd
+import torch
 from sacrebleu import corpus_bleu, corpus_chrf
 
 from .artifacts import write_json
+from .augmentation import preproc
 from .config import get_default_config
 from .seed import set_seed
 from .tokenizer_and_model_setup import setup_model_and_tokenizer
-from .augmentation import preproc
 
 
 def translate(
@@ -80,8 +80,8 @@ def _evaluate(
                 tokenizer=tokenizer,
             )
         )
-    bleu_score = corpus_bleu(references, [translations]).score
-    chrf_score = corpus_chrf(references, [translations]).score
+    bleu_score = corpus_bleu(translations, [references]).score
+    chrf_score = corpus_chrf(translations, [references]).score
     if bleu_score < 1:  # DEBUG
         print(references[0:3], "\n", translations[0:3])
     return bleu_score, chrf_score
@@ -169,6 +169,7 @@ def evaluate_model(
     corpus_objects,
     sample_size: int | None = 200,
     batch_size: int = 64,
+    include_train: bool = True,
     verbose: bool = False,
 ):
     all_corpus_results = []
@@ -180,19 +181,19 @@ def evaluate_model(
             f"  Evaluating {corpus.source_lang_nllb}-{corpus.target_lang_nllb} pair ({corpus_id})..."
         )
 
-        # Evaluate on Training Set
-        train_metrics = _calculate_metrics_for_split(
-            corpus.df_train,
-            corpus.source_lang_nllb,
-            corpus.target_lang_nllb,
-            model,
-            tokenizer,
-            sample_size=sample_size,
-            batch_size=batch_size,
-            verbose=verbose,
-        )
-        for k, v in train_metrics.items():
-            corpus_results[f"{corpus_id}_train_{k}"] = v
+        if include_train:
+            train_metrics = _calculate_metrics_for_split(
+                corpus.df_train,
+                corpus.source_lang_nllb,
+                corpus.target_lang_nllb,
+                model,
+                tokenizer,
+                sample_size=sample_size,
+                batch_size=batch_size,
+                verbose=verbose,
+            )
+            for k, v in train_metrics.items():
+                corpus_results[f"{corpus_id}_train_{k}"] = v
 
         # Evaluate on Validation Set
         validate_metrics = _calculate_metrics_for_split(
@@ -221,6 +222,7 @@ def main_evaluate(
     batch_size: int = 64,
     seed: int | None = None,
     include_baseline: bool = False,
+    include_train: bool = True,
     verbose: bool = True,
 ):
     """Evaluate all epoch checkpoints found in a training run directory.
@@ -233,13 +235,15 @@ def main_evaluate(
         batch_size: Number of sentences to translate at once during evaluation.
         include_baseline: If True, evaluate the pretrained model (before any
             fine-tuning) as the first entry in the results, labelled "baseline".
+        include_train: If False, evaluate validation splits only.
         verbose: Print per-split evaluation details (sentence counts, etc.).
     """
     if seed is None:
         seed = get_default_config().seed
 
     set_seed(seed)
-    eval_id = eval_id or datetime.now().strftime("%Y%m%d-%H%M%S")
+    now = datetime.now(timezone.utc).astimezone()
+    eval_id = eval_id or now.strftime("%Y%m%d-%H%M%S")
     run_path = Path(run_dir)
     checkpoints_dir = run_path / "checkpoints"
     eval_dir = run_path / "eval" / eval_id
@@ -266,6 +270,7 @@ def main_evaluate(
             corpus_objects,
             sample_size=sample_size,
             batch_size=batch_size,
+            include_train=include_train,
             verbose=verbose,
         )
         combined = {}
@@ -293,6 +298,7 @@ def main_evaluate(
             corpus_objects,
             sample_size=sample_size,
             batch_size=batch_size,
+            include_train=include_train,
             verbose=verbose,
         )
 
@@ -313,6 +319,7 @@ def main_evaluate(
             "eval_id": eval_id,
             "device": device,
             "sample_size": sample_size,
+            "include_train": include_train,
             "seed": seed,
             "new_lang_nllb": new_lang_nllb,
             "epochs_evaluated": model_versions,
@@ -322,7 +329,7 @@ def main_evaluate(
                 )
                 for i, c in enumerate(corpus_objects)
             },
-            "created_at": datetime.now().isoformat(timespec="seconds"),
+            "created_at": now.isoformat(timespec="seconds"),
         },
     )
 
