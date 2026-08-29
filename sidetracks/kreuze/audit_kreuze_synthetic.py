@@ -59,16 +59,18 @@ def describe(values: list[int]) -> str:
 def load_rows(path: Path, separator: str) -> list[dict[str, str]]:
     with path.open(encoding="utf-8", newline="") as input_file:
         reader = csv.DictReader(input_file, delimiter=separator)
-        expected = {"Nederlands", "Gronings"}
-        if set(reader.fieldnames or ()) != expected:
+        expected = ["nld_Latn", "gos_Latn"]
+        if reader.fieldnames != expected:
             raise ValueError(
-                f"{path}: expected columns {sorted(expected)}, "
+                f"{path}: expected columns {expected} in this order, "
                 f"found {reader.fieldnames}"
             )
         rows = list(reader)
-    if any(set(row) != expected for row in rows):
+    if any(set(row) != set(expected) for row in rows):
         raise ValueError(f"{path}: found rows with unexpected columns")
-    return rows
+    return [
+        {"Nederlands": row["nld_Latn"], "Gronings": row["gos_Latn"]} for row in rows
+    ]
 
 
 def load_metadata(path: Path) -> list[dict[str, object]]:

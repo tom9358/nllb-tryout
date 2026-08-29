@@ -16,6 +16,30 @@ It was trained on about 10.000 Gronings-Dutch sentence pairs from [Tatoeba](http
 
 I tried my best to check for naturalness and spelling using the Gronings online dictionary and corpus [Woordwaark](https://woordwaark.nl/), and the Gronings-language website [dideldom.nu](https://dideldom.nu/). Particularly the [Kreuze](https://dideldom.nu/kreuze) Gronings magazines hosted there I found very useful, and I wrote a little [search interface](https://tom9358.pythonanywhere.com/) to easily find example sentences in those magazines. I never copied any sentences and instead always formulated analogous ones myself.
 
+### Additional parallel data
+
+Training can include one or more parallel-data files or directories:
+
+```bash
+uv run run_train.py \
+  --preset pooled \
+  --parallel-data-path data/kreuze/kreuze_synthetic_gemma50.csv
+```
+
+`--parallel-data-path` may be repeated. Directories are searched recursively
+for `.csv` and `.tsv` files. Each file must:
+
+- be UTF-8 encoded (a UTF-8 byte-order mark is accepted);
+- contain a header and exactly two columns;
+- use NLLB language labels as headers, with source first and target second,
+  for example `nld_Latn;gos_Latn`;
+- contain non-empty values in both columns.
+
+Blank pairs are removed, but sentence text is otherwise left unchanged.
+By default, `.csv` uses `;` and `.tsv` uses a tab. Use
+`--parallel-data-separator` to override the delimiter for all configured
+parallel files.
+
 ## Thanks
 
 A heartfelt thanks to the authors in Kreuze, to the team behind Woordwaark, and to the hoster of dideldom! Without you, I would have been nowhere.

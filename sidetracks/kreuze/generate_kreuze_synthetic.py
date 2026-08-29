@@ -1,8 +1,8 @@
 """Create synthetic Gronings-Dutch pairs from the Kreuze sentence collection.
 
-The output TSV is intentionally compatible with ``VarietyCorpus``:
+The output TSV is intentionally compatible with ``ParallelFileCorpus``:
 
-    Nederlands<TAB>Gronings
+    nld_Latn<TAB>gos_Latn
 
 Usage:
     .venv/bin/python sidetracks/kreuze/generate_kreuze_synthetic.py \
@@ -231,7 +231,7 @@ def main() -> None:
         output_writer = csv.writer(
             output_file, delimiter=args.separator, lineterminator="\n"
         )
-        output_writer.writerow(["Nederlands", "Gronings"])
+        output_writer.writerow(["nld_Latn", "gos_Latn"])
         for start in tqdm(range(0, len(rows), args.batch_size), unit="batch"):
             batch = rows[start : start + args.batch_size]
             gronings = [str(row["gronings"]) for row in batch]

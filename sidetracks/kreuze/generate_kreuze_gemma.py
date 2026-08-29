@@ -328,7 +328,7 @@ def main() -> None:
     ):
         writer = csv.writer(output_file, delimiter=";", lineterminator="\n")
         if not args.resume:
-            writer.writerow(["Nederlands", "Gronings"])
+            writer.writerow(["nld_Latn", "gos_Latn"])
         for start in range(0, len(rows), 50):
             block = rows[start : start + 50]
             translations, actual_sizes = translate_with_fallback(translator, block)

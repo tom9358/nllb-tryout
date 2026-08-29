@@ -26,6 +26,25 @@ The detailed investigation log is in
 Saved benchmark outputs and prompt templates are in
 `data/kreuze/llm_outputs/`.
 
+Parallel CSV/TSV files used by the training pipeline must have exactly two
+columns with NLLB language labels, in source-to-target order, for example:
+
+```text
+nld_Latn;gos_Latn
+```
+
+Files are read as UTF-8 (with or without a byte-order mark). Empty pairs are
+discarded without otherwise trimming or normalizing the sentence text.
+Semicolon is the default delimiter for `.csv`; `.tsv` uses a tab.
+
+To train with only the Gemma corpus, pass the file explicitly:
+
+```bash
+uv run run_train.py \
+  --preset pooled \
+  --parallel-data-path data/kreuze/kreuze_synthetic_gemma50.csv
+```
+
 ## NLLB generation
 
 ```bash

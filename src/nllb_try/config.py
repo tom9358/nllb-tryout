@@ -1,9 +1,10 @@
 from __future__ import annotations
 
 from dataclasses import asdict, dataclass
-from datetime import datetime
+from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
+
 
 @dataclass(frozen=True, slots=True)
 class RunConfig:
@@ -22,10 +23,12 @@ class RunConfig:
     # Paths
     data_root_path: str = "data"  # Root for all data
     tatoeba_path: str = str(Path("data") / "tatoeba")
+    parallel_data_paths: tuple[str, ...] = ()
+    parallel_data_separator: str | None = None
     model_cache_path: str = "hfacemodels"
 
     # Run identity
-    run_id: str = datetime.now().strftime("%Y%m%d-%H%M%S")
+    run_id: str = datetime.now(timezone.utc).astimezone().strftime("%Y%m%d-%H%M%S")
 
     # Training parameters
     batch_size: int = 25

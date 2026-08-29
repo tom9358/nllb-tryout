@@ -8,10 +8,11 @@
 - Preparation: whitespace normalization, exact source deduplication, and a
   maximum of 48 words and 200 characters per source sentence
 
-The CSV files use the format:
+The CSV files use NLLB language-code headers. The first column is the source
+language and the second is the target language:
 
 ```text
-Nederlands;Gronings
+nld_Latn;gos_Latn
 ```
 
 The JSONL files contain the generated pair plus provenance such as document

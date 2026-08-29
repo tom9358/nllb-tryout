@@ -5,8 +5,8 @@ import pandas as pd
 from sklearn.model_selection import train_test_split
 
 from .config import RunConfig, get_default_config
+from .csv_list_loader import find_parallel_files, load_parallel_table
 from .downloadtatoeba import main_download
-from .csv_list_loader import load_parallel_table, find_variety_files
 
 # ---------------------------------------------------------------------------
 # Validation-split strategy
@@ -25,8 +25,8 @@ from .csv_list_loader import load_parallel_table, find_variety_files
 # effective validation percentage per pair will be higher than 2%.
 # In one brief test this was ~3-4%, which I find completely acceptable.
 #
-# VarietyCorpus (dialect CSV files) has no Tatoeba IDs and keeps its own
-# independent random split.
+# ParallelFileCorpus data has no Tatoeba IDs and keeps its own independent
+# random split.
 # ---------------------------------------------------------------------------
 
 GLOBAL_HOLDOUT_FRACTION = 0.02
@@ -34,17 +34,23 @@ SPLIT_SEED = 9358
 
 
 class BaseParallelCorpus:
-    """Generic parallel corpus with a standardized interface."""
+    """A parallel corpus: a language pair plus its sentence data.
 
-    def __init__(self, source_lang_nllb, target_lang_nllb):
+    Subclasses fetch their data however they like, then hand the result to
+    this constructor, which stores the shared attributes every consumer
+    relies on (``source_lang_nllb``, ``target_lang_nllb``, ``df``,
+    ``df_train``, ``df_validate``) and performs the train/validate split.
+
+    Subclasses that must not split themselves override ``split()``.
+    """
+
+    def __init__(
+        self, source_lang_nllb: str, target_lang_nllb: str, df: pd.DataFrame
+    ) -> None:
         self.source_lang_nllb = source_lang_nllb
         self.target_lang_nllb = target_lang_nllb
-
-        self.df = self.load()
-        self.df_train, self.df_validate = self.split(self.df)
-
-    def load(self):
-        raise NotImplementedError("Subclass must implement load().")
+        self.df = df
+        self.df_train, self.df_validate = self.split(df)
 
     def split(self, df: pd.DataFrame):
         return train_test_split(df, test_size=0.02, random_state=SPLIT_SEED)
@@ -53,7 +59,7 @@ class BaseParallelCorpus:
 class TatoebaCorpus(BaseParallelCorpus):
     """Parallel corpus created from Tatoeba.
 
-    Unlike VarietyCorpus, splitting is **deferred** – the constructor loads
+    Unlike ParallelFileCorpus, splitting is **deferred**. The constructor loads
     the data (including Tatoeba sentence IDs) but does NOT split.  Splitting
     happens later in ``main_corpus`` via ``_global_tatoeba_split`` so that
     a single, globally consistent set of held-out sentence IDs is used across
@@ -61,34 +67,28 @@ class TatoebaCorpus(BaseParallelCorpus):
     """
 
     def __init__(self, sl_tat, tl_tat, sl_nllb, tl_nllb, cfg: RunConfig):
-        self.sl_tat = sl_tat
-        self.tl_tat = tl_tat
-        self.cfg = cfg
-
         main_download([sl_tat, tl_tat], redownload=False, tatoeba_path=cfg.tatoeba_path)
+        df = load_tatoeba(sl_tat, tl_tat, cfg=cfg)
+        super().__init__(sl_nllb, tl_nllb, df)
 
-        # Intentionally skip super().__init__ to avoid the automatic split.
-        self.source_lang_nllb = sl_nllb
-        self.target_lang_nllb = tl_nllb
-        self.df = self.load()
-        # df_train / df_validate are set later by _global_tatoeba_split()
-        self.df_train: pd.DataFrame | None = None
-        self.df_validate: pd.DataFrame | None = None
-
-    def load(self):
-        return load_tatoeba(self.sl_tat, self.tl_tat, cfg=self.cfg)
+    def split(self, df: pd.DataFrame):
+        """No local split: ``_global_tatoeba_split`` assigns the sets later."""
+        return None, None
 
 
-class VarietyCorpus(BaseParallelCorpus):
-    """One CSV/TSV file = one corpus object. Currently Assumes DUTCH as one of the two languages!"""
+class ParallelFileCorpus(BaseParallelCorpus):
+    """One configured CSV/TSV file represented as one corpus object.
 
-    def __init__(self, path: str, sl_nllb="nld_Latn", tl_nllb="gos_Latn", sep=";"):
+    The language pair is read from the file's own headers, see
+    ``load_parallel_table``.
+    """
+
+    def __init__(self, path: str, separator: str | None = None):
         self.path = path
-        self.sep = sep
-        super().__init__(sl_nllb, tl_nllb)
-
-    def load(self):
-        return load_parallel_table(self.path, sep=self.sep)
+        df, source_lang_nllb, target_lang_nllb = load_parallel_table(
+            path, sep=separator
+        )
+        super().__init__(source_lang_nllb, target_lang_nllb, df)
 
 
 def load_tatoeba(src: str, trg: str, cfg: RunConfig) -> pd.DataFrame:
@@ -177,15 +177,15 @@ def _global_tatoeba_split(tatoeba_corpora: list[TatoebaCorpus]) -> None:
 def main_corpus(
     source_langs_tatoeba,
     source_langs_nllb,
-    variety_dir=None,
+    parallel_data_paths=None,
     recursive: bool = True,
-    sep: str = ";",
+    parallel_data_separator: str | None = None,
     cfg: RunConfig | None = None,
 ):
     """
     Builds:
       • 1 corpus per Tatoeba language pair
-      • 1 corpus per variety CSV/TSV file
+      • 1 corpus per configured parallel CSV/TSV file
 
     Tatoeba corpora are split with a **global sentence-ID hold-out** so that
     no sentence appearing in any validation set can also appear in any
@@ -194,6 +194,8 @@ def main_corpus(
     """
 
     cfg = cfg or get_default_config()
+    if parallel_data_separator is None:
+        parallel_data_separator = cfg.parallel_data_separator
 
     # Tatoeba corpora (split is deferred)
     tatoeba_corpora: list[TatoebaCorpus] = []
@@ -211,44 +213,44 @@ def main_corpus(
 
     corpora: list[BaseParallelCorpus] = list(tatoeba_corpora)
 
-    # Variety corpora (independent split, no Tatoeba IDs)
-    if variety_dir:
-        files = find_variety_files(variety_dir, recursive=recursive)
+    # Configured parallel corpora (independent split, no Tatoeba IDs)
+    if parallel_data_paths:
+        files = find_parallel_files(parallel_data_paths, recursive=recursive)
         if not files:
-            print(f"No variety files found in: {variety_dir}")
+            print(f"No parallel data files found in: {parallel_data_paths}")
         else:
             for f in files:
-                print(f"Loading variety file: {f}")
-                corpora.append(VarietyCorpus(f, sep=sep))
+                print(f"Loading parallel data file: {f}")
+                corpora.append(ParallelFileCorpus(f, separator=parallel_data_separator))
     else:
-        print("No variety directory provided.")
+        print("No additional parallel data paths provided.")
 
     return corpora
 
 
-def pool_varieties_into_tatoeba(
+def pool_parallel_data_into_tatoeba(
     corpora: list[BaseParallelCorpus],
 ) -> list[BaseParallelCorpus]:
-    """Pool variety training data into matching Tatoeba corpora.
+    """Pool additional parallel training data into matching Tatoeba corpora.
 
-    For each VarietyCorpus, finds the first TatoebaCorpus with the same
-    language pair and appends the variety's ``df_train`` rows to it.
+    For each ParallelFileCorpus, finds the first TatoebaCorpus with the same
+    language pair and appends its ``df_train`` rows to it.
     Returns a new list containing only the (now-enlarged) Tatoeba corpora.
 
-    This avoids temperature-sampling problems where tiny variety files
+    This avoids temperature-sampling problems where tiny parallel files
     get their own sampling slots and are oversampled dozens of times.
     After pooling, all data of the same language pair shares one slot.
 
-    **Use for training only.**  For evaluation, pass the original unpooled
-    list, so per-variety metrics are still reported separately.
+    **Use for training only.** For evaluation, pass the original unpooled
+    list, so per-file metrics are still reported separately.
     """
     tatoeba: list[BaseParallelCorpus] = [
         c for c in corpora if isinstance(c, TatoebaCorpus)
     ]
-    varieties = [c for c in corpora if isinstance(c, VarietyCorpus)]
+    parallel_files = [c for c in corpora if isinstance(c, ParallelFileCorpus)]
 
-    for vc in varieties:
-        key = frozenset([vc.source_lang_nllb, vc.target_lang_nllb])
+    for pc in parallel_files:
+        key = frozenset([pc.source_lang_nllb, pc.target_lang_nllb])
         match = next(
             (
                 tc
@@ -259,18 +261,18 @@ def pool_varieties_into_tatoeba(
         )
         if match is None:
             print(
-                f"  Warning: no matching Tatoeba corpus for {vc.source_lang_nllb}-"
-                f"{vc.target_lang_nllb}, keeping variety as standalone corpus."
+                f"  Warning: no matching Tatoeba corpus for {pc.source_lang_nllb}-"
+                f"{pc.target_lang_nllb}, keeping parallel file as standalone corpus."
             )
-            tatoeba.append(vc)
+            tatoeba.append(pc)
         else:
             before = len(match.df_train)
             match.df_train = pd.concat(
-                [match.df_train, vc.df_train],
+                [match.df_train, pc.df_train],
                 ignore_index=True,
             )
             print(
-                f"  Pooled variety ({len(vc.df_train):,} rows) into "
+                f"  Pooled parallel file ({len(pc.df_train):,} rows) into "
                 f"{match.source_lang_nllb}-{match.target_lang_nllb}: "
                 f"{before:,} -> {len(match.df_train):,} train rows"
             )
