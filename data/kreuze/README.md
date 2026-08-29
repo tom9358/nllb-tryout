@@ -13,8 +13,8 @@ The source copy used by the generators is versioned locally in
 - `inspect_kreuze.py` provides a Gradio viewer for comparing NLLB epoch4, epoch8, epoch12, and Gemma outputs.
 
 Generated CSV and JSONL files are stored under `data/kreuze/`.
-The Gemma corpus metadata is documented in
-`data/kreuze/kreuze_synthetic_gemma50_metadata.md`.
+All corpus metadata and conclusions are documented in
+`data/kreuze/metadata.md`.
 
 ## NLLB generation
 
