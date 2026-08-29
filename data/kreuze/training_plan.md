@@ -225,12 +225,13 @@ Run artifacts:
 #### Phase 1b: clean-finish diagnostic
 
 Before paying for the multilingual comparison, branch twice from pooled
-epoch 2:
+epoch 2 and extend the Tatoeba-only control by the same amount:
 
 | Variant | Continuation data | Samples | Steps | Learning rate |
 |---|---|---:|---:|---:|
 | Pooled continuation | Tatoeba + Kreuze | 13,058 | 52 | 1e-4 |
 | Clean finish | Tatoeba only | 13,058 | 52 | 1e-4 |
+| Extended control | Tatoeba only | 13,058 | 52 | 1e-4 |
 
 Both variants start from the exact same checkpoint, use the same seed,
 direction strategy, batch size and original Phase 1 learning rate, and differ only in
@@ -249,8 +250,9 @@ Tatoeba validation:
 |---|---:|---:|---:|---:|
 | Phase 1 pooled, 902 steps | 49.51 | 73.57 | 70.53 | 81.69 |
 | +52 pooled steps | 49.98 | 73.81 | 70.68 | 81.68 |
-| +52 clean Tatoeba steps | **55.81** | **77.04** | **73.99** | **84.04** |
-| Phase 1 Tatoeba-only control | 55.39 | 75.75 | 71.94 | 83.16 |
+| Pooled +52 clean Tatoeba steps | 55.81 | **77.04** | **73.99** | **84.04** |
+| Tatoeba-only control, 902 steps | 55.39 | 75.75 | 71.94 | 83.16 |
+| Tatoeba-only control, 954 steps | **57.16** | 76.72 | 71.96 | 83.33 |
 
 Kreuze validation:
 
@@ -259,24 +261,30 @@ Kreuze validation:
 | Phase 1 pooled, 902 steps | 49.77 | 73.47 | 65.37 | 80.36 |
 | +52 pooled steps | **50.00** | **73.59** | **65.38** | 80.20 |
 | +52 clean Tatoeba steps | 48.21 | 72.79 | 63.41 | 78.81 |
-| Phase 1 Tatoeba-only control | 34.60 | 61.42 | 48.03 | 67.72 |
+| Tatoeba-only control, 902 steps | 34.60 | 61.42 | 48.03 | 67.72 |
+| Tatoeba-only control, 954 steps | 34.09 | 61.29 | 47.44 | 67.63 |
 
 The extra pooled steps barely change either validation source. The clean finish
 raises Tatoeba by 6.30 BLEU / 3.46 chrF for Dutch→Gronings and 3.46 BLEU /
-2.35 chrF for Gronings→Dutch relative to the pooled checkpoint. It also
-slightly exceeds the equal-budget Tatoeba-only control on every primary metric.
+2.35 chrF for Gronings→Dutch relative to the pooled checkpoint.
 
 The cost on Kreuze is limited to 1.56 BLEU / 0.69 chrF for Dutch→Gronings and
-1.96 BLEU / 1.54 chrF for Gronings→Dutch. Relative to the Tatoeba-only control,
-the clean-finished model still retains gains of 13.60 and 15.38 BLEU in the two
-directions. This is strong evidence for the proposed two-stage recipe:
-synthetic pooling provides broad domain coverage, followed by one clean
-Tatoeba pass to restore the primary hand-written distribution.
+1.96 BLEU / 1.54 chrF for Gronings→Dutch.
+
+The 954-step comparison is the fair synthetic-versus-non-synthetic comparison.
+The clean-finished synthetic model is 1.35 BLEU lower but 0.31 chrF higher for
+the primary Dutch→Gronings direction. It is 2.03 BLEU and 0.70 chrF higher for
+Gronings→Dutch. On Kreuze it remains ahead by 14.12 and 15.97 BLEU. This is
+strong evidence that the two-stage recipe adds useful generalization, but not
+yet proof that it strictly dominates Tatoeba-only training on every primary
+metric. Multiple seeds, paired significance testing and the multilingual
+experiment are needed to resolve the small Dutch→Gronings difference.
 
 Run artifacts:
 
 - clean finish: `checkpoints/nllb-200-distilled-600M-nld-gos-kreuze-phase1b-clean-20260829-195150`
 - pooled continuation: `checkpoints/nllb-200-distilled-600M-nld-gos-kreuze-phase1b-pooled-20260829-195150`
+- extended control: `checkpoints/nllb-200-distilled-600M-nld-gos-kreuze-phase1b-control-20260829-200440`
 
 ### Phase 2: practical multilingual comparison
 

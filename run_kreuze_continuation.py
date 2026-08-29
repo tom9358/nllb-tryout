@@ -69,7 +69,7 @@ def build_continuation(
         )
 
     cfg = replace(cfg, target_samples_per_epoch=len(tatoeba[0].df_train))
-    if variant == "clean":
+    if variant in {"clean", "control"}:
         corpora = tatoeba
     elif variant == "pooled":
         corpora = pool_parallel_data_into_tatoeba(all_corpora)
@@ -80,13 +80,16 @@ def build_continuation(
 
 def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--variant", choices=("clean", "pooled"), required=True)
+    parser.add_argument(
+        "--variant", choices=("clean", "pooled", "control"), required=True
+    )
     parser.add_argument("--source-run", type=Path)
     parser.add_argument("--device", default="cuda")
     parser.add_argument("--dry-run", action="store_true")
     args = parser.parse_args()
 
-    source_run = args.source_run or find_latest_run("pooled")
+    source_variant = "control" if args.variant == "control" else "pooled"
+    source_run = args.source_run or find_latest_run(source_variant)
     corpora, cfg = build_continuation(args.variant, source_run, args.device)
     budget = get_training_budget(corpora, cfg)
     print(f"\nKreuze Phase 1b: {args.variant}")
