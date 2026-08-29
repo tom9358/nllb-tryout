@@ -15,6 +15,7 @@ class RunConfig:
     modelname: str = (
         "facebook/nllb-200-distilled-600M"  #'facebook/nllb-200-distilled-1.3B'
     )
+    initial_model_path: str | None = None
     source_langs_tatoeba: tuple[str, ...] = ("nld", "gos")
     source_langs_nllb: tuple[str, ...] = ("nld_Latn", "gos_Latn")
     new_lang_nllb: str = "gos_Latn"
@@ -32,6 +33,7 @@ class RunConfig:
 
     # Training parameters
     batch_size: int = 25
+    learning_rate: float = 1e-4
     max_chars: int | None = 200
     max_length: int = 43  # Tokens
     warmup_steps: int = 110

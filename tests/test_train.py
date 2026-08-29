@@ -7,6 +7,7 @@ from nllb_try.config import RunConfig
 from nllb_try.corpus import BaseParallelCorpus
 from nllb_try.train import (
     _get_direction_mask,
+    _get_model_initialization,
     get_balanced_df,
     get_training_budget,
 )
@@ -88,6 +89,20 @@ class TrainingBudgetTests(unittest.TestCase):
         )
         with self.assertRaisesRegex(ValueError, "target_samples_per_epoch"):
             get_training_budget([make_corpus(10)], cfg)
+
+
+class ModelInitializationTests(unittest.TestCase):
+    def test_checkpoint_resume_does_not_reinitialize_new_language(self):
+        cfg = RunConfig(
+            modelname="facebook/base-model",
+            initial_model_path="checkpoints/pooled/epoch2",
+            similar_lang_nllb="nld_Latn",
+        )
+
+        model_source, similar_lang = _get_model_initialization(cfg)
+
+        self.assertEqual(model_source, "checkpoints/pooled/epoch2")
+        self.assertIsNone(similar_lang)
 
 
 if __name__ == "__main__":

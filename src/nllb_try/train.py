@@ -241,6 +241,13 @@ def _get_direction_mask(
     raise ValueError(f"Unknown direction_strategy: {strategy}")
 
 
+def _get_model_initialization(cfg: RunConfig) -> tuple[str, str | None]:
+    """Choose the model source without reinitializing a resumed language token."""
+    if cfg.initial_model_path is not None:
+        return cfg.initial_model_path, None
+    return cfg.modelname, cfg.similar_lang_nllb
+
+
 def tokenize_mixed_langs(
     tokenizer, texts: list[str], langs: list[str], max_length: int, device
 ) -> tuple[torch.Tensor, torch.Tensor]:
@@ -302,6 +309,7 @@ def train_model(
         print(f"  Model:        {cfg.modelname}")
         print(f"  Epochs:       {num_epochs}")
         print(f"  Batch size:   {batch_size}")
+        print(f"  Learning rate:{cfg.learning_rate}")
         print(f"  Max length:   {max_length} tokens")
         print(f"  Warmup:       {warmup_steps} steps")
         print(f"  Sampling:     {cfg.sampling_strategy}")
@@ -329,7 +337,7 @@ def train_model(
         [p for p in model.parameters() if p.requires_grad],
         scale_parameter=False,
         relative_step=False,
-        lr=1e-4,
+        lr=cfg.learning_rate,
         clip_threshold=1.0,
         weight_decay=1e-3,
     )
@@ -498,11 +506,12 @@ def main_train(
     if verbose:
         print("ron_config.json and run_config.txt saved")
 
+    model_source, similar_lang = _get_model_initialization(cfg)
     model, tokenizer = setup_model_and_tokenizer(
-        cfg.modelname,
+        model_source,
         cfg.model_cache_path,
         cfg.new_lang_nllb,
-        cfg.similar_lang_nllb,
+        similar_lang,
         device=cfg.device,
     )
     train_model(model, tokenizer, corpus_objects, cfg, verbose=verbose)

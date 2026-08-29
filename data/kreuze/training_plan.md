@@ -222,6 +222,25 @@ Run artifacts:
 - pooled: `checkpoints/nllb-200-distilled-600M-nld-gos-kreuze-phase1-pooled-20260829-193625`
 - evaluation ID: `kreuze-phase1-full-validation`
 
+#### Phase 1b: clean-finish diagnostic
+
+Before paying for the multilingual comparison, branch twice from pooled
+epoch 2:
+
+| Variant | Continuation data | Samples | Steps | Learning rate |
+|---|---|---:|---:|---:|
+| Pooled continuation | Tatoeba + Kreuze | 13,058 | 52 | 1e-4 |
+| Clean finish | Tatoeba only | 13,058 | 52 | 1e-4 |
+
+Both variants start from the exact same checkpoint, use the same seed,
+direction strategy, batch size and original Phase 1 learning rate, and differ only in
+the continuation data. The clean run processes one complete Tatoeba training
+set; the pooled control samples the same number of rows from the pooled set.
+Because the source checkpoint completed two alternating-direction epochs,
+the restarted epoch-zero parity is also the correct parity for logical epoch
+three. Loading a checkpoint explicitly disables Dutch-based initialization of
+the already-trained Gronings language embedding.
+
 ### Phase 2: practical multilingual comparison
 
 If Phase 1 is positive, repeat the controlled comparison with supporting
