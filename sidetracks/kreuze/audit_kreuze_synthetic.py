@@ -23,6 +23,7 @@ import statistics
 import sys
 from pathlib import Path
 
+REPO_ROOT = Path(__file__).resolve().parents[2]
 DEFAULT_CORPUS = Path("data/kreuze/kreuze_synthetic.csv")
 DEFAULT_METADATA = Path("data/kreuze/kreuze_synthetic.jsonl")
 WHITESPACE_RE = re.compile(r"\s+")
@@ -160,7 +161,9 @@ def main() -> int:
     parser.add_argument("--metadata", type=Path, default=DEFAULT_METADATA)
     parser.add_argument("--separator", default=";")
     parser.add_argument(
-        "--tatoeba-gos", type=Path, default=Path("data/tatoeba/gos_sentences.tsv")
+        "--tatoeba-gos",
+        type=Path,
+        default=Path("data/tatoeba/gos_sentences.tsv"),
     )
     parser.add_argument("--max-words", type=int, default=48)
     parser.add_argument("--max-chars", type=int, default=200)
@@ -172,6 +175,9 @@ def main() -> int:
     parser.add_argument("--seed", type=int, default=9358)
     parser.add_argument("--worst-examples", type=int, default=15)
     args = parser.parse_args()
+
+    if Path.cwd().resolve() != REPO_ROOT:
+        raise SystemExit(f"Run this script from the repository root: {REPO_ROOT}")
 
     if args.max_words < 1 or args.max_chars < 1:
         parser.error("--max-words and --max-chars must be positive")

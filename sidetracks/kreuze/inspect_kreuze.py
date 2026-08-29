@@ -14,6 +14,7 @@ from pathlib import Path
 from audit_kreuze_synthetic import load_metadata, load_rows
 
 DATA_DIR = Path("data/kreuze")
+REPO_ROOT = Path(__file__).resolve().parents[2]
 DEFAULT_PATHS = {
     "epoch4": (
         DATA_DIR / "kreuze_synthetic_epoch4.csv",
@@ -269,6 +270,9 @@ def main() -> None:
         parser.add_argument(f"--{epoch}-corpus", type=Path, default=corpus)
         parser.add_argument(f"--{epoch}-metadata", type=Path, default=metadata)
     args = parser.parse_args()
+
+    if Path.cwd().resolve() != REPO_ROOT:
+        raise SystemExit(f"Run this script from the repository root: {REPO_ROOT}")
 
     datasets = {
         epoch: load_dataset(

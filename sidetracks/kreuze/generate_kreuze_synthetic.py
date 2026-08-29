@@ -30,6 +30,7 @@ from nllb_try.evaluate import translate
 from nllb_try.tokenizer_and_model_setup import setup_model_and_tokenizer
 
 DEFAULT_SOURCE = Path(__file__).with_name("sentences_kreuze.json")
+REPO_ROOT = Path(__file__).resolve().parents[2]
 WHITESPACE_RE = re.compile(r"\s+")
 
 
@@ -178,6 +179,8 @@ def main() -> None:
     )
     args = parser.parse_args()
 
+    if Path.cwd().resolve() != REPO_ROOT:
+        parser.error(f"Run this script from the repository root: {REPO_ROOT}")
     if args.batch_size < 1 or args.max_input_length < 1 or args.num_beams < 1:
         parser.error(
             "--batch-size, --max-input-length, and --num-beams must be positive"

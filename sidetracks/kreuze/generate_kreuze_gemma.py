@@ -26,6 +26,7 @@ load_dotenv()
 DEFAULT_SOURCE = Path(__file__).with_name("sentences_kreuze.json")
 DEFAULT_MODEL = "hf.co/unsloth/gemma-4-31B-it-GGUF:Q8_K_XL"
 DEFAULT_ENDPOINT = os.getenv("LLAMA_API_ENDPOINT")
+REPO_ROOT = Path(__file__).resolve().parents[2]
 DEFAULT_OUTPUT = Path("data/kreuze/kreuze_synthetic_gemma50.csv")
 DEFAULT_METADATA = Path("data/kreuze/kreuze_synthetic_gemma50.jsonl")
 WHITESPACE_RE = re.compile(r"\s+")
@@ -241,6 +242,8 @@ def main() -> None:
     )
     args = parser.parse_args()
 
+    if Path.cwd().resolve() != REPO_ROOT:
+        parser.error(f"Run this script from the repository root: {REPO_ROOT}")
     if not args.endpoint:
         parser.error(
             "No API endpoint configured; set LLAMA_API_ENDPOINT in .env "

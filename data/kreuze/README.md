@@ -5,6 +5,12 @@ from the [Kreuze sentence collection](https://github.com/tom9358/kreuze-zuik/blo
 The source copy used by the generators is versioned locally in
 `sidetracks/kreuze/sentences_kreuze.json`.
 
+Run the commands below from the repository root:
+
+```text
+<repository-root>/
+```
+
 ## Tools
 
 - `generate_kreuze_synthetic.py` generates pairs with a local fine-tuned NLLB checkpoint.
