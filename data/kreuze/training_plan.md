@@ -113,6 +113,31 @@ together still account for most examples in a multilingual epoch. This is
 expected, but must be considered when choosing how many supporting languages
 to include.
 
+### Focus-versus-rest total sampling
+
+For the controlled five-language experiment, `focus_total` gives exactly half
+of every epoch to Dutch–Gronings and half to all nine supporting corpora
+together. The supporting half is divided using temperature-smoothed corpus
+sizes with `T=5`, so the huge English–German and English–Spanish corpora cannot
+dominate while the three smaller Gronings auxiliary pairs remain meaningful.
+
+With the current five-language data:
+
+| Strategy | Samples/epoch | Steps/epoch at batch 256 |
+|---|---:|---:|
+| Existing pooled `focus_cap` | 686,563 | 2,682 |
+| New pooled `focus_total`, `T=5` | 230,712 | 902 |
+
+The exact `focus_total` allocation is 115,356 Dutch–Gronings examples and
+115,356 supporting examples. The supporting corpora receive between 7,389
+and 19,836 samples each. This reduces one multilingual epoch to almost exactly
+one third of the old focus-cap cost, while Dutch–Gronings remains 50% of all
+training examples rather than merely the largest individual corpus.
+
+For an equal-compute Tatoeba-only control, `target_samples_per_epoch` fixes the
+same 230,712-example budget. Its smaller Dutch–Gronings corpus is sampled with
+replacement to fill the same 115,356-example focus half.
+
 ## Sequence of experiments
 
 ### Phase 0: data readiness

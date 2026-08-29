@@ -12,6 +12,8 @@ Examples
     uv run python run_kreuze_experiment.py --variant pooled --dry-run
     uv run python run_kreuze_experiment.py --variant control --device cuda:0
     uv run python run_kreuze_experiment.py --variant pooled --device cuda:0
+    uv run python run_kreuze_experiment.py --variant pooled \
+        --modelname facebook/nllb-200-distilled-1.3B --device cuda:0
 """
 
 import argparse
@@ -35,11 +37,13 @@ from src.nllb_try.train import get_training_budget, main_train
 GEMMA_CORPUS = "data/kreuze/kreuze_synthetic_gemma50.csv"
 
 
-def build_experiment(variant: str, device: str) -> tuple[list, RunConfig]:
+def build_experiment(
+    variant: str, device: str, modelname: str
+) -> tuple[list, RunConfig]:
     """Build one Phase 1 variant and its equalized training configuration."""
     timestamp = datetime.now(timezone.utc).astimezone().strftime("%Y%m%d-%H%M%S")
     cfg = RunConfig(
-        modelname="facebook/nllb-200-distilled-600M",
+        modelname=modelname,
         source_langs_tatoeba=("nld", "gos"),
         source_langs_nllb=("nld_Latn", "gos_Latn"),
         new_lang_nllb="gos_Latn",
@@ -109,13 +113,18 @@ def main() -> None:
     parser.add_argument("--variant", choices=("control", "pooled"), required=True)
     parser.add_argument("--device", default="cuda")
     parser.add_argument(
+        "--modelname",
+        default="facebook/nllb-200-distilled-600M",
+        help="Hugging Face model name or local model path.",
+    )
+    parser.add_argument(
         "--dry-run",
         action="store_true",
         help="Build the corpora and print the exact budget without loading a model.",
     )
     args = parser.parse_args()
 
-    corpora, cfg = build_experiment(args.variant, args.device)
+    corpora, cfg = build_experiment(args.variant, args.device, args.modelname)
     print_plan(args.variant, corpora, cfg)
     if args.dry_run:
         return

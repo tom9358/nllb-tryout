@@ -14,9 +14,15 @@ from nllb_try.train import (
 
 
 def make_corpus(size: int) -> BaseParallelCorpus:
+    return make_named_corpus("nld_Latn", "gos_Latn", size)
+
+
+def make_named_corpus(
+    source_lang: str, target_lang: str, size: int
+) -> BaseParallelCorpus:
     return BaseParallelCorpus(
-        "nld_Latn",
-        "gos_Latn",
+        source_lang,
+        target_lang,
         pd.DataFrame(
             {
                 "source_sentence": [f"source {index}" for index in range(size)],
@@ -89,6 +95,35 @@ class TrainingBudgetTests(unittest.TestCase):
         )
         with self.assertRaisesRegex(ValueError, "target_samples_per_epoch"):
             get_training_budget([make_corpus(10)], cfg)
+
+    def test_focus_total_splits_exact_budget_between_focus_and_rest(self):
+        corpora = [
+            make_named_corpus("nld_Latn", "gos_Latn", 10),
+            make_named_corpus("nld_Latn", "eng_Latn", 100),
+            make_named_corpus("gos_Latn", "eng_Latn", 25),
+            make_named_corpus("eng_Latn", "deu_Latn", 4),
+        ]
+        cfg = RunConfig(
+            batch_size=8,
+            sampling_strategy="focus_total",
+            focus_lang_pair=("nld_Latn", "gos_Latn"),
+            sampling_temperature=5.0,
+            target_samples_per_epoch=40,
+        )
+
+        budget = get_training_budget(corpora, cfg)
+        sampled, _, _ = get_balanced_df(
+            corpora,
+            sampling_strategy=cfg.sampling_strategy,
+            focus_lang_pair=cfg.focus_lang_pair,
+            temperature=cfg.sampling_temperature,
+            target_total_samples=cfg.target_samples_per_epoch,
+        )
+
+        self.assertEqual(budget["sample_counts"][0], 20)
+        self.assertEqual(sum(budget["sample_counts"][1:]), 20)
+        self.assertEqual(budget["samples_per_epoch"], 40)
+        self.assertEqual(len(sampled), 40)
 
 
 class ModelInitializationTests(unittest.TestCase):
