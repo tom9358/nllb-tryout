@@ -22,7 +22,7 @@ and source index.
 | CSV | Provenance JSONL | Pairs | Generator | Model/checkpoint |
 |---|---|---:|---|---|
 | `kreuze_synthetic_epoch4.csv` | `kreuze_synthetic_epoch4.jsonl` | 104,441 | `sidetracks/kreuze/generate_kreuze_synthetic.py` | fine-tuned NLLB epoch4 |
-| `kreuze_synthetic.csv` | `kreuze_synthetic.jsonl` | 104,441 | `sidetracks/kreuze/generate_kreuze_synthetic.py` | fine-tuned NLLB epoch8 |
+| `kreuze_synthetic_epoch8.csv` | `kreuze_synthetic_epoch8.jsonl` | 104,441 | `sidetracks/kreuze/generate_kreuze_synthetic.py` | fine-tuned NLLB epoch8 |
 | `kreuze_synthetic_epoch12.csv` | `kreuze_synthetic_epoch12.jsonl` | 104,440 | `sidetracks/kreuze/generate_kreuze_synthetic.py` | fine-tuned NLLB epoch12 |
 | `kreuze_synthetic_gemma50.csv` | `kreuze_synthetic_gemma50.jsonl` | 104,447 | `sidetracks/kreuze/generate_kreuze_gemma.py` | `hf.co/unsloth/gemma-4-31B-it-GGUF:Q8_K_XL` |
 

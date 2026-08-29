@@ -20,7 +20,10 @@ DEFAULT_PATHS = {
         DATA_DIR / "kreuze_synthetic_epoch4.csv",
         DATA_DIR / "kreuze_synthetic_epoch4.jsonl",
     ),
-    "epoch8": (DATA_DIR / "kreuze_synthetic.csv", DATA_DIR / "kreuze_synthetic.jsonl"),
+    "epoch8": (
+        DATA_DIR / "kreuze_synthetic_epoch8.csv",
+        DATA_DIR / "kreuze_synthetic_epoch8.jsonl",
+    ),
     "epoch12": (
         DATA_DIR / "kreuze_synthetic_epoch12.csv",
         DATA_DIR / "kreuze_synthetic_epoch12.jsonl",

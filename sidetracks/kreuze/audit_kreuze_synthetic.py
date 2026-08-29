@@ -24,8 +24,8 @@ import sys
 from pathlib import Path
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
-DEFAULT_CORPUS = Path("data/kreuze/kreuze_synthetic.csv")
-DEFAULT_METADATA = Path("data/kreuze/kreuze_synthetic.jsonl")
+DEFAULT_CORPUS = Path("data/kreuze/kreuze_synthetic_epoch8.csv")
+DEFAULT_METADATA = Path("data/kreuze/kreuze_synthetic_epoch8.jsonl")
 WHITESPACE_RE = re.compile(r"\s+")
 TOKEN_RE = re.compile(r"[A-Za-zÀ-ÿ]+(?:['’][A-Za-zÀ-ÿ]+)?")
 GRONINGS_MARKERS = (

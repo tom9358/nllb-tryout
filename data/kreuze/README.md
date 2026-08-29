@@ -27,7 +27,7 @@ All corpus metadata and conclusions are documented in
 ```bash
 uv run sidetracks/kreuze/generate_kreuze_synthetic.py \
   --model-path checkpoints/<run>/checkpoints/epoch8 \
-  --output data/kreuze/kreuze_synthetic.csv
+  --output data/kreuze/kreuze_synthetic_epoch8.csv
 ```
 
 ## Gemma generation
