@@ -311,6 +311,51 @@ Run artifacts:
 - pooled continuation: `checkpoints/nllb-200-distilled-600M-nld-gos-kreuze-phase1b-pooled-20260829-195150`
 - extended control: `checkpoints/nllb-200-distilled-600M-nld-gos-kreuze-phase1b-control-20260829-200440`
 
+#### Phase 1c: NLLB 1.3B replication
+
+The full two-language Phase 1 and Phase 1b sequence was repeated with
+`facebook/nllb-200-distilled-1.3B`, using the same data, seed, batch size,
+sample counts, step counts and `1e-4` learning rate.
+
+The decisive equal-compute comparison after 954 optimizer steps is:
+
+| Validation | Metric | 1.3B Tatoeba-only | 1.3B synthetic + clean | Difference |
+|---|---|---:|---:|---:|
+| Tatoeba | Dutch→Gronings BLEU | 57.17 | **60.93** | +3.75 |
+| Tatoeba | Dutch→Gronings chrF | 77.48 | **81.01** | +3.53 |
+| Tatoeba | Gronings→Dutch BLEU | 77.14 | **80.63** | +3.50 |
+| Tatoeba | Gronings→Dutch chrF | 86.13 | **88.23** | +2.10 |
+| Kreuze | Dutch→Gronings BLEU | 34.12 | **49.89** | +15.77 |
+| Kreuze | Dutch→Gronings chrF | 61.14 | **74.41** | +13.26 |
+| Kreuze | Gronings→Dutch BLEU | 49.64 | **66.32** | +16.68 |
+| Kreuze | Gronings→Dutch chrF | 68.88 | **80.77** | +11.90 |
+
+Unlike the 600M single-seed result, the 1.3B synthetic-plus-clean model
+strictly outperforms its equal-compute Tatoeba-only control on every reported
+metric. This supports the hypothesis that the larger model can exploit the
+synthetic corpus's broader coverage without sacrificing the hand-written
+distribution after clean finishing.
+
+Compared with the 600M synthetic-plus-clean model, 1.3B gains 5.12 BLEU for
+Dutch→Gronings and 6.65 BLEU for Gronings→Dutch on Tatoeba, plus 1.68 and
+2.90 BLEU on Kreuze. By contrast, scaling the Tatoeba-only control from 600M
+to 1.3B changes Tatoeba Dutch→Gronings BLEU by only +0.01. The extra model
+capacity therefore appears especially valuable when paired with the diverse
+synthetic data, rather than simply improving this direction unconditionally.
+
+The additional 52-step pooled continuation barely changes Kreuze performance
+and remains below the clean finish on Tatoeba. The two-stage recipe is again
+preferred. This is still a single-seed experiment; repeated seeds and paired
+significance tests are required before treating the exact margins as stable.
+
+Run artifacts:
+
+- Phase 1 control: `checkpoints/nllb-200-distilled-1.3B-nld-gos-kreuze-phase1-control-20260829-203443`
+- Phase 1 pooled: `checkpoints/nllb-200-distilled-1.3B-nld-gos-kreuze-phase1-pooled-20260829-203443`
+- clean finish: `checkpoints/nllb-200-distilled-1.3B-nld-gos-kreuze-phase1b-clean-20260829-204754`
+- extended control: `checkpoints/nllb-200-distilled-1.3B-nld-gos-kreuze-phase1b-control-20260829-204754`
+- pooled continuation: `checkpoints/nllb-200-distilled-1.3B-nld-gos-kreuze-phase1b-pooled-20260829-204957`
+
 ### Phase 2: practical multilingual comparison
 
 If Phase 1 is positive, repeat the controlled comparison with supporting
@@ -345,7 +390,8 @@ supporting Tatoeba languages to reduce catastrophic forgetting.
 
 ### Phase 4: follow-up priorities
 
-1. Run the best recipe with NLLB 1.3B.
+1. Repeat the strongest 600M and 1.3B recipes with multiple seeds and paired
+   significance tests.
 2. Keep clean and synthetic Dutch–Gronings as separate sampling groups so the
    clean corpus can receive an explicit minimum weight.
 3. Try direction-specific weighting if Dutch→Gronings and Gronings→Dutch react
