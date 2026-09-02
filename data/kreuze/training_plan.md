@@ -447,6 +447,119 @@ Remove `--dry-run` to train. Use
 `run_kreuze_multilingual_evaluation.py --run-dir <run-directory>` to evaluate
 all Tatoeba pairs plus the independent Kreuze validation set.
 
+#### Phase 2 and Phase 3 results
+
+All five runs completed. The base control and treatment each received 1,804
+optimizer steps. The three continuations each added 102 steps, making the
+final comparison exactly 1,906 versus 1,906 steps. Evaluation used all 549
+Dutch–Gronings Tatoeba validation pairs, all 2,089 Kreuze validation pairs and
+the complete validation splits of the nine supporting Tatoeba corpora.
+
+For the 1,906-step columns, the arrow separates the first 1,804 steps from
+the final 102-step continuation.
+
+| Validation | Direction | Metric | Base: Tatoeba only, 1,804 | Base: Kreuze + Tatoeba, 1,804 | No Kreuze: Tatoeba only → Tatoeba only, 1,906 | Always pooled: Kreuze + Tatoeba → Kreuze + Tatoeba, 1,906 | Clean finish: Kreuze + Tatoeba → Tatoeba only, 1,906 |
+|---|---|---|---:|---:|---:|---:|---:|
+| Tatoeba | Dutch→Gronings | BLEU | 58.86 | 57.61 | 59.58 | 58.16 | **61.44** |
+| Tatoeba | Dutch→Gronings | chrF | 78.20 | 77.42 | 78.26 | 77.60 | **79.53** |
+| Tatoeba | Gronings→Dutch | BLEU | 72.97 | 74.85 | 75.27 | 75.13 | **75.66** |
+| Tatoeba | Gronings→Dutch | chrF | 83.53 | 84.69 | 85.05 | 84.82 | **85.55** |
+| Kreuze | Dutch→Gronings | BLEU | 33.97 | 50.54 | 35.20 | **50.81** | 49.34 |
+| Kreuze | Dutch→Gronings | chrF | 61.13 | 73.90 | 62.32 | **74.07** | 73.23 |
+| Kreuze | Gronings→Dutch | BLEU | 48.97 | 66.02 | 50.17 | **66.47** | 64.78 |
+| Kreuze | Gronings→Dutch | chrF | 68.34 | 80.66 | 69.76 | **80.92** | 79.74 |
+
+At equal final compute, the clean-finished synthetic model beats the extended
+Tatoeba-only control on every primary Tatoeba metric:
+
+- Dutch→Gronings: +1.86 BLEU and +1.27 chrF;
+- Gronings→Dutch: +0.39 BLEU and +0.51 chrF.
+
+It also retains large independent Kreuze gains: +14.15 BLEU / +10.90 chrF for
+Dutch→Gronings and +14.61 BLEU / +9.98 chrF for Gronings→Dutch. This is the
+first 600M experiment in which the equal-compute synthetic-plus-clean recipe
+clearly improves the main Dutch→Gronings Tatoeba direction as well as broader
+Kreuze generalization.
+
+The clean finish is also preferable to simply continuing the pooled mixture.
+Relative to the pooled continuation, it gains +3.28 BLEU / +1.93 chrF on
+Tatoeba Dutch→Gronings and +0.53 BLEU / +0.73 chrF on Tatoeba
+Gronings→Dutch. The cost is only 0.84–1.47 points on Kreuze Dutch→Gronings
+and 1.18–1.68 points on Kreuze Gronings→Dutch.
+
+The supporting-language result is more mixed:
+
+| Comparison over 18 supporting directions | Macro BLEU difference | Macro chrF difference | BLEU / chrF directions improved |
+|---|---:|---:|---:|
+| Pooled base minus base control | -1.51 | -1.12 | 4/18 / 3/18 |
+| Clean finish minus extended control | -0.48 | -0.33 | 7/18 / 7/18 |
+| Clean finish minus pooled continuation | +0.76 | +0.69 | 12/18 / 13/18 |
+
+Clean finishing therefore recovers most of the supporting-language regression
+introduced by pooling, but not all of it. The largest remaining differences
+against the extended control are German→Gronings (-3.98 BLEU / -3.34 chrF)
+and English→Gronings (-2.86 / -2.44). Spanish→Gronings improves (+1.92 /
++0.94), as does Gronings→Spanish (+0.70 / +1.33). This is not broad
+catastrophic forgetting, but the final recipe does trade a small average
+amount of auxiliary performance for stronger Dutch–Gronings performance.
+
+The main Phase 2 question is therefore answered positively: under the new
+cost-controlled multilingual sampler, synthetic Kreuze data followed by a
+clean multilingual finish improves the primary 600M model over an
+equal-compute multilingual Tatoeba-only control. The result still uses one
+seed. Repeated seeds are needed for the smaller Gronings→Dutch margins, and
+the auxiliary regressions should be considered when selecting a publishable
+multilingual model.
+
+##### Comparison with the deployed August 23 model
+
+As a less controlled practical check, the two new final models were compared
+with the currently deployed Tatoeba-only checkpoint from
+`nllb-200-distilled-600M-nld-gos-deu-eng-spa-20260823-185018/epoch12`.
+That checkpoint was reevaluated with the corrected evaluator on exactly the
+same complete validation splits; its older stored scores used the previous
+metric call and a 750-row sample.
+
+| Validation | Direction | Metric | Online August 23 model | New Tatoeba-only | New synthetic + clean |
+|---|---|---|---:|---:|---:|
+| Tatoeba | Dutch→Gronings | BLEU | **62.17** | 59.58 | 61.44 |
+| Tatoeba | Dutch→Gronings | chrF | 78.86 | 78.26 | **79.53** |
+| Tatoeba | Gronings→Dutch | BLEU | 74.68 | 75.27 | **75.66** |
+| Tatoeba | Gronings→Dutch | chrF | 84.31 | 85.05 | **85.55** |
+| Kreuze | Dutch→Gronings | BLEU | 29.95 | 35.20 | **49.34** |
+| Kreuze | Dutch→Gronings | chrF | 57.45 | 62.32 | **73.23** |
+| Kreuze | Gronings→Dutch | BLEU | 48.82 | 50.17 | **64.78** |
+| Kreuze | Gronings→Dutch | chrF | 69.03 | 69.76 | **79.74** |
+
+This is not a ceteris-paribus comparison. The online model used twelve
+`focus_cap` epochs, about 5,172 optimizer steps and 1,165,920 supporting-pair
+samples. Each new final model used 1,906 steps and 243,750 supporting-pair
+samples: about 2.7 times less total compute and 4.8 times less auxiliary
+exposure.
+
+Despite that, the new synthetic-plus-clean model beats the online model on
+three of four primary Tatoeba metrics and trails by only 0.73 BLEU on
+Dutch→Gronings. The new Tatoeba-only control is 2.59 BLEU lower in that
+direction, but is close on chrF and slightly better in both Gronings→Dutch
+metrics. The online model remains stronger across the 18 supporting
+directions: macro BLEU/chrF are 55.85/72.25, versus 52.84/70.18 for the new
+control and 52.36/69.84 for synthetic-plus-clean. This is consistent with the
+large reduction in supporting-language training rather than evidence that
+the new training setup is malfunctioning.
+
+Run artifacts:
+
+- base control:
+  `checkpoints/nllb-200-distilled-600M-nld-gos-eng-deu-spa-kreuze-phase2-control-20260902-185057`;
+- base pooled:
+  `checkpoints/nllb-200-distilled-600M-nld-gos-eng-deu-spa-kreuze-phase2-pooled-20260902-185057`;
+- extended control:
+  `checkpoints/nllb-200-distilled-600M-nld-gos-eng-deu-spa-kreuze-phase2b-control-20260902-190717`;
+- clean finish:
+  `checkpoints/nllb-200-distilled-600M-nld-gos-eng-deu-spa-kreuze-phase2b-clean-20260902-191258`;
+- pooled continuation:
+  `checkpoints/nllb-200-distilled-600M-nld-gos-eng-deu-spa-kreuze-phase2b-pooled-20260902-191258`.
+
 ### Phase 4: follow-up priorities
 
 1. Repeat the strongest 600M and 1.3B recipes with multiple seeds and paired
