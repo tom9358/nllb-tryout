@@ -375,10 +375,10 @@ steps; the controls used Tatoeba only for all 954 steps.
 
 ### Phase 2: practical multilingual comparison
 
-If Phase 1 is positive, repeat the controlled comparison with supporting
-Tatoeba languages. Start with Dutch, Gronings, English and German. Add Spanish
-only if previous Tatoeba-only results show enough Dutch–Gronings improvement
-to justify the extra language pairs and training time.
+Repeat the controlled comparison with Dutch, Gronings, English, German and
+Spanish. The earlier multilingual experiments found that these supporting
+languages improve Dutch–Gronings, and `focus_total` now keeps their combined
+cost bounded.
 
 Both control and treatment must use:
 
@@ -387,23 +387,65 @@ Both control and treatment must use:
 - the same language set;
 - the same seed, optimizer, batch size and maximum length;
 - the same direction strategy;
-- approximately the same optimizer-step budget.
+- exactly the same optimizer-step budget.
+
+The base comparison is:
+
+| Run | Training data | Epochs | Samples/epoch | Total steps |
+|---|---|---:|---:|---:|
+| Control | Five-language Tatoeba only | 2 | 230,712 | 1,804 |
+| Treatment | Five-language Tatoeba + Kreuze | 2 | 230,712 | 1,804 |
+
+Both use `focus_total` with `T=5`: 115,356 samples per epoch come from
+Dutch–Gronings and 115,356 from all nine supporting pairs combined. The
+Tatoeba-only control oversamples its smaller Dutch–Gronings corpus to fill the
+same focus budget. Two epochs preserve the controlled alternating-direction
+design, so stable rows selected in both epochs train in both directions.
+
+Start with 600M as the cheaper screening experiment. If the multilingual
+synthetic-plus-clean recipe remains promising, repeat the same setup with
+1.3B, which benefited much more from synthetic data in Phase 1.
 
 Evaluate Dutch to Gronings and Gronings to Dutch separately. Metrics on all
 other configured Tatoeba directions are regression checks.
 
 ### Phase 3: clean-data finish
 
-If pooling improves the model but appears to introduce regressions, branch from
-the best pooled checkpoint:
+After the base comparison, give both main branches an equal clean multilingual
+continuation. Also branch a same-size pooled continuation from the treatment
+as a diagnostic:
 
-1. continue with the pooled mixture for a small fixed number of steps;
-2. continue for the same number of steps using only hand-written Tatoeba data,
-   with a lower learning rate.
+| Variant | First 1,804 steps | Final 102 steps |
+|---|---|---|
+| **Clean finish** | Kreuze + Tatoeba | Tatoeba only |
+| **Pooled continuation** | Kreuze + Tatoeba | Kreuze + Tatoeba |
+| **Extended control** | Tatoeba only | Tatoeba only |
 
-This control distinguishes the effect of clean finishing from the effect of
-simply training longer. The first clean-stage experiment should retain all
-supporting Tatoeba languages to reduce catastrophic forgetting.
+| Variant | Source | Continuation data | Samples | Steps |
+|---|---|---|---:|---:|
+| Clean finish | Treatment | Five-language Tatoeba only | 26,076 | 102 |
+| Pooled continuation | Treatment | Five-language Tatoeba + Kreuze | 26,076 | 102 |
+| Extended control | Control | Five-language Tatoeba only | 26,076 | 102 |
+
+Half of this continuation is one complete 13,038-row clean Dutch–Gronings
+pass. The other half is temperature-balanced over all nine supporting Tatoeba
+pairs. The final synthetic-plus-clean and Tatoeba-only comparisons therefore
+both receive exactly 1,906 optimizer steps. The pooled continuation
+distinguishes clean finishing from simply training longer.
+
+Commands:
+
+```bash
+uv run python run_kreuze_multilingual_experiment.py --variant control --dry-run
+uv run python run_kreuze_multilingual_experiment.py --variant pooled --dry-run
+uv run python run_kreuze_multilingual_continuation.py --variant clean --dry-run
+uv run python run_kreuze_multilingual_continuation.py --variant pooled --dry-run
+uv run python run_kreuze_multilingual_continuation.py --variant control --dry-run
+```
+
+Remove `--dry-run` to train. Use
+`run_kreuze_multilingual_evaluation.py --run-dir <run-directory>` to evaluate
+all Tatoeba pairs plus the independent Kreuze validation set.
 
 ### Phase 4: follow-up priorities
 

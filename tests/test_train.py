@@ -11,6 +11,7 @@ from nllb_try.train import (
     get_balanced_df,
     get_training_budget,
 )
+from run_kreuze_multilingual_experiment import _get_pooled_focus_size
 
 
 def make_corpus(size: int) -> BaseParallelCorpus:
@@ -124,6 +125,16 @@ class TrainingBudgetTests(unittest.TestCase):
         self.assertEqual(sum(budget["sample_counts"][1:]), 20)
         self.assertEqual(budget["samples_per_epoch"], 40)
         self.assertEqual(len(sampled), 40)
+
+    def test_multilingual_target_uses_complete_pooled_focus_size(self):
+        corpora = [
+            make_named_corpus("nld_Latn", "gos_Latn", 10),
+            make_named_corpus("nld_Latn", "gos_Latn", 90),
+            make_named_corpus("nld_Latn", "eng_Latn", 1_000),
+        ]
+
+        expected = len(corpora[0].df_train) + len(corpora[1].df_train)
+        self.assertEqual(_get_pooled_focus_size(corpora), expected)
 
 
 class ModelInitializationTests(unittest.TestCase):
