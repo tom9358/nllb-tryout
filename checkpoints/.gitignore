@@ -3,3 +3,6 @@ generation_config.json
 model.safetensors
 tokenizer_config.json
 tokenizer.json
+
+# Synthetic-data experiment results are summarized in data/kreuze/training_plan.md.
+*-kreuze-*/
