@@ -647,18 +647,20 @@ only a practical reference because it uses 600M instead of 1.3B, `focus_cap`
 instead of `focus_total`, random rather than alternating directions, and a
 slightly smaller optimizer-step budget.
 
-Full-validation results:
+Held-out validation results. Every value below is a validation score, not a
+training score. Tatoeba uses the complete 549-pair Dutch–Gronings validation
+split; Kreuze uses its complete independent 2,089-pair validation split:
 
-| Validation | Direction | Metric | August 23 online | Short 1.3B synthetic + clean, 1,906 | Long 1.3B Tatoeba-only, 5,514 | Long 1.3B synthetic + clean, 5,514 |
+| Dataset and split | Translation direction | Metric | August 23 online | Short 1.3B synthetic + clean, 1,906 | Long 1.3B Tatoeba-only, 5,514 | Long 1.3B synthetic + clean, 5,514 |
 |---|---|---|---:|---:|---:|---:|
-| Tatoeba | Dutch→Gronings | BLEU | 62.17 | 66.28 | 68.20 | **69.37** |
-| Tatoeba | Dutch→Gronings | chrF | 78.86 | 83.23 | 83.00 | **84.50** |
-| Tatoeba | Gronings→Dutch | BLEU | 74.68 | 80.19 | 79.72 | **81.81** |
-| Tatoeba | Gronings→Dutch | chrF | 84.31 | 88.14 | 87.99 | **89.25** |
-| Kreuze | Dutch→Gronings | BLEU | 29.95 | 50.47 | 35.21 | **52.58** |
-| Kreuze | Dutch→Gronings | chrF | 57.45 | 74.23 | 62.22 | **75.46** |
-| Kreuze | Gronings→Dutch | BLEU | 48.82 | 68.35 | 51.33 | **70.06** |
-| Kreuze | Gronings→Dutch | chrF | 69.03 | 81.83 | 70.13 | **83.16** |
+| Tatoeba validation, all 549 pairs | Dutch→Gronings | BLEU | 62.17 | 66.28 | 68.20 | **69.37** |
+| Tatoeba validation, all 549 pairs | Dutch→Gronings | chrF | 78.86 | 83.23 | 83.00 | **84.50** |
+| Tatoeba validation, all 549 pairs | Gronings→Dutch | BLEU | 74.68 | 80.19 | 79.72 | **81.81** |
+| Tatoeba validation, all 549 pairs | Gronings→Dutch | chrF | 84.31 | 88.14 | 87.99 | **89.25** |
+| Kreuze validation, all 2,089 pairs | Dutch→Gronings | BLEU | 29.95 | 50.47 | 35.21 | **52.58** |
+| Kreuze validation, all 2,089 pairs | Dutch→Gronings | chrF | 57.45 | 74.23 | 62.22 | **75.46** |
+| Kreuze validation, all 2,089 pairs | Gronings→Dutch | BLEU | 48.82 | 68.35 | 51.33 | **70.06** |
+| Kreuze validation, all 2,089 pairs | Gronings→Dutch | chrF | 69.03 | 81.83 | 70.13 | **83.16** |
 
 The long synthetic-plus-clean model beats the equal-compute long Tatoeba-only
 control on all eight primary metrics:
@@ -677,28 +679,29 @@ The base-checkpoint BLEU curves show where the extra training helps. Training
 scores use a fixed 750-row sample; Tatoeba validation uses all 549 pairs and
 Kreuze validation uses a fixed 750-row sample in this diagnostic:
 
-| Base training | Split and direction | Epoch 2 | Epoch 4 | Epoch 6 | Change 2→4 | Change 4→6 |
-|---|---|---:|---:|---:|---:|---:|
-| Tatoeba-only | Tatoeba train Dutch→Gronings | 86.11 | 92.61 | 94.47 | +6.50 | +1.86 |
-| Tatoeba-only | Tatoeba validation Dutch→Gronings | 62.29 | 65.85 | 68.90 | +3.56 | +3.05 |
-| Tatoeba-only | Tatoeba train Gronings→Dutch | 93.10 | 96.68 | 96.69 | +3.58 | +0.01 |
-| Tatoeba-only | Tatoeba validation Gronings→Dutch | 77.13 | 79.45 | 78.86 | +2.32 | -0.59 |
-| Pooled | Tatoeba train Dutch→Gronings | 65.94 | 74.20 | 79.80 | +8.26 | +5.60 |
-| Pooled | Tatoeba validation Dutch→Gronings | 63.72 | 67.93 | 68.03 | +4.20 | +0.10 |
-| Pooled | Tatoeba train Gronings→Dutch | 82.20 | 85.75 | 88.47 | +3.54 | +2.73 |
-| Pooled | Tatoeba validation Gronings→Dutch | 78.06 | 79.27 | 81.16 | +1.21 | +1.89 |
-| Pooled | Kreuze train Dutch→Gronings | 53.39 | 57.42 | 59.51 | +4.03 | +2.09 |
-| Pooled | Kreuze validation Dutch→Gronings | 53.42 | 54.24 | 53.78 | +0.83 | -0.46 |
-| Pooled | Kreuze train Gronings→Dutch | 71.80 | 75.20 | 79.80 | +3.41 | +4.60 |
-| Pooled | Kreuze validation Gronings→Dutch | 69.01 | 70.25 | 71.01 | +1.24 | +0.76 |
+| Base training recipe | Dataset and split | Rows evaluated | Translation direction | Metric | Epoch 2 | Epoch 4 | Epoch 6 | Change 2→4 | Change 4→6 |
+|---|---|---:|---|---|---:|---:|---:|---:|---:|
+| Tatoeba-only | Tatoeba training sample | 750 | Dutch→Gronings | BLEU | 86.11 | 92.61 | 94.47 | +6.50 | +1.86 |
+| Tatoeba-only | Tatoeba validation | All 549 | Dutch→Gronings | BLEU | 62.29 | 65.85 | 68.90 | +3.56 | +3.05 |
+| Tatoeba-only | Tatoeba training sample | 750 | Gronings→Dutch | BLEU | 93.10 | 96.68 | 96.69 | +3.58 | +0.01 |
+| Tatoeba-only | Tatoeba validation | All 549 | Gronings→Dutch | BLEU | 77.13 | 79.45 | 78.86 | +2.32 | -0.59 |
+| Kreuze + Tatoeba | Tatoeba training sample | 750 | Dutch→Gronings | BLEU | 65.94 | 74.20 | 79.80 | +8.26 | +5.60 |
+| Kreuze + Tatoeba | Tatoeba validation | All 549 | Dutch→Gronings | BLEU | 63.72 | 67.93 | 68.03 | +4.20 | +0.10 |
+| Kreuze + Tatoeba | Tatoeba training sample | 750 | Gronings→Dutch | BLEU | 82.20 | 85.75 | 88.47 | +3.54 | +2.73 |
+| Kreuze + Tatoeba | Tatoeba validation | All 549 | Gronings→Dutch | BLEU | 78.06 | 79.27 | 81.16 | +1.21 | +1.89 |
+| Kreuze + Tatoeba | Kreuze training sample | 750 | Dutch→Gronings | BLEU | 53.39 | 57.42 | 59.51 | +4.03 | +2.09 |
+| Kreuze + Tatoeba | Kreuze validation sample | 750 of 2,089 | Dutch→Gronings | BLEU | 53.42 | 54.24 | 53.78 | +0.83 | -0.46 |
+| Kreuze + Tatoeba | Kreuze training sample | 750 | Gronings→Dutch | BLEU | 71.80 | 75.20 | 79.80 | +3.41 | +4.60 |
+| Kreuze + Tatoeba | Kreuze validation sample | 750 of 2,089 | Gronings→Dutch | BLEU | 69.01 | 70.25 | 71.01 | +1.24 | +0.76 |
 
 Four epochs are therefore clearly better than two. Six epochs add further
 Tatoeba improvement overall, especially Dutch→Gronings for the control and
 Gronings→Dutch for the pooled model, but returns are direction-dependent:
 pooled Dutch→Gronings validation is almost flat from epoch 4 to 6, and the
 control's Gronings→Dutch validation falls slightly. The clean finish after
-pooled epoch 6 raises full Tatoeba validation to 69.37/81.81 BLEU, making six
-epochs the best tested endpoint despite those uneven base curves.
+pooled epoch 6 raises full Tatoeba validation BLEU to 69.37 for
+Dutch→Gronings and 81.81 for Gronings→Dutch, making six epochs the best tested
+endpoint despite those uneven base curves.
 
 The fixed 750-row final training diagnostic also explains an important
 difference. The long Tatoeba-only control reaches 94.47 BLEU
