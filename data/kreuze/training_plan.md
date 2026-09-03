@@ -724,6 +724,12 @@ The long 1.3B synthetic-plus-clean model is therefore the strongest tested
 model by a substantial margin and largely removes the earlier
 supporting-language trade-off. Exact margins still require repeated seeds.
 
+The next saturation experiment trains fresh matched control and pooled 1.3B
+runs continuously for twelve epochs. Their epoch 8, 10 and 12 checkpoints
+each receive the identical 102-step clean multilingual finish. This preserves
+continuous optimizer state in the base runs and gives equal-compute
+synthetic-versus-control comparisons at all three later budgets.
+
 Long-budget run artifacts:
 
 - base control:

@@ -45,6 +45,7 @@ class RunConfig:
     focus_lang_pair: tuple[str, str] | None = None
     target_samples_per_epoch: int | None = None
     direction_strategy: str = "random"  # "random" or "alternating"
+    direction_epoch_offset: int = 0
     device: str = "cuda"
 
     @property

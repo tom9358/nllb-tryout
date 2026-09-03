@@ -376,6 +376,8 @@ def train_model(
         print(f"  Warmup:       {warmup_steps} steps")
         print(f"  Sampling:     {cfg.sampling_strategy}")
         print(f"  Directions:   {cfg.direction_strategy}")
+        if cfg.direction_epoch_offset:
+            print(f"  Epoch offset: {cfg.direction_epoch_offset}")
         if cfg.sampling_strategy == "temperature":
             print(f"  Temperature:  {cfg.sampling_temperature}")
             if cfg.target_samples_per_epoch is not None:
@@ -469,7 +471,7 @@ def train_model(
         swap_mask = _get_direction_mask(
             df_all,
             permutation=swap_idxs,
-            epoch=epoch,
+            epoch=cfg.direction_epoch_offset + epoch,
             strategy=cfg.direction_strategy,
         )
 

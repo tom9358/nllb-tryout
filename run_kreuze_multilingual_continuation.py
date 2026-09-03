@@ -28,12 +28,13 @@ def find_latest_run(variant: str, modelname: str) -> Path:
     candidates: list[Path] = []
     for path in Path("checkpoints").iterdir():
         config_path = path / "run_config.json"
-        checkpoint = path / "checkpoints" / "epoch2"
-        if not config_path.is_file() or not checkpoint.is_dir():
+        if not config_path.is_file():
             continue
         config = json.loads(config_path.read_text())
+        checkpoint = path / "checkpoints" / f"epoch{config['num_epochs']}"
         if (
-            config.get("experiment") == f"kreuze-phase2-{variant}"
+            checkpoint.is_dir()
+            and config.get("experiment") == f"kreuze-phase2-{variant}"
             and config.get("modelname") == modelname
         ):
             candidates.append(path)
@@ -44,19 +45,28 @@ def find_latest_run(variant: str, modelname: str) -> Path:
     return max(candidates, key=lambda path: path.stat().st_mtime)
 
 
-def get_final_checkpoint(source_run: Path, source_config: dict) -> Path:
-    source_epoch = source_config["num_epochs"]
+def get_source_checkpoint(
+    source_run: Path, source_config: dict, source_epoch: int | None = None
+) -> tuple[Path, int]:
+    final_epoch = source_config["num_epochs"]
+    source_epoch = final_epoch if source_epoch is None else source_epoch
+    if not 1 <= source_epoch <= final_epoch:
+        raise ValueError(
+            f"source_epoch must be between 1 and {final_epoch}, got {source_epoch}."
+        )
     source_checkpoint = source_run / "checkpoints" / f"epoch{source_epoch}"
     if not source_checkpoint.is_dir():
         raise FileNotFoundError(f"Missing source checkpoint: {source_checkpoint}")
-    return source_checkpoint
+    return source_checkpoint, source_epoch
 
 
 def build_continuation(
-    variant: str, source_run: Path, device: str
+    variant: str, source_run: Path, device: str, source_epoch: int | None = None
 ) -> tuple[list[BaseParallelCorpus], RunConfig]:
     source_config = json.loads((source_run / "run_config.json").read_text())
-    source_checkpoint = get_final_checkpoint(source_run, source_config)
+    source_checkpoint, source_epoch = get_source_checkpoint(
+        source_run, source_config, source_epoch
+    )
 
     expected_source = "control" if variant == "control" else "pooled"
     expected_experiment = f"kreuze-phase2-{expected_source}"
@@ -88,8 +98,12 @@ def build_continuation(
         sampling_temperature=5.0,
         focus_lang_pair=FOCUS_PAIR,
         direction_strategy="alternating",
+        direction_epoch_offset=source_epoch,
         device=device,
-        run_id=(f"kreuze-phase2b-{variant}-seed{source_config['seed']}-{timestamp}"),
+        run_id=(
+            f"kreuze-phase2b-{variant}-from-epoch{source_epoch}-"
+            f"seed{source_config['seed']}-{timestamp}"
+        ),
     )
 
     all_corpora = main_corpus(
@@ -127,6 +141,11 @@ def main() -> None:
     )
     parser.add_argument("--source-run", type=Path)
     parser.add_argument(
+        "--source-epoch",
+        type=int,
+        help="Checkpoint epoch to continue from; defaults to the source run's final epoch.",
+    )
+    parser.add_argument(
         "--source-modelname",
         default="facebook/nllb-200-distilled-600M",
         help="Used to find the source run when --source-run is omitted.",
@@ -139,7 +158,9 @@ def main() -> None:
     source_run = args.source_run or find_latest_run(
         source_variant, args.source_modelname
     )
-    corpora, cfg = build_continuation(args.variant, source_run, args.device)
+    corpora, cfg = build_continuation(
+        args.variant, source_run, args.device, source_epoch=args.source_epoch
+    )
     budget = get_training_budget(corpora, cfg)
     print(f"\nKreuze Phase 2b: {args.variant}")
     print(f"  Source checkpoint: {cfg.initial_model_path}")
@@ -159,6 +180,7 @@ def main() -> None:
     config = json.loads(config_path.read_text())
     config["experiment"] = f"kreuze-phase2b-{args.variant}"
     config["source_run"] = str(source_run)
+    config["source_epoch"] = cfg.direction_epoch_offset
     config_path.write_text(json.dumps(config, indent=2) + "\n")
 
 

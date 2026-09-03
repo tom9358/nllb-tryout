@@ -13,7 +13,7 @@ from nllb_try.train import (
     get_balanced_df,
     get_training_budget,
 )
-from run_kreuze_multilingual_continuation import get_final_checkpoint
+from run_kreuze_multilingual_continuation import get_source_checkpoint
 from run_kreuze_multilingual_experiment import _get_pooled_focus_size
 
 
@@ -159,9 +159,25 @@ class ModelInitializationTests(unittest.TestCase):
             expected = source_run / "checkpoints" / "epoch6"
             expected.mkdir(parents=True)
 
-            checkpoint = get_final_checkpoint(source_run, {"num_epochs": 6})
+            checkpoint, source_epoch = get_source_checkpoint(
+                source_run, {"num_epochs": 6}
+            )
 
             self.assertEqual(checkpoint, expected)
+            self.assertEqual(source_epoch, 6)
+
+    def test_multilingual_continuation_can_select_an_earlier_checkpoint(self):
+        with TemporaryDirectory() as temp_dir:
+            source_run = Path(temp_dir)
+            expected = source_run / "checkpoints" / "epoch8"
+            expected.mkdir(parents=True)
+
+            checkpoint, source_epoch = get_source_checkpoint(
+                source_run, {"num_epochs": 12}, source_epoch=8
+            )
+
+            self.assertEqual(checkpoint, expected)
+            self.assertEqual(source_epoch, 8)
 
 
 if __name__ == "__main__":
