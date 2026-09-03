@@ -72,7 +72,11 @@ def _get_pooled_focus_size(corpora: list[BaseParallelCorpus]) -> int:
 
 
 def build_experiment(
-    variant: str, device: str, modelname: str, seed: int = 9358
+    variant: str,
+    device: str,
+    modelname: str,
+    seed: int = 9358,
+    num_epochs: int = 2,
 ) -> tuple[list[BaseParallelCorpus], RunConfig]:
     """Build one equal-budget five-language training variant."""
     timestamp = datetime.now(timezone.utc).astimezone().strftime("%Y%m%d-%H%M%S")
@@ -87,7 +91,7 @@ def build_experiment(
         parallel_data_paths=(GEMMA_CORPUS,),
         model_cache_path="hfacemodels",
         batch_size=256,
-        num_epochs=2,
+        num_epochs=num_epochs,
         warmup_steps=70,
         max_length=48,
         sampling_strategy="focus_total",
@@ -159,11 +163,16 @@ def main() -> None:
         help="Hugging Face model name or local model path.",
     )
     parser.add_argument("--seed", type=int, default=9358)
+    parser.add_argument("--num-epochs", type=int, default=2)
     parser.add_argument("--dry-run", action="store_true")
     args = parser.parse_args()
 
     corpora, cfg = build_experiment(
-        args.variant, args.device, args.modelname, seed=args.seed
+        args.variant,
+        args.device,
+        args.modelname,
+        seed=args.seed,
+        num_epochs=args.num_epochs,
     )
     print_plan(args.variant, corpora, cfg)
     if args.dry_run:
