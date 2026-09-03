@@ -72,11 +72,12 @@ def _get_pooled_focus_size(corpora: list[BaseParallelCorpus]) -> int:
 
 
 def build_experiment(
-    variant: str, device: str, modelname: str
+    variant: str, device: str, modelname: str, seed: int = 9358
 ) -> tuple[list[BaseParallelCorpus], RunConfig]:
     """Build one equal-budget five-language training variant."""
     timestamp = datetime.now(timezone.utc).astimezone().strftime("%Y%m%d-%H%M%S")
     cfg = RunConfig(
+        seed=seed,
         modelname=modelname,
         source_langs_tatoeba=TATOEBA_LANGS,
         source_langs_nllb=NLLB_LANGS,
@@ -94,7 +95,7 @@ def build_experiment(
         focus_lang_pair=FOCUS_PAIR,
         direction_strategy="alternating",
         device=device,
-        run_id=f"kreuze-phase2-{variant}-{timestamp}",
+        run_id=f"kreuze-phase2-{variant}-seed{seed}-{timestamp}",
     )
 
     all_corpora = main_corpus(
@@ -157,10 +158,13 @@ def main() -> None:
         default="facebook/nllb-200-distilled-600M",
         help="Hugging Face model name or local model path.",
     )
+    parser.add_argument("--seed", type=int, default=9358)
     parser.add_argument("--dry-run", action="store_true")
     args = parser.parse_args()
 
-    corpora, cfg = build_experiment(args.variant, args.device, args.modelname)
+    corpora, cfg = build_experiment(
+        args.variant, args.device, args.modelname, seed=args.seed
+    )
     print_plan(args.variant, corpora, cfg)
     if args.dry_run:
         return

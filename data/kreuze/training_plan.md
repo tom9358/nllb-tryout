@@ -406,6 +406,9 @@ Start with 600M as the cheaper screening experiment. If the multilingual
 synthetic-plus-clean recipe remains promising, repeat the same setup with
 1.3B, which benefited much more from synthetic data in Phase 1.
 
+The runner accepts `--seed` so matched control/treatment replications can run
+in parallel. Continuations inherit the training seed from their source run.
+
 Evaluate Dutch to Gronings and Gronings to Dutch separately. Metrics on all
 other configured Tatoeba directions are regression checks.
 

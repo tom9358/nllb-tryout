@@ -62,6 +62,7 @@ def build_continuation(
 
     timestamp = datetime.now(timezone.utc).astimezone().strftime("%Y%m%d-%H%M%S")
     cfg = RunConfig(
+        seed=source_config["seed"],
         modelname=source_config["modelname"],
         initial_model_path=str(source_checkpoint),
         source_langs_tatoeba=tuple(source_config["source_langs_tatoeba"]),
@@ -82,7 +83,7 @@ def build_continuation(
         focus_lang_pair=FOCUS_PAIR,
         direction_strategy="alternating",
         device=device,
-        run_id=f"kreuze-phase2b-{variant}-{timestamp}",
+        run_id=(f"kreuze-phase2b-{variant}-seed{source_config['seed']}-{timestamp}"),
     )
 
     all_corpora = main_corpus(
