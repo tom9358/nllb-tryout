@@ -1,4 +1,6 @@
 import unittest
+from pathlib import Path
+from tempfile import TemporaryDirectory
 
 import numpy as np
 import pandas as pd
@@ -11,6 +13,7 @@ from nllb_try.train import (
     get_balanced_df,
     get_training_budget,
 )
+from run_kreuze_multilingual_continuation import get_final_checkpoint
 from run_kreuze_multilingual_experiment import _get_pooled_focus_size
 
 
@@ -149,6 +152,16 @@ class ModelInitializationTests(unittest.TestCase):
 
         self.assertEqual(model_source, "checkpoints/pooled/epoch2")
         self.assertIsNone(similar_lang)
+
+    def test_multilingual_continuation_uses_configured_final_epoch(self):
+        with TemporaryDirectory() as temp_dir:
+            source_run = Path(temp_dir)
+            expected = source_run / "checkpoints" / "epoch6"
+            expected.mkdir(parents=True)
+
+            checkpoint = get_final_checkpoint(source_run, {"num_epochs": 6})
+
+            self.assertEqual(checkpoint, expected)
 
 
 if __name__ == "__main__":

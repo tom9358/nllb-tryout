@@ -44,13 +44,19 @@ def find_latest_run(variant: str, modelname: str) -> Path:
     return max(candidates, key=lambda path: path.stat().st_mtime)
 
 
+def get_final_checkpoint(source_run: Path, source_config: dict) -> Path:
+    source_epoch = source_config["num_epochs"]
+    source_checkpoint = source_run / "checkpoints" / f"epoch{source_epoch}"
+    if not source_checkpoint.is_dir():
+        raise FileNotFoundError(f"Missing source checkpoint: {source_checkpoint}")
+    return source_checkpoint
+
+
 def build_continuation(
     variant: str, source_run: Path, device: str
 ) -> tuple[list[BaseParallelCorpus], RunConfig]:
     source_config = json.loads((source_run / "run_config.json").read_text())
-    source_checkpoint = source_run / "checkpoints" / "epoch2"
-    if not source_checkpoint.is_dir():
-        raise FileNotFoundError(f"Missing source checkpoint: {source_checkpoint}")
+    source_checkpoint = get_final_checkpoint(source_run, source_config)
 
     expected_source = "control" if variant == "control" else "pooled"
     expected_experiment = f"kreuze-phase2-{expected_source}"
