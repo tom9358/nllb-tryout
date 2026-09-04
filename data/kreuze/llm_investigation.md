@@ -18,14 +18,10 @@ The source and attribution information are retained with the generated data.
 ## 1. NLLB backtranslation
 
 The first attempt used the fine-tuned NLLB model itself. Epochs 4, 8, and 12
-were tested because they had similar Gronings-to-Dutch validation scores,
-while training-set scores kept increasing:
-
-| Checkpoint | Validation BLEU | Validation chrF |
-|---|---:|---:|
-| epoch4 | 71.62 | 82.74 |
-| epoch8 | 75.18 | 84.97 |
-| epoch12 | 74.84 | 84.29 |
+were inspected to cover early, middle, and late training. Their original
+numeric evaluation scores are intentionally omitted because they were
+produced by an older evaluator that passed hypotheses and references to
+SacreBLEU in the wrong order.
 
 Heuristic checks looked for untranslated Gronings words and manual inspection
 looked at names, lexical choices, phrasing, and obvious nonsense. The outputs

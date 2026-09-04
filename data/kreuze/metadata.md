@@ -77,13 +77,10 @@ blocks (400 sentences) stayed perfectly aligned and scored BLEU 73.34, chrF
 coherent passages, so it mainly tested block handling rather than contextual
 translation quality.
 
-The NLLB epoch validation scores for Gronings to Dutch were:
-
-| Checkpoint | BLEU | chrF |
-|---|---:|---:|
-| epoch4 | 71.62 | 82.74 |
-| epoch8 | 75.18 | 84.97 |
-| epoch12 | 74.84 | 84.29 |
+NLLB checkpoints 4, 8, and 12 were inspected to cover early, middle, and
+late training. Their original numeric evaluation scores are intentionally not
+reported: they were produced by an older evaluator that passed hypotheses and
+references to SacreBLEU in the wrong order.
 
 Manual inspection found Gemma outputs substantially more natural than the
 NLLB-generated alternatives, especially when translating coherent passages.
