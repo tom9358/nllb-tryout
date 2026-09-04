@@ -724,11 +724,54 @@ The long 1.3B synthetic-plus-clean model is therefore the strongest tested
 model by a substantial margin and largely removes the earlier
 supporting-language trade-off. Exact margins still require repeated seeds.
 
-The next saturation experiment trains fresh matched control and pooled 1.3B
-runs continuously for twelve epochs. Their epoch 8, 10 and 12 checkpoints
-each receive the identical 102-step clean multilingual finish. This preserves
-continuous optimizer state in the base runs and gives equal-compute
-synthetic-versus-control comparisons at all three later budgets.
+#### Epoch 8, 10 and 12 saturation experiment
+
+Fresh matched control and pooled 1.3B runs were trained continuously for
+twelve epochs. Their epoch 8, 10 and 12 checkpoints each received the
+identical 102-step clean multilingual finish. The table reports held-out
+validation scores only: all 549 Tatoeba Dutch–Gronings pairs and all 2,089
+independent Kreuze pairs.
+
+| Base epochs before clean finish | Final steps | Training recipe | Tatoeba validation Dutch→Gronings BLEU | Tatoeba validation Dutch→Gronings chrF | Tatoeba validation Gronings→Dutch BLEU | Tatoeba validation Gronings→Dutch chrF | Kreuze validation Dutch→Gronings BLEU | Kreuze validation Gronings→Dutch BLEU |
+|---:|---:|---|---:|---:|---:|---:|---:|---:|
+| 8 | 7,318 | Tatoeba only → clean Tatoeba | 68.98 | 83.34 | 79.50 | 87.67 | 34.79 | 50.10 |
+| 8 | 7,318 | Kreuze + Tatoeba → clean Tatoeba | **70.79** | **85.30** | 81.38 | 88.69 | **52.82** | **69.95** |
+| 10 | 9,122 | Tatoeba only → clean Tatoeba | 68.83 | 83.35 | 80.55 | 87.96 | 34.52 | 50.88 |
+| 10 | 9,122 | Kreuze + Tatoeba → clean Tatoeba | 69.93 | 84.94 | 81.16 | 88.59 | 52.65 | 69.66 |
+| 12 | 10,926 | Tatoeba only → clean Tatoeba | 68.67 | 83.15 | 79.81 | 88.10 | 34.59 | 50.47 |
+| 12 | 10,926 | Kreuze + Tatoeba → clean Tatoeba | 70.12 | 85.00 | **81.49** | **88.77** | 52.49 | 69.28 |
+
+The synthetic-plus-clean recipe beats its equal-compute Tatoeba-only control
+on every reported metric at all three budgets. The Tatoeba advantage remains
+between +0.61 and +1.88 BLEU and +0.63 and +1.96 chrF, while the Kreuze
+advantage remains about +18–20 BLEU.
+
+More training does not keep improving the primary Dutch→Gronings direction.
+The synthetic model peaks at epoch 8 plus clean finishing with 70.79 BLEU and
+85.30 chrF. Relative to epoch 8, epoch 10 loses 0.86 BLEU / 0.36 chrF and
+epoch 12 loses 0.67 / 0.30. The reverse Gronings→Dutch direction is marginally
+best at epoch 12, but only 0.11 BLEU / 0.08 chrF above epoch 8. Because
+Dutch→Gronings is the primary goal, epoch 8 plus clean finishing is the best
+tested stopping point.
+
+The supporting-language trade-off is essentially gone at these budgets.
+Across the 18 auxiliary directions, synthetic-minus-control macro differences
+are -0.33 BLEU / -0.02 chrF at epoch 8, -0.23 / -0.05 at epoch 10, and
+-0.08 / +0.08 at epoch 12. The longer runs therefore preserve multilingual
+capacity almost as well as their equal-compute controls.
+
+Saturation run artifacts:
+
+- twelve-epoch control base:
+  `checkpoints/nllb-200-distilled-1.3B-nld-gos-eng-deu-spa-kreuze-phase2-control-seed9358-20260903-141200`;
+- twelve-epoch pooled base:
+  `checkpoints/nllb-200-distilled-1.3B-nld-gos-eng-deu-spa-kreuze-phase2-pooled-seed9358-20260903-141201`;
+- clean-finished control checkpoints:
+  `checkpoints/nllb-200-distilled-1.3B-nld-gos-eng-deu-spa-kreuze-phase2b-control-from-epoch{8,10,12}-seed9358-20260903-163710`;
+- clean-finished synthetic checkpoints:
+  `checkpoints/nllb-200-distilled-1.3B-nld-gos-eng-deu-spa-kreuze-phase2b-clean-from-epoch8-seed9358-20260903-163843`,
+  `...from-epoch10-seed9358-20260903-164046`, and
+  `...from-epoch12-seed9358-20260903-164117`.
 
 Long-budget run artifacts:
 
