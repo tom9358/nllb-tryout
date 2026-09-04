@@ -11,8 +11,8 @@
     "corpus8": "tatoeba:deu_Latn-spa_Latn",
     "corpus9": "tatoeba:eng_Latn-spa_Latn"
   },
-  "created_at": "2026-08-23T19:54:51",
-  "device": "cuda:2",
+  "created_at": "2026-09-04T08:02:26+00:00",
+  "device": "cuda:3",
   "epochs_evaluated": [
     "epoch1",
     "epoch2",
@@ -28,6 +28,7 @@
     "epoch12"
   ],
   "eval_id": "20260823-193516",
+  "include_train": true,
   "new_lang_nllb": "gos_Latn",
   "run_dir": "/home/tom.brand/offline/nllb-tryout/checkpoints/nllb-200-distilled-600M-nld-gos-deu-eng-spa-20260823-185018",
   "sample_size": 750,
