@@ -3,25 +3,28 @@
 import argparse
 import json
 import os
+import sys
 from dataclasses import replace
 from datetime import datetime, timezone
 from pathlib import Path
 
-os.chdir(Path(__file__).resolve().parent)
+REPO_ROOT = Path(__file__).resolve().parents[2]
+os.chdir(REPO_ROOT)
+sys.path.insert(0, str(REPO_ROOT))
 
-from run_kreuze_multilingual_experiment import (
-    FOCUS_PAIR,
-    _get_single_focus_corpus,
-)
-from src.nllb_try.config import RunConfig
-from src.nllb_try.corpus import (
+from nllb_try.config import RunConfig
+from nllb_try.corpus import (
     BaseParallelCorpus,
     ParallelFileCorpus,
     TatoebaCorpus,
     main_corpus,
     pool_parallel_data_into_tatoeba,
 )
-from src.nllb_try.train import get_training_budget, main_train
+from nllb_try.train import get_training_budget, main_train
+from sidetracks.kreuze.run_kreuze_multilingual_experiment import (
+    FOCUS_PAIR,
+    _get_single_focus_corpus,
+)
 
 
 def find_latest_run(variant: str, modelname: str) -> Path:

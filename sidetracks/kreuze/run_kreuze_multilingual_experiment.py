@@ -9,9 +9,9 @@ Examples
 --------
 ::
 
-    uv run python run_kreuze_multilingual_experiment.py \
+    uv run python sidetracks/kreuze/run_kreuze_multilingual_experiment.py \
         --variant control --dry-run
-    uv run python run_kreuze_multilingual_experiment.py \
+    uv run python sidetracks/kreuze/run_kreuze_multilingual_experiment.py \
         --variant pooled --dry-run
 """
 
@@ -22,17 +22,18 @@ from dataclasses import replace
 from datetime import datetime, timezone
 from pathlib import Path
 
-os.chdir(Path(__file__).resolve().parent)
+REPO_ROOT = Path(__file__).resolve().parents[2]
+os.chdir(REPO_ROOT)
 
-from src.nllb_try.config import RunConfig
-from src.nllb_try.corpus import (
+from nllb_try.config import RunConfig
+from nllb_try.corpus import (
     BaseParallelCorpus,
     ParallelFileCorpus,
     TatoebaCorpus,
     main_corpus,
     pool_parallel_data_into_tatoeba,
 )
-from src.nllb_try.train import get_training_budget, main_train
+from nllb_try.train import get_training_budget, main_train
 
 GEMMA_CORPUS = "data/kreuze/kreuze_synthetic_gemma50.csv"
 TATOEBA_LANGS = ("nld", "gos", "eng", "deu", "spa")

@@ -5,11 +5,12 @@ import json
 import os
 from pathlib import Path
 
-os.chdir(Path(__file__).resolve().parent)
+REPO_ROOT = Path(__file__).resolve().parents[2]
+os.chdir(REPO_ROOT)
 
-from src.nllb_try.config import RunConfig
-from src.nllb_try.corpus import main_corpus
-from src.nllb_try.evaluate import main_evaluate
+from nllb_try.config import RunConfig
+from nllb_try.corpus import main_corpus
+from nllb_try.evaluate import main_evaluate
 
 EVAL_ID = "kreuze-phase2-full-validation"
 

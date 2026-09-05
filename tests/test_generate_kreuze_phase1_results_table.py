@@ -2,7 +2,7 @@ import csv
 
 import pytest
 
-from generate_kreuze_phase1_results_table import (
+from sidetracks.kreuze.generate_kreuze_phase1_results_table import (
     END_MARKER,
     METRICS,
     START_MARKER,

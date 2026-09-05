@@ -186,8 +186,8 @@ copies of the same control row have the same direction within an epoch.
 The dedicated runner builds both variants from the same corpus definitions:
 
 ```bash
-uv run python run_kreuze_experiment.py --variant control --dry-run
-uv run python run_kreuze_experiment.py --variant pooled --dry-run
+uv run python sidetracks/kreuze/run_kreuze_experiment.py --variant control --dry-run
+uv run python sidetracks/kreuze/run_kreuze_experiment.py --variant pooled --dry-run
 ```
 
 Remove `--dry-run` to start training. The run configuration records
@@ -380,7 +380,7 @@ Phase 1b continuation endpoints for both model sizes. It is generated directly
 from the evaluation CSVs by running:
 
 ```bash
-uv run python generate_kreuze_phase1_results_table.py --write
+uv run python sidetracks/kreuze/generate_kreuze_phase1_results_table.py --write
 ```
 
 All values are scores on the complete held-out validation splits used by the
@@ -474,16 +474,22 @@ distinguishes clean finishing from simply training longer.
 Commands:
 
 ```bash
-uv run python run_kreuze_multilingual_experiment.py --variant control --dry-run
-uv run python run_kreuze_multilingual_experiment.py --variant pooled --dry-run
-uv run python run_kreuze_multilingual_continuation.py --variant clean --dry-run
-uv run python run_kreuze_multilingual_continuation.py --variant pooled --dry-run
-uv run python run_kreuze_multilingual_continuation.py --variant control --dry-run
+uv run python sidetracks/kreuze/run_kreuze_multilingual_experiment.py \
+  --variant control --dry-run
+uv run python sidetracks/kreuze/run_kreuze_multilingual_experiment.py \
+  --variant pooled --dry-run
+uv run python sidetracks/kreuze/run_kreuze_multilingual_continuation.py \
+  --variant clean --dry-run
+uv run python sidetracks/kreuze/run_kreuze_multilingual_continuation.py \
+  --variant pooled --dry-run
+uv run python sidetracks/kreuze/run_kreuze_multilingual_continuation.py \
+  --variant control --dry-run
 ```
 
 Remove `--dry-run` to train. Use
-`run_kreuze_multilingual_evaluation.py --run-dir <run-directory>` to evaluate
-all Tatoeba pairs plus the independent Kreuze validation set.
+`sidetracks/kreuze/run_kreuze_multilingual_evaluation.py --run-dir
+<run-directory>` to evaluate all Tatoeba pairs plus the independent Kreuze
+validation set.
 
 #### Phase 2 and Phase 3 results
 

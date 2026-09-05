@@ -13,8 +13,12 @@ from nllb_try.train import (
     get_balanced_df,
     get_training_budget,
 )
-from run_kreuze_multilingual_continuation import get_source_checkpoint
-from run_kreuze_multilingual_experiment import _get_pooled_focus_size
+from sidetracks.kreuze.run_kreuze_multilingual_continuation import (
+    get_source_checkpoint,
+)
+from sidetracks.kreuze.run_kreuze_multilingual_experiment import (
+    _get_pooled_focus_size,
+)
 
 
 def make_corpus(size: int) -> BaseParallelCorpus:

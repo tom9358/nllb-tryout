@@ -199,7 +199,7 @@ def main() -> None:
     )
     args = parser.parse_args()
 
-    repo_root = Path(__file__).resolve().parent
+    repo_root = Path(__file__).resolve().parents[2]
     table = generate_table(repo_root)
     if not args.write:
         print(table)
