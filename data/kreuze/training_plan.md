@@ -373,6 +373,40 @@ steps; the controls used Tatoeba only for all 954 steps.
 | Kreuze | Gronings→Dutch | BLEU | 47.44 | 63.41 | 49.64 | **66.32** |
 | Kreuze | Gronings→Dutch | chrF | 67.63 | 78.81 | 68.88 | **80.77** |
 
+#### Complete two-language experiment table
+
+This table includes the untrained baselines, every recorded base epoch and all
+Phase 1b continuation endpoints for both model sizes. It is generated directly
+from the evaluation CSVs by running:
+
+```bash
+uv run python generate_kreuze_phase1_results_table.py --write
+```
+
+All values are scores on the complete held-out validation splits used by the
+two-language experiment.
+
+<!-- BEGIN GENERATED PHASE 1 RESULTS -->
+| Model | Training stage | Steps | Tatoeba NL→GOS BLEU | Tatoeba NL→GOS chrF | Tatoeba GOS→NL BLEU | Tatoeba GOS→NL chrF | Kreuze NL→GOS BLEU | Kreuze NL→GOS chrF | Kreuze GOS→NL BLEU | Kreuze GOS→NL chrF |
+|---|---|---:|---:|---:|---:|---:|---:|---:|---:|---:|
+| 600M | Untrained baseline | 0 | 5.72 | 38.97 | 28.11 | 48.88 | 8.92 | 38.09 | 19.13 | 43.18 |
+| 600M | Tatoeba-only base, epoch 1 | 451 | 46.88 | 70.55 | 65.93 | 79.46 | 30.56 | 58.35 | 44.95 | 65.88 |
+| 600M | Synthetic pooled base, epoch 1 | 451 | 39.84 | 66.68 | 64.40 | 77.39 | 45.01 | 70.27 | 61.27 | 77.61 |
+| 600M | Tatoeba-only base, epoch 2 | 902 | 55.39 | 75.75 | 71.94 | 83.16 | 34.60 | 61.42 | 48.03 | 67.72 |
+| 600M | Synthetic pooled base, epoch 2 | 902 | 49.51 | 73.57 | 70.53 | 81.69 | 49.77 | 73.47 | 65.37 | 80.36 |
+| 600M | Tatoeba-only extended control | 954 | 57.16 | 76.72 | 71.96 | 83.33 | 34.09 | 61.29 | 47.44 | 67.63 |
+| 600M | Synthetic + pooled continuation | 954 | 49.98 | 73.81 | 70.68 | 81.68 | 50.00 | 73.59 | 65.38 | 80.20 |
+| 600M | Synthetic + clean finish | 954 | 55.81 | 77.04 | 73.99 | 84.04 | 48.21 | 72.79 | 63.41 | 78.81 |
+| 1.3B | Untrained baseline | 0 | 5.52 | 38.85 | 31.09 | 51.19 | 8.71 | 38.09 | 20.67 | 44.26 |
+| 1.3B | Tatoeba-only base, epoch 1 | 451 | 52.26 | 75.07 | 74.07 | 83.82 | 31.94 | 59.30 | 48.00 | 67.96 |
+| 1.3B | Synthetic pooled base, epoch 1 | 451 | 49.88 | 73.79 | 73.02 | 82.95 | 48.75 | 73.19 | 66.12 | 80.58 |
+| 1.3B | Tatoeba-only base, epoch 2 | 902 | 61.88 | 79.58 | 76.38 | 85.65 | 36.12 | 62.69 | 50.26 | 69.33 |
+| 1.3B | Synthetic pooled base, epoch 2 | 902 | 55.29 | 77.60 | 77.23 | 85.78 | 51.80 | 75.02 | 69.01 | 82.31 |
+| 1.3B | Tatoeba-only extended control | 954 | 57.17 | 77.48 | 77.14 | 86.13 | 34.12 | 61.14 | 49.64 | 68.88 |
+| 1.3B | Synthetic + pooled continuation | 954 | 57.91 | 78.82 | 76.69 | 85.71 | 51.68 | 75.07 | 68.98 | 82.42 |
+| 1.3B | Synthetic + clean finish | 954 | 60.93 | 81.01 | 80.63 | 88.23 | 49.89 | 74.41 | 66.32 | 80.77 |
+<!-- END GENERATED PHASE 1 RESULTS -->
+
 ### Phase 2: practical multilingual comparison
 
 Repeat the controlled comparison with Dutch, Gronings, English, German and
