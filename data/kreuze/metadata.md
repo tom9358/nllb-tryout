@@ -89,9 +89,12 @@ training data and not gold reference data.
 
 ## Intended use
 
-The Gemma corpus is the preferred candidate for future synthetic-data
-experiments. The NLLB corpora are retained as comparison data for now. The
-Gradio comparison viewer is:
+The Gemma corpus was used in the controlled experiments documented for
+[issue #34](https://github.com/tom9358/nllb-tryout/issues/34). Those experiments
+showed that it substantially improves out-of-domain Kreuze generalization and,
+with a final clean Tatoeba stage, can also outperform an equal-compute
+Tatoeba-only control. The NLLB-generated corpora are retained as comparison
+data. The Gradio comparison viewer is:
 
 ```bash
 uv run sidetracks/kreuze/inspect_kreuze.py

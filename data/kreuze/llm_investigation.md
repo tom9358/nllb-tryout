@@ -192,10 +192,11 @@ The current preferred synthetic-data setup is:
 - resumable CSV and JSONL output with provenance.
 
 The local source copy used by the generators is
-`sidetracks/kreuze/sentences_kreuze.json`. The Gemma corpus is currently the
-preferred candidate for further synthetic-data and NLLB-training
-experiments. It remains synthetic data and should not be treated as gold
-reference data without further quality filtering.
+`sidetracks/kreuze/sentences_kreuze.json`. The Gemma corpus was subsequently
+tested in the controlled NLLB experiments from
+[issue #34](https://github.com/tom9358/nllb-tryout/issues/34), where it provided
+strong useful training signal. It remains synthetic data and should not be
+treated as gold reference data without further quality filtering.
 
-The follow-up NLLB experiments, validation safeguards and staged-training
-ideas are specified in [`training_plan.md`](training_plan.md).
+The completed NLLB experiment record, validation safeguards and staged
+training results are documented in [`training_plan.md`](training_plan.md).

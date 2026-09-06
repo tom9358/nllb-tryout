@@ -1,10 +1,10 @@
-# Training plan for the Gemma/Kreuze corpus
+# Training record for the Gemma/Kreuze corpus
 
-This document tracks the training experiments for
-[issue #34](https://github.com/tom9358/nllb-tryout/issues/34). The goal is to
-measure whether the synthetic Gemma/Kreuze pairs improve Dutch–Gronings NLLB
-translation over models trained only on hand-written Tatoeba data, and then
-find a practical training recipe.
+This document records the completed training experiments for
+[issue #34](https://github.com/tom9358/nllb-tryout/issues/34). The experiments
+measured whether the synthetic Gemma/Kreuze pairs improve Dutch–Gronings NLLB
+translation over models trained only on hand-written Tatoeba data and
+identified a practical training recipe.
 
 RUG data is explicitly outside the scope of these experiments. It must not be
 used, committed, included in model artifacts, or otherwise distributed.
@@ -43,15 +43,27 @@ Every parallel file keeps its own validation set. Pooling adds only
 `df_train` to the matching Tatoeba training corpus, so Tatoeba and Kreuze can
 still be evaluated separately.
 
-Tatoeba validation uses the global sentence-ID hold-out implemented in
+Tatoeba validation used the global sentence-ID hold-out implemented in
 `_global_tatoeba_split()`. Before a parallel corpus is used for training, its
 source and target text are now compared against the held-out Tatoeba text for
 the corresponding language. Matching ignores casing and whitespace
-differences. With the current five-language Tatoeba snapshot, this removes 40
-Kreuze training pairs and leaves 102,318.
+differences. With the historical five-language Tatoeba snapshot used for
+#34, this removed 40 Kreuze training pairs and left 102,318.
 
 The overlap count depends on the configured Tatoeba languages because they
 jointly determine the global held-out sentence IDs.
+
+The exact Tatoeba snapshot used for #34 was not archived. It contained 13,587
+raw Dutch–Gronings pairs and produced 13,038 training pairs plus 549 validation
+pairs in the five-language configuration. A later export contained 13,629 raw
+pairs and produced a largely different 13,104/525 split despite using the same
+seed. The random seed therefore reproduces a split only when the input files
+are identical. Future experiments must freeze the filtered parallel pairs,
+explicit train/validation membership and sentence IDs, together with source
+metadata and file hashes. A possible permanent validation strategy is tracked in
+[issue #17](https://github.com/tom9358/nllb-tryout/issues/17). Another simple solution would be to at least locally
+save the exact training data along with the epochs, or to
+commit and push it to the repo or to another online place.
 
 ## Translation direction
 
@@ -67,26 +79,26 @@ This distinction matters:
 - **Gronings to Dutch** uses authentic Gronings as input but a potentially
   imperfect Gemma translation as the target.
 
-The current trainer does not duplicate each pair into both directions. For
-every sampled pair and epoch, it randomly chooses one direction, with an
-approximately 50/50 balance over the complete epoch. If a pair is selected in
-every epoch, the probability that it has appeared in both directions after
-`E` epochs is:
+The trainer supports both legacy random direction assignment and the explicit
+alternating strategy added for these experiments. It does not duplicate a pair
+within one epoch. With the random strategy, every sampled pair receives one
+random direction, with an approximately 50/50 balance over the complete epoch.
+If a pair is selected in every epoch, the probability that it has appeared in
+both directions after `E` epochs is:
 
 ```text
 1 - 2^(1-E)
 ```
 
 That is about 50% after two epochs and 99.95% after twelve epochs. It is
-therefore not guaranteed, especially for a short synthetic-data run or for
-rows sampled only in some epochs.
+therefore not guaranteed with the random strategy, especially for a short run
+or for rows sampled only in some epochs.
 
-Before the controlled runs, training should gain an explicit alternating
-direction strategy. A stable row receives one direction in an epoch and the
-opposite direction in the next epoch. For the pooled focus corpus, which is
-fully selected by `focus_cap`, two epochs then guarantee one observation in
-each direction without doubling the optimizer-step budget. Existing random
-direction behavior should remain available for reproducing older runs.
+The controlled #34 runs used `direction_strategy="alternating"`. A stable row
+receives one direction in an epoch and the opposite direction in the next
+logical epoch. For a fully selected focus corpus, two epochs therefore
+guarantee one observation in each direction. The legacy random behavior
+remains available for reproducing older runs.
 
 ## Focus-cap sampling
 
@@ -121,7 +133,7 @@ together. The supporting half is divided using temperature-smoothed corpus
 sizes with `T=5`, so the huge English–German and English–Spanish corpora cannot
 dominate while the three smaller Gronings auxiliary pairs remain meaningful.
 
-With the current five-language data:
+With the historical five-language data used for #34:
 
 | Strategy | Samples/epoch | Steps/epoch at batch 256 |
 |---|---:|---:|
@@ -168,7 +180,7 @@ replacement; in the treatment, almost every sampled pair is unique. This
 tests whether the diverse synthetic data is more useful than spending the same
 compute repeatedly training on the clean data.
 
-The current two-language snapshot gives:
+The historical two-language snapshot used for #34 gave:
 
 | Variant | Unique train rows | Samples/epoch | Steps/epoch | Total steps |
 |---|---:|---:|---:|---:|
@@ -237,9 +249,8 @@ but simple proportional pooling does not beat repeated clean training on the
 primary hand-written Tatoeba validation set. The larger regression in
 Dutch→Gronings is consistent with synthetic Dutch inputs being useful but
 different from Tatoeba Dutch, while the authentic Gronings targets remain
-valuable. A short equal-step continuation experiment is the next cheapest way
-to test whether a clean Tatoeba finish can retain the domain gain while
-recovering the primary validation scores.
+valuable. This result motivated the short equal-step clean-finish experiment
+documented in Phase 1b below.
 
 Run artifacts:
 
@@ -824,16 +835,27 @@ Long-budget run artifacts:
 - final synthetic + clean:
   `checkpoints/nllb-200-distilled-1.3B-nld-gos-eng-deu-spa-kreuze-phase2b-clean-seed9358-20260903-091945`.
 
-### Phase 4: follow-up priorities
+### Issue #34 conclusion and follow-ups
 
-1. Repeat the strongest 600M and 1.3B recipes with multiple seeds and paired
-   significance tests.
-2. Keep clean and synthetic Dutch–Gronings as separate sampling groups so the
-   clean corpus can receive an explicit minimum weight.
-3. Try direction-specific weighting if Dutch→Gronings and Gronings→Dutch react
-   differently to synthetic data.
-4. Investigate conservative quality filtering only if the simpler approaches
-   leave clear, attributable problems.
+Issue #34 established that the Gemma/Kreuze corpus contains useful training
+signal. The strongest tested recipe is the 1.3B multilingual model trained for
+eight pooled epochs and followed by one clean Tatoeba epoch. It improves every
+reported primary Tatoeba and Kreuze metric over its equal-compute Tatoeba-only
+control while nearly eliminating the supporting-language trade-off.
+
+The remaining questions are intentionally outside #34:
+
+- freezing source snapshots and creating stable validation data is tracked in
+  [issue #17](https://github.com/tom9358/nllb-tryout/issues/17);
+- expanding the supporting-language set is tracked in
+  [issue #35](https://github.com/tom9358/nllb-tryout/issues/35);
+- giving every clean Dutch–Gronings pair one pass in each translation
+  direction is tracked in
+  [issue #37](https://github.com/tom9358/nllb-tryout/issues/37).
+
+Repeated seeds, explicit clean/synthetic weighting, direction-specific
+weighting and synthetic-quality filtering remain possible later experiments,
+but the #34 results do not currently justify separate issues for them.
 
 ## Token-length measurement
 
