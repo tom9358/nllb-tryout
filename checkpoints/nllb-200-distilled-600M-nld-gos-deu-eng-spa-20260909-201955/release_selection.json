@@ -1,0 +1,18 @@
+{
+  "selected_checkpoint": "epoch8",
+  "huggingface_repository": "Tom9358/nllb-tatoeba-gos-nld-v1",
+  "selection_reason": "Best balanced final-v1 checkpoint: retains nearly all later Tatoeba Dutch-to-Gronings gains while performing better than epoch10 on both reverse-direction Tatoeba metrics and three of four Kreuze metrics.",
+  "evaluation": "eval/20260909-205932/metrics.csv",
+  "tatoeba_validation_pairs": 525,
+  "kreuze_validation_sample_size": 750,
+  "metrics": {
+    "tatoeba_nld_to_gos_bleu": 60.07641737626266,
+    "tatoeba_nld_to_gos_chrf": 77.30987009183274,
+    "tatoeba_gos_to_nld_bleu": 75.8406652559733,
+    "tatoeba_gos_to_nld_chrf": 85.07133454525649,
+    "kreuze_nld_to_gos_bleu": 30.700996969033422,
+    "kreuze_nld_to_gos_chrf": 57.61923096075178,
+    "kreuze_gos_to_nld_bleu": 49.30666547273551,
+    "kreuze_gos_to_nld_chrf": 69.38533558426417
+  }
+}
