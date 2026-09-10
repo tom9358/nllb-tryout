@@ -12,7 +12,9 @@ Here is a Huggingface space where the model can be used: https://huggingface.co/
 
 ## Training
 
-It was trained on about 10.000 Gronings-Dutch sentence pairs from [Tatoeba](https://tatoeba.org/), about half of which I wrote myself.
+It was trained on about 13.000 Gronings-Dutch sentence pairs from [Tatoeba](https://tatoeba.org/), a bit over half of which I wrote myself.
+
+Research into adding synthetic training data is still ongoing, and has produced promising preliminary results.
 
 I tried my best to check for naturalness and spelling using the Gronings online dictionary and corpus [Woordwaark](https://woordwaark.nl/), and the Gronings-language website [dideldom.nu](https://dideldom.nu/). Particularly the [Kreuze](https://dideldom.nu/kreuze) Gronings magazines hosted there I found very useful, and I wrote a little [search interface](https://tom9358.pythonanywhere.com/) to easily find example sentences in those magazines. I never copied any sentences and instead always formulated analogous ones myself.
 
@@ -32,8 +34,7 @@ for `.csv` and `.tsv` files. Each file must:
 - be UTF-8 encoded (a UTF-8 byte-order mark is accepted);
 - contain a header and exactly two columns;
 - use NLLB language labels as headers, with source first and target second,
-  for example `nld_Latn;gos_Latn`;
-- contain non-empty values in both columns.
+  for example `nld_Latn;gos_Latn`.
 
 Blank pairs are removed, but sentence text is otherwise left unchanged.
 By default, `.csv` uses `;` and `.tsv` uses a tab. Use
