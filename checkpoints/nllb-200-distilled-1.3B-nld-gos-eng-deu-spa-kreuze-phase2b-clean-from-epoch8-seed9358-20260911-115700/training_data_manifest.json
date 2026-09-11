@@ -1,0 +1,112 @@
+{
+  "release": "v2",
+  "downloaded_at": "2026-09-11T10:20:10.454847+00:00",
+  "tatoeba_source": "https://tatoeba.org/en/downloads",
+  "tatoeba_snapshot_archived": false,
+  "split_strategy": "global_sentence_id_holdout",
+  "split_seed": 9358,
+  "holdout_fraction": 0.02,
+  "git_commit": "7cd437a1dcc9513ba7c6257a0f5e9234b88311d0",
+  "kreuze_corpus": "data/kreuze/kreuze_synthetic_gemma50.csv",
+  "corpora": [
+    {
+      "kind": "tatoeba",
+      "source_lang_nllb": "nld_Latn",
+      "target_lang_nllb": "gos_Latn",
+      "path": null,
+      "total_rows": 13629,
+      "train_rows": 13104,
+      "validation_rows": 525
+    },
+    {
+      "kind": "tatoeba",
+      "source_lang_nllb": "nld_Latn",
+      "target_lang_nllb": "eng_Latn",
+      "path": null,
+      "total_rows": 171139,
+      "train_rows": 164449,
+      "validation_rows": 6690
+    },
+    {
+      "kind": "tatoeba",
+      "source_lang_nllb": "nld_Latn",
+      "target_lang_nllb": "deu_Latn",
+      "path": null,
+      "total_rows": 68798,
+      "train_rows": 66107,
+      "validation_rows": 2691
+    },
+    {
+      "kind": "tatoeba",
+      "source_lang_nllb": "nld_Latn",
+      "target_lang_nllb": "spa_Latn",
+      "path": null,
+      "total_rows": 45801,
+      "train_rows": 43976,
+      "validation_rows": 1825
+    },
+    {
+      "kind": "tatoeba",
+      "source_lang_nllb": "gos_Latn",
+      "target_lang_nllb": "eng_Latn",
+      "path": null,
+      "total_rows": 9936,
+      "train_rows": 9556,
+      "validation_rows": 380
+    },
+    {
+      "kind": "tatoeba",
+      "source_lang_nllb": "gos_Latn",
+      "target_lang_nllb": "deu_Latn",
+      "path": null,
+      "total_rows": 5656,
+      "train_rows": 5447,
+      "validation_rows": 209
+    },
+    {
+      "kind": "tatoeba",
+      "source_lang_nllb": "gos_Latn",
+      "target_lang_nllb": "spa_Latn",
+      "path": null,
+      "total_rows": 4173,
+      "train_rows": 3996,
+      "validation_rows": 177
+    },
+    {
+      "kind": "tatoeba",
+      "source_lang_nllb": "eng_Latn",
+      "target_lang_nllb": "deu_Latn",
+      "path": null,
+      "total_rows": 583107,
+      "train_rows": 560215,
+      "validation_rows": 22892
+    },
+    {
+      "kind": "tatoeba",
+      "source_lang_nllb": "eng_Latn",
+      "target_lang_nllb": "spa_Latn",
+      "path": null,
+      "total_rows": 283105,
+      "train_rows": 271906,
+      "validation_rows": 11199
+    },
+    {
+      "kind": "tatoeba",
+      "source_lang_nllb": "deu_Latn",
+      "target_lang_nllb": "spa_Latn",
+      "path": null,
+      "total_rows": 100107,
+      "train_rows": 96161,
+      "validation_rows": 3946
+    },
+    {
+      "kind": "parallel",
+      "source_lang_nllb": "nld_Latn",
+      "target_lang_nllb": "gos_Latn",
+      "path": "data/kreuze/kreuze_synthetic_gemma50.csv",
+      "total_rows": 104418,
+      "train_rows": 102329,
+      "validation_rows": 2089
+    }
+  ]
+}

@@ -1,0 +1,27 @@
+batch_size: 256
+data_root_path: data
+device: cuda:1
+direction_epoch_offset: 8
+direction_strategy: alternating
+focus_lang_pair: ('nld_Latn', 'gos_Latn')
+initial_model_path: checkpoints/nllb-200-distilled-1.3B-nld-gos-eng-deu-spa-kreuze-phase2-pooled-seed9358-20260911-102010/checkpoints/epoch8
+learning_rate: 0.0001
+max_chars: 200
+max_length: 48
+model_cache_path: hfacemodels
+modelname: facebook/nllb-200-distilled-1.3B
+new_lang_nllb: gos_Latn
+num_epochs: 1
+parallel_data_paths: ('data/kreuze/kreuze_synthetic_gemma50.csv',)
+parallel_data_separator: None
+run_dir: checkpoints/nllb-200-distilled-1.3B-nld-gos-eng-deu-spa-kreuze-phase2b-clean-from-epoch8-seed9358-20260911-115700
+run_id: kreuze-phase2b-clean-from-epoch8-seed9358-20260911-115700
+sampling_strategy: focus_total
+sampling_temperature: 5.0
+seed: 9358
+similar_lang_nllb: nld_Latn
+source_langs_nllb: ('nld_Latn', 'gos_Latn', 'eng_Latn', 'deu_Latn', 'spa_Latn')
+source_langs_tatoeba: ('nld', 'gos', 'eng', 'deu', 'spa')
+target_samples_per_epoch: 26208
+tatoeba_path: data/tatoeba
+warmup_steps: 0

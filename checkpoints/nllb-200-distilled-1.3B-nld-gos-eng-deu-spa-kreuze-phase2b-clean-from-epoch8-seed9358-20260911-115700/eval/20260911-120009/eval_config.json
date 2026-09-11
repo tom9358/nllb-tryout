@@ -1,0 +1,26 @@
+{
+  "corpus_names": {
+    "corpus0": "tatoeba:nld_Latn-gos_Latn",
+    "corpus1": "tatoeba:nld_Latn-eng_Latn",
+    "corpus10": "data/kreuze/kreuze_synthetic_gemma50.csv",
+    "corpus2": "tatoeba:nld_Latn-deu_Latn",
+    "corpus3": "tatoeba:nld_Latn-spa_Latn",
+    "corpus4": "tatoeba:gos_Latn-eng_Latn",
+    "corpus5": "tatoeba:gos_Latn-deu_Latn",
+    "corpus6": "tatoeba:gos_Latn-spa_Latn",
+    "corpus7": "tatoeba:eng_Latn-deu_Latn",
+    "corpus8": "tatoeba:eng_Latn-spa_Latn",
+    "corpus9": "tatoeba:deu_Latn-spa_Latn"
+  },
+  "created_at": "2026-09-11T12:00:09+00:00",
+  "device": "cuda:1",
+  "epochs_evaluated": [
+    "epoch1"
+  ],
+  "eval_id": "20260911-120009",
+  "include_train": false,
+  "new_lang_nllb": "gos_Latn",
+  "run_dir": "/home/tom.brand/offline/nllb-tryout/checkpoints/nllb-200-distilled-1.3B-nld-gos-eng-deu-spa-kreuze-phase2b-clean-from-epoch8-seed9358-20260911-115700",
+  "sample_size": null,
+  "seed": 9358
+}
