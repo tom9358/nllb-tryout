@@ -4,7 +4,7 @@ This project focuses on building a translation machine for the Gronings language
 
 I'm working on this in my free time so the project does not always have steady progress.
 
-A beta version of the translation model is now available on huggingface! https://huggingface.co/Tom9358/nllb-tatoeba-gos-nld-v1
+A beta version of the translation model is now available on huggingface! https://huggingface.co/Tom9358/nllb-gos-nld-v2
 
 Here is a Huggingface space where the model can be used: https://huggingface.co/spaces/Tom9358/gos_gronings_translate
 
