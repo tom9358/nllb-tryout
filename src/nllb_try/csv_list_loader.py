@@ -1,6 +1,7 @@
 import os
 import re
 from collections.abc import Sequence
+from html import unescape
 from pathlib import Path
 
 import pandas as pd
@@ -24,11 +25,16 @@ _DOCUMENT_METADATA_WORDS = frozenset(
         "colofon",
     }
 )
-_URL = re.compile(r'\bhttps?:?//[^\s<>"\']+|\bwww\.[^\s<>"\']+', re.IGNORECASE)
-_EMAIL = re.compile(r"\b[\w.+-]+@[\w-]+(?:\.[\w-]+)+\b")
+_URL_PATH_TOKEN = r"[^\s<>\"']*[/.][^\s<>\"']*"
+_URL = re.compile(
+    rf"\bhttps?:?//\s*[^\s<>\"']+(?:\s+{_URL_PATH_TOKEN})*"
+    rf"|\bwww\.[^\s<>\"']+(?:\s+{_URL_PATH_TOKEN})*",
+    re.IGNORECASE,
+)
+_EMAIL = re.compile(r"\b[\w.+-]+\s*@\s*[\w-]+(?:\s*\.\s*[\w-]+)+\b")
 _HTML_TAG = re.compile(r"<[^<>]+>")
 _HTML_ENTITY = re.compile(r"&(?:#\d+|#x[0-9a-f]+|[a-z]+);", re.IGNORECASE)
-_WEB_OR_MARKUP_PATTERNS = (_URL, _EMAIL, _HTML_TAG, _HTML_ENTITY)
+_WEB_PLACEHOLDER_ONLY = re.compile(r"(?:(?:\[URL\]|\[EMAIL\])|[\W_])+")
 
 
 def _is_single_caps_word_fragment(text: str) -> bool:
@@ -36,17 +42,31 @@ def _is_single_caps_word_fragment(text: str) -> bool:
     return bool(match and match.group("word").isupper())
 
 
+def _sanitize_web_or_markup(text: str) -> str:
+    """Replace web/contact details and clean HTML without changing other text."""
+    text = _HTML_ENTITY.sub(lambda match: unescape(match.group()), text)
+    has_html_tag = bool(_HTML_TAG.search(text))
+    text = _HTML_TAG.sub(" ", text)
+    text = _URL.sub("[URL]", text)
+    text = _EMAIL.sub("[EMAIL]", text)
+    return " ".join(text.split()) if has_html_tag else text
+
+
+def _is_web_placeholder_only(text: str) -> bool:
+    return bool(_WEB_PLACEHOLDER_ONLY.fullmatch(text.strip()))
+
+
+def _has_web_placeholder_mismatch(source: str, target: str) -> bool:
+    return any(
+        source.count(placeholder) != target.count(placeholder)
+        for placeholder in ("[URL]", "[EMAIL]")
+    )
+
+
 def _contains_low_quality_pair(source: str, target: str) -> bool:
     """Identify clearly non-linguistic or document-layout parallel pairs."""
     if not any(character.isalpha() for character in source) or not any(
         character.isalpha() for character in target
-    ):
-        return True
-
-    if any(
-        pattern.search(text)
-        for pattern in _WEB_OR_MARKUP_PATTERNS
-        for text in (source, target)
     ):
         return True
 
@@ -78,13 +98,29 @@ def _contains_low_quality_pair(source: str, target: str) -> bool:
 def _clean_df(df: pd.DataFrame, source_col: str, target_col: str) -> pd.DataFrame:
     """Keep complete, useful pairs and normalize their column names.
 
-    Whitespace is only used to identify blank values. Clearly non-linguistic
-    rows and document-layout fragments are removed, but retained sentence text
-    is not stripped or otherwise modified.
+    Whitespace is only used to identify blank values. Web/contact details and
+    HTML are sanitized, and clearly non-linguistic rows and document-layout
+    fragments are removed. Other retained sentence text is not modified.
     """
     df = df.dropna(subset=[source_col, target_col])
     df = df[df[source_col].str.strip().str.len() > 0]
     df = df[df[target_col].str.strip().str.len() > 0]
+    df[source_col] = df[source_col].map(_sanitize_web_or_markup)
+    df[target_col] = df[target_col].map(_sanitize_web_or_markup)
+    df = df[df[source_col].str.strip().str.len() > 0]
+    df = df[df[target_col].str.strip().str.len() > 0]
+    df = df[
+        ~(
+            df[source_col].map(_is_web_placeholder_only)
+            | df[target_col].map(_is_web_placeholder_only)
+        )
+    ]
+    df = df[
+        [
+            not _has_web_placeholder_mismatch(source, target)
+            for source, target in zip(df[source_col], df[target_col], strict=True)
+        ]
+    ]
     keep = [
         not _contains_low_quality_pair(source, target)
         for source, target in zip(df[source_col], df[target_col], strict=True)

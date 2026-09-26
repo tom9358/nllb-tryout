@@ -38,8 +38,14 @@ class LoadParallelTableTests(unittest.TestCase):
                 "NUMMER 10 !;NUMMER 10 !\n"
                 "Weerd ========;Weerd ========\n"
                 "Kijk op www.voorbeeld.nl;Kiek op www.voorbeeld.nl\n"
+                "Kijk op https:// www.voorbeeld.nl/pad/ vervolg/pad;Kiek op https:// www.voorbeeld.nl/pad/ vervolg/pad\n"
                 "Mail info@example.nl;Mail info@example.nl\n"
+                "Mail info@ example.nl;Mail info@example.nl\n"
                 "\"Een &amp; twee\";\"Een &amp; twij\"\n"
+                "s&lte;s&lte\n"
+                "\"<b>Een</b> test\";\"<b>Ain</b> test\"\n"
+                "https://voorbeeld.nl;https://voorbeeld.nl\n"
+                "Kijk op www.voorbeeld.nl;Kiek op de website\n"
                 "HAAR;HAART\n"
                 "Een zin met 13000 en 40000;N zin mit 13000 en 40000\n",
                 encoding="utf-8",
@@ -51,6 +57,25 @@ class LoadParallelTableTests(unittest.TestCase):
             df.to_dict("records"),
             [
                 {"source_sentence": "Goedemorgen", "target_sentence": "Gojemörn"},
+                {
+                    "source_sentence": "Kijk op [URL]",
+                    "target_sentence": "Kiek op [URL]",
+                },
+                {
+                    "source_sentence": "Kijk op [URL]",
+                    "target_sentence": "Kiek op [URL]",
+                },
+                {
+                    "source_sentence": "Mail [EMAIL]",
+                    "target_sentence": "Mail [EMAIL]",
+                },
+                {
+                    "source_sentence": "Mail [EMAIL]",
+                    "target_sentence": "Mail [EMAIL]",
+                },
+                {"source_sentence": "Een & twee", "target_sentence": "Een & twij"},
+                {"source_sentence": "s&lte", "target_sentence": "s&lte"},
+                {"source_sentence": "Een test", "target_sentence": "Ain test"},
                 {"source_sentence": "HAAR", "target_sentence": "HAART"},
                 {
                     "source_sentence": "Een zin met 13000 en 40000",

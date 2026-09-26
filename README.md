@@ -32,8 +32,9 @@ for `.csv` and `.tsv` files. Each file must:
 - use NLLB language labels as headers, with source first and target second,
   for example `nld_Latn;gos_Latn`.
 
-Blank pairs and clearly non-linguistic/layout fragments, web/contact details,
-or HTML markup are removed, but other sentence text is left unchanged.
+Blank pairs and clearly non-linguistic/layout fragments are removed. URLs and
+email addresses are replaced with placeholders, and HTML markup is sanitized,
+without otherwise changing sentence text.
 By default, `.csv` uses `;` and `.tsv` uses a tab. Use
 `--parallel-data-separator` to override the delimiter for all configured
 parallel files.
