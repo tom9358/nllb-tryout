@@ -37,6 +37,9 @@ class LoadParallelTableTests(unittest.TestCase):
                 "BLADZIJDE 1;BLADZIEDE 1\n"
                 "NUMMER 10 !;NUMMER 10 !\n"
                 "Weerd ========;Weerd ========\n"
+                "Kijk op www.voorbeeld.nl;Kiek op www.voorbeeld.nl\n"
+                "Mail info@example.nl;Mail info@example.nl\n"
+                "\"Een &amp; twee\";\"Een &amp; twij\"\n"
                 "HAAR;HAART\n"
                 "Een zin met 13000 en 40000;N zin mit 13000 en 40000\n",
                 encoding="utf-8",

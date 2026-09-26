@@ -35,9 +35,9 @@ columns with NLLB language labels, in source-to-target order, for example:
 nld_Latn;gos_Latn
 ```
 
-Files are read as UTF-8 (with or without a byte-order mark). Empty pairs and
-clearly non-linguistic/layout fragments are discarded without otherwise
-trimming or normalizing retained sentence text.
+Files are read as UTF-8 (with or without a byte-order mark). Empty pairs,
+clearly non-linguistic/layout fragments, web/contact details, and HTML markup
+are discarded without otherwise trimming or normalizing retained sentence text.
 Semicolon is the default delimiter for `.csv`; `.tsv` uses a tab.
 
 To train with only the Gemma corpus, pass the file explicitly:

@@ -24,6 +24,11 @@ _DOCUMENT_METADATA_WORDS = frozenset(
         "colofon",
     }
 )
+_URL = re.compile(r'\bhttps?:?//[^\s<>"\']+|\bwww\.[^\s<>"\']+', re.IGNORECASE)
+_EMAIL = re.compile(r"\b[\w.+-]+@[\w-]+(?:\.[\w-]+)+\b")
+_HTML_TAG = re.compile(r"<[^<>]+>")
+_HTML_ENTITY = re.compile(r"&(?:#\d+|#x[0-9a-f]+|[a-z]+);", re.IGNORECASE)
+_WEB_OR_MARKUP_PATTERNS = (_URL, _EMAIL, _HTML_TAG, _HTML_ENTITY)
 
 
 def _is_single_caps_word_fragment(text: str) -> bool:
@@ -35,6 +40,13 @@ def _contains_low_quality_pair(source: str, target: str) -> bool:
     """Identify clearly non-linguistic or document-layout parallel pairs."""
     if not any(character.isalpha() for character in source) or not any(
         character.isalpha() for character in target
+    ):
+        return True
+
+    if any(
+        pattern.search(text)
+        for pattern in _WEB_OR_MARKUP_PATTERNS
+        for text in (source, target)
     ):
         return True
 
