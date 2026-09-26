@@ -35,6 +35,7 @@ _EMAIL = re.compile(r"\b[\w.+-]+\s*@\s*[\w-]+(?:\s*\.\s*[\w-]+)+\b")
 _HTML_TAG = re.compile(r"<[^<>]+>")
 _HTML_ENTITY = re.compile(r"&(?:#\d+|#x[0-9a-f]+|[a-z]+);", re.IGNORECASE)
 _WEB_PLACEHOLDER_ONLY = re.compile(r"(?:(?:\[URL\]|\[EMAIL\])|[\W_])+")
+_MIN_IDENTICAL_PAIR_CHARACTERS = 10
 
 
 def _is_single_caps_word_fragment(text: str) -> bool:
@@ -60,6 +61,13 @@ def _has_web_placeholder_mismatch(source: str, target: str) -> bool:
     return any(
         source.count(placeholder) != target.count(placeholder)
         for placeholder in ("[URL]", "[EMAIL]")
+    )
+
+
+def _is_long_identical_pair(source: str, target: str) -> bool:
+    source = source.strip()
+    return (
+        len(source) >= _MIN_IDENTICAL_PAIR_CHARACTERS and source == target.strip()
     )
 
 
@@ -98,13 +106,21 @@ def _contains_low_quality_pair(source: str, target: str) -> bool:
 def _clean_df(df: pd.DataFrame, source_col: str, target_col: str) -> pd.DataFrame:
     """Keep complete, useful pairs and normalize their column names.
 
-    Whitespace is only used to identify blank values. Web/contact details and
-    HTML are sanitized, and clearly non-linguistic rows and document-layout
-    fragments are removed. Other retained sentence text is not modified.
+    Whitespace is only used to identify blank values. Long source/target pairs
+    that are identical apart from surrounding whitespace are removed.
+    Web/contact details and HTML are sanitized, and clearly non-linguistic rows
+    and document-layout fragments are removed. Other retained sentence text is
+    not modified.
     """
     df = df.dropna(subset=[source_col, target_col])
     df = df[df[source_col].str.strip().str.len() > 0]
     df = df[df[target_col].str.strip().str.len() > 0]
+    df = df[
+        [
+            not _is_long_identical_pair(source, target)
+            for source, target in zip(df[source_col], df[target_col], strict=True)
+        ]
+    ]
     df[source_col] = df[source_col].map(_sanitize_web_or_markup)
     df[target_col] = df[target_col].map(_sanitize_web_or_markup)
     df = df[df[source_col].str.strip().str.len() > 0]

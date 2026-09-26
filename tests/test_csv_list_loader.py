@@ -43,6 +43,9 @@ class LoadParallelTableTests(unittest.TestCase):
                 "Mail info@ example.nl;Mail info@example.nl\n"
                 "\"Een &amp; twee\";\"Een &amp; twij\"\n"
                 "s&lte;s&lte\n"
+                "Nederlandse;Nederlandse\n"
+                "Groningen;Groningen\n"
+                "Kijk op https://voorbeeld.nl voor meer informatie;Kijk op https://voorbeeld.nl voor meer informatie\n"
                 "\"<b>Een</b> test\";\"<b>Ain</b> test\"\n"
                 "https://voorbeeld.nl;https://voorbeeld.nl\n"
                 "Kijk op www.voorbeeld.nl;Kiek op de website\n"
@@ -69,12 +72,9 @@ class LoadParallelTableTests(unittest.TestCase):
                     "source_sentence": "Mail [EMAIL]",
                     "target_sentence": "Mail [EMAIL]",
                 },
-                {
-                    "source_sentence": "Mail [EMAIL]",
-                    "target_sentence": "Mail [EMAIL]",
-                },
                 {"source_sentence": "Een & twee", "target_sentence": "Een & twij"},
                 {"source_sentence": "s&lte", "target_sentence": "s&lte"},
+                {"source_sentence": "Groningen", "target_sentence": "Groningen"},
                 {"source_sentence": "Een test", "target_sentence": "Ain test"},
                 {"source_sentence": "HAAR", "target_sentence": "HAART"},
                 {
