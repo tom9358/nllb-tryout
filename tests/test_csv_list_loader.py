@@ -26,6 +26,36 @@ class LoadParallelTableTests(unittest.TestCase):
             [{"source_sentence": "Goedemorgen", "target_sentence": "Gojemörn"}],
         )
 
+    def test_filters_only_clear_low_quality_pairs(self):
+        with tempfile.TemporaryDirectory() as temp_dir:
+            path = Path(temp_dir) / "pairs.csv"
+            path.write_text(
+                "nld_Latn;gos_Latn\n"
+                "Goedemorgen;Gojemörn\n"
+                "1;1\n"
+                "INHOUD:;INHOLD:\n"
+                "BLADZIJDE 1;BLADZIEDE 1\n"
+                "NUMMER 10 !;NUMMER 10 !\n"
+                "Weerd ========;Weerd ========\n"
+                "HAAR;HAART\n"
+                "Een zin met 13000 en 40000;N zin mit 13000 en 40000\n",
+                encoding="utf-8",
+            )
+
+            df, _, _ = load_parallel_table(path)
+
+        self.assertEqual(
+            df.to_dict("records"),
+            [
+                {"source_sentence": "Goedemorgen", "target_sentence": "Gojemörn"},
+                {"source_sentence": "HAAR", "target_sentence": "HAART"},
+                {
+                    "source_sentence": "Een zin met 13000 en 40000",
+                    "target_sentence": "N zin mit 13000 en 40000",
+                },
+            ],
+        )
+
     def test_rejects_non_nllb_headers(self):
         with tempfile.TemporaryDirectory() as temp_dir:
             path = Path(temp_dir) / "pairs.csv"

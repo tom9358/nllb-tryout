@@ -5,16 +5,79 @@ from pathlib import Path
 
 import pandas as pd
 
+_WORD = re.compile(r"[^\W\d_]+", re.UNICODE)
+_SINGLE_CAPS_WORD_FRAGMENT = re.compile(
+    r"(?P<word>[^\W\d_]+)(?P<suffix>[\d\s\W_]*)", re.UNICODE
+)
+_REPEATED_LAYOUT_OR_DIGIT = re.compile(r"([0-9_—=\-*,])\1{3,}")
+_DOCUMENT_METADATA_WORDS = frozenset(
+    {
+        "inhoud",
+        "inhold",
+        "pagina",
+        "bladzijde",
+        "bladzie",
+        "bladziede",
+        "isbn",
+        "redactie",
+        "redaksie",
+        "colofon",
+    }
+)
+
+
+def _is_single_caps_word_fragment(text: str) -> bool:
+    match = _SINGLE_CAPS_WORD_FRAGMENT.fullmatch(text.strip())
+    return bool(match and match.group("word").isupper())
+
+
+def _contains_low_quality_pair(source: str, target: str) -> bool:
+    """Identify clearly non-linguistic or document-layout parallel pairs."""
+    if not any(character.isalpha() for character in source) or not any(
+        character.isalpha() for character in target
+    ):
+        return True
+
+    is_caps_fragment = _is_single_caps_word_fragment(
+        source
+    ) or _is_single_caps_word_fragment(target)
+    words = {
+        word.casefold()
+        for text in (source, target)
+        for word in _WORD.findall(text)
+    }
+    if is_caps_fragment and (
+        words & _DOCUMENT_METADATA_WORDS
+        or any(character.isdigit() for text in (source, target) for character in text)
+    ):
+        return True
+
+    has_repeated_layout_or_digit = bool(
+        _REPEATED_LAYOUT_OR_DIGIT.search(source)
+        or _REPEATED_LAYOUT_OR_DIGIT.search(target)
+    )
+    return (
+        has_repeated_layout_or_digit
+        and len(_WORD.findall(source)) <= 1
+        and len(_WORD.findall(target)) <= 1
+    )
+
 
 def _clean_df(df: pd.DataFrame, source_col: str, target_col: str) -> pd.DataFrame:
-    """Keep complete, non-blank pairs and normalize their column names.
+    """Keep complete, useful pairs and normalize their column names.
 
-    Whitespace is only used to identify blank values; sentence text itself is
-    not stripped or otherwise modified.
+    Whitespace is only used to identify blank values. Clearly non-linguistic
+    rows and document-layout fragments are removed, but retained sentence text
+    is not stripped or otherwise modified.
     """
     df = df.dropna(subset=[source_col, target_col])
     df = df[df[source_col].str.strip().str.len() > 0]
     df = df[df[target_col].str.strip().str.len() > 0]
+    keep = [
+        not _contains_low_quality_pair(source, target)
+        for source, target in zip(df[source_col], df[target_col], strict=True)
+    ]
+    df = df.loc[keep]
     df = df[[source_col, target_col]].copy()
     df = df.rename(
         columns={source_col: "source_sentence", target_col: "target_sentence"}
@@ -30,7 +93,8 @@ def load_parallel_table(
     The first header is the source language and the second header is the
     target language. Headers must look like e.g. ``gos_Latn``. Files must be
     UTF-8; a UTF-8 byte-order mark is accepted. Empty and whitespace-only
-    pairs are discarded, but non-empty sentence text is preserved verbatim.
+    pairs and clearly non-linguistic/layout pairs are discarded. Other
+    sentence text is preserved verbatim.
 
     Unless ``sep`` is provided, ``.csv`` files use ``;`` and ``.tsv`` files
     use a tab.
