@@ -54,6 +54,8 @@ switched on with three `RunConfig` fields (`update_model.ipynb` sets them):
 - `splits_repo_id`: private dataset repo that receives the exact data of every
   run, as parquet files under `runs/<run name>/train/` (what the model was
   trained on) and `runs/<run name>/eval/` (what it was evaluated on)
+- `model_repo_id`: model repo the run is meant for; its URL is shown with the
+  run's config on the dashboard
 
 #### Finding the data of a published model
 

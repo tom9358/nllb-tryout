@@ -17,6 +17,7 @@ import json
 import re
 import subprocess
 import tempfile
+from urllib.parse import urlencode
 from pathlib import Path
 
 import pandas as pd
@@ -94,6 +95,9 @@ def start_run(
             eval_corpora, repo_id, f"runs/{run_name}/eval", ("validate",)
         )
     config.setdefault("git_commit", _git_commit())
+    if config.get("model_repo_id"):
+        # Shown on the Trackio Runs page; the model may not be uploaded yet.
+        config["model_url"] = f"https://huggingface.co/{config['model_repo_id']}"
     write_json(config_path, config)
 
     trackio.init(
@@ -131,6 +135,11 @@ def _commit_url(sha: str | None) -> str | None:
     return f"{remote}/commit/{sha}" if remote.startswith("https://github.com/") else None
 
 
+def _dashboard_url(space_id: str, project: str, run_name: str) -> str:
+    query = urlencode({"project": project, "run_filter": run_name})
+    return f"https://huggingface.co/spaces/{space_id}?{query}"
+
+
 def _card_section(repo_id: str, run_dirs: list[str]) -> str:
     lines = [
         _CARD_START,
@@ -162,8 +171,8 @@ def _card_section(repo_id: str, run_dirs: list[str]) -> str:
                 )
         if cfg.get("trackio_space_id"):
             lines.append(
-                f"- Loss and scores: Trackio project `{cfg['tracking_project']}`, run `{name}`"
-                f" on https://huggingface.co/spaces/{cfg['trackio_space_id']}"
+                f"- Loss and scores: [run `{name}` on the Trackio dashboard]"
+                f"({_dashboard_url(cfg['trackio_space_id'], cfg['tracking_project'], name)})"
             )
         sha = cfg.get("git_commit")
         if sha:
