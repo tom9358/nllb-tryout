@@ -19,7 +19,6 @@ dependencies = [
     "huggingface_hub",
     "pyarrow",
     "trackio",
-    "nvidia-ml-py>=13.615.71",
 ]
 
 [build-system]

@@ -101,6 +101,9 @@ def start_run(
         name=run_name,
         config=config,
         resume="allow",
+        # The synced dashboard is public: don't publish hardware details.
+        auto_log_cpu=False,
+        auto_log_gpu=False,
     )
     _active = {
         "project": config["tracking_project"],
