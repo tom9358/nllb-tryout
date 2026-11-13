@@ -7,6 +7,7 @@ import torch
 from tqdm.auto import trange
 from transformers import Adafactor, get_constant_schedule_with_warmup
 
+from . import tracking
 from .artifacts import (
     format_run_config_txt,
     init_run_dir,
@@ -531,6 +532,7 @@ def train_model(
                 {"step": total_steps, "epoch": epoch + 1, "loss": loss_value}
             )
             tq.set_postfix({"loss": np.mean(losses[-25:])})
+            tracking.log_train(total_steps, epoch + 1, loss_value)
             total_steps += 1
 
         print(f"Saving after epoch {epoch + 1}")
@@ -575,6 +577,7 @@ def main_train(
     if verbose:
         print("ron_config.json and run_config.txt saved")
 
+    tracking.start_run(cfg.run_dir, train_corpora=corpus_objects)
     model_source, similar_lang = _get_model_initialization(cfg)
     model, tokenizer = setup_model_and_tokenizer(
         model_source,
@@ -584,3 +587,4 @@ def main_train(
         device=cfg.device,
     )
     train_model(model, tokenizer, corpus_objects, cfg, verbose=verbose)
+    tracking.finish()

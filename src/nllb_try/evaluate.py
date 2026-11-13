@@ -14,6 +14,7 @@ import pandas as pd
 import torch
 from sacrebleu import corpus_bleu, corpus_chrf
 
+from . import tracking
 from .artifacts import write_json
 from .augmentation import preproc
 from .config import get_default_config
@@ -335,6 +336,9 @@ def main_evaluate(
 
     df_results.to_csv(eval_dir / "metrics.csv", index=False)
 
+    if tracking.start_run(run_dir, eval_corpora=corpus_objects):
+        tracking.log_eval(df_results)
+        tracking.finish()
     for i, corpus in enumerate(corpus_objects):
         src = corpus.source_lang_nllb
         tgt = corpus.target_lang_nllb

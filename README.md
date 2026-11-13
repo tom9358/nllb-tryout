@@ -40,6 +40,54 @@ By default, `.csv` uses `;` and `.tsv` uses a tab. Use
 `--parallel-data-separator` to override the delimiter for all configured
 parallel files.
 
+### Experiment tracking
+
+Tatoeba keeps growing and is not archived, so every new download gives a
+different train/validation split. To keep runs reproducible, tracking can be
+switched on with three `RunConfig` fields (`update_model.ipynb` sets them):
+
+- `tracking_project`: Trackio project; loss and evaluation scores are logged
+  with [Trackio](https://huggingface.co/docs/trackio)
+- `trackio_space_id`: Space that the dashboard is synced to after every
+  training/evaluation step. This is a static Space: free, but public (metrics
+  and run configs only). Unset: local dashboard only (`uv run trackio show`)
+- `splits_repo_id`: private dataset repo that receives the exact data of every
+  run, as parquet files under `runs/<run name>/train/` (what the model was
+  trained on) and `runs/<run name>/eval/` (what it was evaluated on)
+- `model_repo_id`: model repo the run is meant for; its URL is shown with the
+  run's config on the dashboard
+
+#### Finding the data of a published model
+
+Each model upload from `update_model.ipynb` links the model to its data in
+two places in the model repo:
+
+- the model card gets a generated *Training data and runs* section. For each
+  training stage it links to the exact training and evaluation data, the
+  Trackio run and the code commit;
+- `training/<run name>/run_config.json` contains the full configuration,
+  including `splits_repo_id`, `train_data_revision` and `eval_data_revision`.
+
+The revisions are dataset-repo commits, so the links keep pointing at the
+same data even after later runs are added. Each run has its own folder in
+one dataset repo, and one Trackio project holds all runs.
+
+To load the data in Python, replace `<run name>` with the name of the
+`training/` folder and take the revision from that `run_config.json`:
+
+```python
+import pandas as pd
+from huggingface_hub import snapshot_download
+
+folder = snapshot_download(
+    "Tom9358/nllb-gos-nld-runs",
+    repo_type="dataset",
+    revision="<eval_data_revision from run_config.json>",
+    allow_patterns="runs/<run name>/eval/*",
+)
+df = pd.read_parquet(f"{folder}/runs/<run name>/eval/corpus0_tatoeba_nld_Latn-gos_Latn_validate.parquet")
+```
+
 ## Thanks
 
 A heartfelt thanks to the authors in Kreuze, to the team behind Woordwaark, and to the hoster of dideldom! Without you, I would have been nowhere.
