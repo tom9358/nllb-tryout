@@ -28,6 +28,11 @@ class RunConfig:
     parallel_data_separator: str | None = None
     model_cache_path: str = "hfacemodels"
 
+    # Experiment tracking (opt-in, see tracking.py)
+    tracking_project: str | None = None
+    trackio_space_id: str | None = None  # None keeps the dashboard local
+    splits_repo_id: str | None = None  # private HF dataset repo for exact splits
+
     # Run identity
     run_id: str = datetime.now(timezone.utc).astimezone().strftime("%Y%m%d-%H%M%S")
 

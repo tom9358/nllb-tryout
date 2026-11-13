@@ -15,7 +15,10 @@ dependencies = [
     "accelerate",
     "requests",
     "sacremoses",
-    "python-dotenv"
+    "python-dotenv",
+    "huggingface_hub",
+    "pyarrow",
+    "trackio"
 ]
 
 [build-system]

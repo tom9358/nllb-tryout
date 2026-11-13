@@ -40,6 +40,37 @@ By default, `.csv` uses `;` and `.tsv` uses a tab. Use
 `--parallel-data-separator` to override the delimiter for all configured
 parallel files.
 
+### Experiment tracking
+
+Tatoeba keeps growing and is not archived, so every new download gives a
+different train/validation split. To keep runs reproducible, tracking can be
+switched on with three `RunConfig` fields (`update_model.ipynb` sets them):
+
+- `tracking_project`: Trackio project; loss and evaluation scores are logged
+  with [Trackio](https://huggingface.co/docs/trackio)
+- `trackio_space_id`: Space hosting the dashboard (unset: local dashboard,
+  `uv run trackio show`)
+- `splits_repo_id`: private dataset repo that receives the exact data of every
+  run, as parquet files under `runs/<run name>/train/` (what the model was
+  trained on) and `runs/<run name>/eval/` (what it was evaluated on)
+
+The upload step of `update_model.ipynb` puts each run's `run_config.json` in
+the model repo under `training/<run name>/`. It contains `splits_repo_id`,
+`train_data_revision` and `eval_data_revision`. To get the data back:
+
+```python
+import pandas as pd
+from huggingface_hub import snapshot_download
+
+folder = snapshot_download(
+    "Tom9358/nllb-gos-nld-runs",
+    repo_type="dataset",
+    revision="<eval_data_revision from run_config.json>",
+    allow_patterns="runs/<run name>/eval/*",
+)
+df = pd.read_parquet(f"{folder}/runs/<run name>/eval/corpus0_tatoeba_nld_Latn-gos_Latn_validate.parquet")
+```
+
 ## Thanks
 
 A heartfelt thanks to the authors in Kreuze, to the team behind Woordwaark, and to the hoster of dideldom! Without you, I would have been nowhere.
