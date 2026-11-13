@@ -55,9 +55,23 @@ switched on with three `RunConfig` fields (`update_model.ipynb` sets them):
   run, as parquet files under `runs/<run name>/train/` (what the model was
   trained on) and `runs/<run name>/eval/` (what it was evaluated on)
 
-The upload step of `update_model.ipynb` puts each run's `run_config.json` in
-the model repo under `training/<run name>/`. It contains `splits_repo_id`,
-`train_data_revision` and `eval_data_revision`. To get the data back:
+#### Finding the data of a published model
+
+Each model upload from `update_model.ipynb` links the model to its data in
+two places in the model repo:
+
+- the model card gets a generated *Training data and runs* section. For each
+  training stage it links to the exact training and evaluation data, the
+  Trackio run and the code commit;
+- `training/<run name>/run_config.json` contains the full configuration,
+  including `splits_repo_id`, `train_data_revision` and `eval_data_revision`.
+
+The revisions are dataset-repo commits, so the links keep pointing at the
+same data even after later runs are added. Each run has its own folder in
+one dataset repo, and one Trackio project holds all runs.
+
+To load the data in Python, replace `<run name>` with the name of the
+`training/` folder and take the revision from that `run_config.json`:
 
 ```python
 import pandas as pd
