@@ -2,9 +2,9 @@
 
 When ``tracking_project`` is set in ``RunConfig``:
 
-* training loss and evaluation scores are logged with Trackio
-  (https://huggingface.co/docs/trackio), to the ``trackio_space_id`` Space
-  or, if that is unset, to a local dashboard;
+* training loss and evaluation scores are logged locally with Trackio
+  (https://huggingface.co/docs/trackio) and, when ``trackio_space_id`` is set,
+  synced to that (public, static) Space at the end of every train/eval step;
 * when ``splits_repo_id`` is also set, the exact data of every run is uploaded
   to that private dataset repo, under ``runs/<run name>/train/`` (the corpora
   the model was trained on) and ``runs/<run name>/eval/`` (the validation
@@ -22,7 +22,7 @@ import pandas as pd
 
 from .artifacts import write_json
 
-_active = False
+_active: dict | None = None
 
 
 def _git_commit() -> str | None:
@@ -99,11 +99,9 @@ def start_run(
         project=config["tracking_project"],
         name=run_name,
         config=config,
-        space_id=config.get("trackio_space_id"),
-        private=True,
         resume="allow",
     )
-    _active = True
+    _active = {"project": config["tracking_project"], "space_id": config.get("trackio_space_id")}
     return True
 
 
@@ -137,4 +135,7 @@ def finish() -> None:
         import trackio
 
         trackio.finish()
-        _active = False
+        if _active["space_id"]:
+            # Live (Gradio) Spaces need HF PRO; static Spaces are free but public.
+            trackio.sync(project=_active["project"], space_id=_active["space_id"], sdk="static")
+        _active = None

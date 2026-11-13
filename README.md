@@ -48,8 +48,9 @@ switched on with three `RunConfig` fields (`update_model.ipynb` sets them):
 
 - `tracking_project`: Trackio project; loss and evaluation scores are logged
   with [Trackio](https://huggingface.co/docs/trackio)
-- `trackio_space_id`: Space hosting the dashboard (unset: local dashboard,
-  `uv run trackio show`)
+- `trackio_space_id`: Space that the dashboard is synced to after every
+  training/evaluation step. This is a static Space: free, but public (metrics
+  and run configs only). Unset: local dashboard only (`uv run trackio show`)
 - `splits_repo_id`: private dataset repo that receives the exact data of every
   run, as parquet files under `runs/<run name>/train/` (what the model was
   trained on) and `runs/<run name>/eval/` (what it was evaluated on)
