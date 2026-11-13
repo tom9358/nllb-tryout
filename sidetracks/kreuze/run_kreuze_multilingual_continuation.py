@@ -3,28 +3,13 @@
 import argparse
 import json
 import os
-import sys
-from dataclasses import replace
-from datetime import datetime, timezone
 from pathlib import Path
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
 os.chdir(REPO_ROOT)
-sys.path.insert(0, str(REPO_ROOT))
 
-from nllb_try.config import RunConfig
-from nllb_try.corpus import (
-    BaseParallelCorpus,
-    ParallelFileCorpus,
-    TatoebaCorpus,
-    main_corpus,
-    pool_parallel_data_into_tatoeba,
-)
-from nllb_try.train import get_training_budget, main_train
-from sidetracks.kreuze.run_kreuze_multilingual_experiment import (
-    FOCUS_PAIR,
-    _get_single_focus_corpus,
-)
+from nllb_try.recipe import build_continuation, print_plan
+from nllb_try.train import main_train
 
 
 def find_latest_run(variant: str, modelname: str) -> Path:
@@ -46,95 +31,6 @@ def find_latest_run(variant: str, modelname: str) -> Path:
             f"No completed Phase 2 {variant} run found for {modelname}."
         )
     return max(candidates, key=lambda path: path.stat().st_mtime)
-
-
-def get_source_checkpoint(
-    source_run: Path, source_config: dict, source_epoch: int | None = None
-) -> tuple[Path, int]:
-    final_epoch = source_config["num_epochs"]
-    source_epoch = final_epoch if source_epoch is None else source_epoch
-    if not 1 <= source_epoch <= final_epoch:
-        raise ValueError(
-            f"source_epoch must be between 1 and {final_epoch}, got {source_epoch}."
-        )
-    source_checkpoint = source_run / "checkpoints" / f"epoch{source_epoch}"
-    if not source_checkpoint.is_dir():
-        raise FileNotFoundError(f"Missing source checkpoint: {source_checkpoint}")
-    return source_checkpoint, source_epoch
-
-
-def build_continuation(
-    variant: str, source_run: Path, device: str, source_epoch: int | None = None
-) -> tuple[list[BaseParallelCorpus], RunConfig]:
-    source_config = json.loads((source_run / "run_config.json").read_text())
-    source_checkpoint, source_epoch = get_source_checkpoint(
-        source_run, source_config, source_epoch
-    )
-
-    expected_source = "control" if variant == "control" else "pooled"
-    expected_experiment = f"kreuze-phase2-{expected_source}"
-    if source_config.get("experiment") != expected_experiment:
-        raise ValueError(
-            f"{variant} continuation requires {expected_experiment}, found "
-            f"{source_config.get('experiment')!r}."
-        )
-
-    timestamp = datetime.now(timezone.utc).astimezone().strftime("%Y%m%d-%H%M%S")
-    cfg = RunConfig(
-        seed=source_config["seed"],
-        modelname=source_config["modelname"],
-        initial_model_path=str(source_checkpoint),
-        source_langs_tatoeba=tuple(source_config["source_langs_tatoeba"]),
-        source_langs_nllb=tuple(source_config["source_langs_nllb"]),
-        new_lang_nllb=source_config["new_lang_nllb"],
-        similar_lang_nllb=source_config["similar_lang_nllb"],
-        tatoeba_path=source_config["tatoeba_path"],
-        parallel_data_paths=tuple(source_config["parallel_data_paths"]),
-        parallel_data_separator=source_config.get("parallel_data_separator"),
-        model_cache_path=source_config["model_cache_path"],
-        batch_size=256,
-        learning_rate=1e-4,
-        num_epochs=1,
-        warmup_steps=0,
-        max_length=48,
-        sampling_strategy="focus_total",
-        sampling_temperature=5.0,
-        focus_lang_pair=FOCUS_PAIR,
-        direction_strategy="alternating",
-        direction_epoch_offset=source_epoch,
-        device=device,
-        run_id=(
-            f"kreuze-phase2b-{variant}-from-epoch{source_epoch}-"
-            f"seed{source_config['seed']}-{timestamp}"
-        ),
-    )
-
-    all_corpora = main_corpus(
-        source_langs_tatoeba=cfg.source_langs_tatoeba,
-        source_langs_nllb=cfg.source_langs_nllb,
-        parallel_data_paths=cfg.parallel_data_paths,
-        cfg=cfg,
-    )
-    tatoeba = [corpus for corpus in all_corpora if isinstance(corpus, TatoebaCorpus)]
-    parallel = [
-        corpus for corpus in all_corpora if isinstance(corpus, ParallelFileCorpus)
-    ]
-    if len(tatoeba) != 10 or len(parallel) != 1:
-        raise RuntimeError(
-            "Phase 2b expects ten Tatoeba corpora and one parallel corpus, "
-            f"found {len(tatoeba)} and {len(parallel)}."
-        )
-
-    clean_focus_size = len(_get_single_focus_corpus(tatoeba).df_train)
-    cfg = replace(cfg, target_samples_per_epoch=2 * clean_focus_size)
-
-    if variant in {"clean", "control"}:
-        corpora: list[BaseParallelCorpus] = tatoeba
-    elif variant == "pooled":
-        corpora = pool_parallel_data_into_tatoeba(all_corpora)
-    else:
-        raise ValueError(f"Unknown variant: {variant}")
-    return corpora, cfg
 
 
 def main() -> None:
@@ -164,17 +60,7 @@ def main() -> None:
     corpora, cfg = build_continuation(
         args.variant, source_run, args.device, source_epoch=args.source_epoch
     )
-    budget = get_training_budget(corpora, cfg)
-    print(f"\nKreuze Phase 2b: {args.variant}")
-    print(f"  Source checkpoint: {cfg.initial_model_path}")
-    print(f"  Learning rate:     {cfg.learning_rate}")
-    print(f"  Samples:           {budget['samples_per_epoch']:,}")
-    print(f"  Total steps:       {budget['total_steps']:,}")
-    for corpus, sample_count in zip(corpora, budget["sample_counts"]):
-        print(
-            f"  {corpus.source_lang_nllb}↔{corpus.target_lang_nllb}: "
-            f"{sample_count:,} samples"
-        )
+    print_plan(f"Kreuze Phase 2b: {args.variant}", corpora, cfg)
     if args.dry_run:
         return
 

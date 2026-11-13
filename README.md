@@ -14,6 +14,11 @@ It was trained on about 13.000 Gronings-Dutch sentence pairs from [Tatoeba](http
 
 I tried my best to check for naturalness and spelling using the Gronings online dictionary and corpus [Woordwaark](https://woordwaark.nl/), and the Gronings-language website [dideldom.nu](https://dideldom.nu/). Particularly the [Kreuze](https://dideldom.nu/kreuze) Gronings magazines hosted there I found very useful, and I wrote a little [search interface](https://tom9358.pythonanywhere.com/) to easily find example sentences in those magazines. I never copied any sentences and instead always formulated analogous ones myself.
 
+The released model is trained with `update_model.ipynb`, which runs the recipe in
+`src/nllb_try/recipe.py`: a pooled stage on Tatoeba plus synthetic data, then a
+one-epoch Tatoeba-only finish. Languages, model and data paths are set in the
+notebook; all Tatoeba pairs between the chosen languages are used.
+
 ### Additional parallel data
 
 Training can include one or more parallel-data files or directories:
