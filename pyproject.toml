@@ -18,7 +18,8 @@ dependencies = [
     "python-dotenv",
     "huggingface_hub",
     "pyarrow",
-    "trackio"
+    "trackio",
+    "nvidia-ml-py>=13.615.71",
 ]
 
 [build-system]
