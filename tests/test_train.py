@@ -7,17 +7,12 @@ import pandas as pd
 
 from nllb_try.config import RunConfig
 from nllb_try.corpus import BaseParallelCorpus
+from nllb_try.recipe import _get_pooled_focus_size, get_source_checkpoint
 from nllb_try.train import (
     _get_direction_mask,
     _get_model_initialization,
     get_balanced_df,
     get_training_budget,
-)
-from sidetracks.kreuze.run_kreuze_multilingual_continuation import (
-    get_source_checkpoint,
-)
-from sidetracks.kreuze.run_kreuze_multilingual_experiment import (
-    _get_pooled_focus_size,
 )
 
 
@@ -141,7 +136,9 @@ class TrainingBudgetTests(unittest.TestCase):
         ]
 
         expected = len(corpora[0].df_train) + len(corpora[1].df_train)
-        self.assertEqual(_get_pooled_focus_size(corpora), expected)
+        self.assertEqual(
+            _get_pooled_focus_size(corpora, ("nld_Latn", "gos_Latn")), expected
+        )
 
 
 class ModelInitializationTests(unittest.TestCase):
