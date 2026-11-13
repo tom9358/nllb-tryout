@@ -215,16 +215,15 @@ _SCORE_COLUMN = re.compile(
 
 
 def _metric_names(columns) -> dict[str, str]:
-    """Map score columns to readable names such as ``chrF/nld→gos``."""
+    """Map score columns to readable names such as ``chrF (validation)/nld→gos``."""
     names = {}
     for col in columns:
         m = _SCORE_COLUMN.match(col)
         if not m:
             continue
         corpus, split, metric, src, tgt = m.groups()
-        name = f"{'BLEU' if metric == 'bleu' else 'chrF'}/{src.split('_')[0]}→{tgt.split('_')[0]}"
-        if split == "train":
-            name += " (train set)"
+        group = f"{'BLEU' if metric == 'bleu' else 'chrF'} ({'train' if split == 'train' else 'validation'})"
+        name = f"{group}/{src.split('_')[0]}→{tgt.split('_')[0]}"
         names[col] = (name, corpus)
     counts = {}
     for name, _ in names.values():
