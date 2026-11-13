@@ -1,6 +1,9 @@
 # custom
 hfacemodels/
 models/
+# Run outputs and downloads; tracked runs are kept in Trackio and on the Hub.
+checkpoints/
+data/tatoeba/
 
 __pycache__/
 .env

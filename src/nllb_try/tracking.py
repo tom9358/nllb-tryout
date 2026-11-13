@@ -14,6 +14,7 @@ When ``tracking_project`` is set in ``RunConfig``:
 from __future__ import annotations
 
 import json
+import re
 import subprocess
 import tempfile
 from pathlib import Path
@@ -101,7 +102,12 @@ def start_run(
         config=config,
         resume="allow",
     )
-    _active = {"project": config["tracking_project"], "space_id": config.get("trackio_space_id")}
+    _active = {
+        "project": config["tracking_project"],
+        "space_id": config.get("trackio_space_id"),
+        "config_path": config_path,
+        "epoch_end_steps": {},
+    }
     return True
 
 
@@ -199,24 +205,52 @@ def log_train(step: int, epoch: int, loss: float) -> None:
     if _active:
         import trackio
 
-        trackio.log({"train/loss": loss, "train/epoch": epoch}, step=step)
+        trackio.log({"train/loss": loss}, step=step)
+        _active["epoch_end_steps"][str(epoch)] = step
+
+
+_SCORE_COLUMN = re.compile(
+    r"^(corpus\d+)_(train|validate)_(bleu|chrf)_(\S+?)_to_(\S+?)_(?:src_to_tgt|tgt_to_src)$"
+)
+
+
+def _metric_names(columns) -> dict[str, str]:
+    """Map score columns to readable names such as ``chrF/nld→gos``."""
+    names = {}
+    for col in columns:
+        m = _SCORE_COLUMN.match(col)
+        if not m:
+            continue
+        corpus, split, metric, src, tgt = m.groups()
+        name = f"{'BLEU' if metric == 'bleu' else 'chrF'}/{src.split('_')[0]}→{tgt.split('_')[0]}"
+        if split == "train":
+            name += " (train set)"
+        names[col] = (name, corpus)
+    counts = {}
+    for name, _ in names.values():
+        counts[name] = counts.get(name, 0) + 1
+    # Same language pair in several corpora: add the corpus to tell them apart.
+    return {
+        col: name if counts[name] == 1 else f"{name} ({corpus})"
+        for col, (name, corpus) in names.items()
+    }
 
 
 def log_eval(df_results: pd.DataFrame) -> None:
-    """Log one entry per evaluated checkpoint (``eval/epoch`` 0 is the baseline)."""
+    """Log the scores of every evaluated checkpoint at the training step where
+    that checkpoint was saved (the baseline at step 0)."""
     if not _active:
         return
     import trackio
 
+    config = json.loads(_active["config_path"].read_text(encoding="utf-8"))
+    epoch_end_steps = config.get("epoch_end_steps", {})
+    names = _metric_names(df_results.columns)
     for _, row in df_results.iterrows():
         name = str(row["Training Steps"])
-        metrics = {
-            f"eval/{k}": float(v)
-            for k, v in row.items()
-            if k != "Training Steps" and pd.notna(v)
-        }
-        metrics["eval/epoch"] = 0 if name == "baseline" else int(name.removeprefix("epoch"))
-        trackio.log(metrics)
+        step = 0 if name == "baseline" else epoch_end_steps.get(name.removeprefix("epoch"))
+        metrics = {names[k]: float(v) for k, v in row.items() if k in names and pd.notna(v)}
+        trackio.log(metrics, step=step)
 
 
 def finish() -> None:
@@ -225,6 +259,10 @@ def finish() -> None:
         import trackio
 
         trackio.finish()
+        if _active["epoch_end_steps"]:
+            config = json.loads(_active["config_path"].read_text(encoding="utf-8"))
+            config["epoch_end_steps"] = _active["epoch_end_steps"]
+            write_json(_active["config_path"], config)
         if _active["space_id"]:
             # Live (Gradio) Spaces need HF PRO; static Spaces are free but public.
             trackio.sync(project=_active["project"], space_id=_active["space_id"], sdk="static")
